@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jira_report_generator"
+version = "1.0.0"
+authors = [
+  { name="Denis Maitak", email="denis.maitak@gmail.com" },
+]
+description = "Just JIRA project report generator."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "jira==3.4.1",
+    "pandas==1.5.2",
+    "python-decouple==3.7",
+    "jinja2==3.1.2",
+    "flake8==6.0.0",
+]
+
+[project.scripts]
+jira-report-generator = "jira_report_generator.app:main"
+
+[project.urls]
+"Homepage" = "https://github.com/denismaitak/jira-report-generator"
+"Bug Tracker" = "https://github.com/denismaitak/jira-report-generator/issues"
+
+[tool.setuptools.package-data]
+"jira_report_generator.static" = ["*.js", "*.css", "*.html"]

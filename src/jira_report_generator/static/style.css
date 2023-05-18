@@ -1,0 +1,143 @@
+html * {
+  font-size: 14px !important;
+}
+
+body {
+  margin: 0.5em;
+}
+
+table {
+  border-collapse: collapse;
+  margin-bottom: 0.5em;
+}
+
+table:last-child {
+  margin-bottom: 0;
+}
+
+table {
+  width: 100%;
+}
+
+section {
+  margin-bottom: 0.5em;
+}
+
+section:last-child {
+  margin-bottom: none;
+}
+
+tr:hover > td {
+  background: #eee transparent;
+}
+
+td, th { 
+  padding: .2em .5em; 
+  border: 1px solid #ccc;
+}
+
+th {
+  text-align: left;
+  background: #eee;
+  font-weight: bold;
+}
+th.subheader {
+  font-weight: normal;
+}
+
+tr.summary {
+  border-top: 2px solid #ccc;
+  font-weight: bold;
+}
+
+th small {
+  font-weight: normal;
+}
+
+table.component th.summary {
+  width: auto;
+}
+table.component th.version {
+  width: auto;
+}
+table.component th.status {
+  width: 6%;
+}
+table.component th.key {
+  width: 4%;
+}
+table.component th.hours {
+  width: 2.5em;
+}
+table.component td.summary {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 25em;
+    white-space: nowrap;
+}
+
+table.issues th.hours {
+  width: 5em;
+}
+
+table.assignees th.hours {
+  width: 5em;
+}
+
+table.versions th.hours {
+  width: 4em;
+}
+
+table.epics th.hours {
+  width: 5em;
+}
+
+table.backlog {
+  width: auto;
+  max-width: 100%;
+}
+
+tr.highlighted,
+tr.highlighted:hover {
+  background-color: aqua;
+}
+
+tr.highlighted td.in-progress {
+  background-color: rgba(255, 213, 128, 0.8);
+}
+tr.highlighted td.done {
+  background-color: rgba(144, 238, 144, 0.8);
+}
+
+tr.highlighted-epic,
+tr.highlighted-epic:hover {
+  background-color: aqua;
+}
+
+tr.highlighted td.in-progress {
+  background-color: rgba(255, 213, 128, 0.8);
+}
+tr.highlighted td.done {
+  background-color: rgba(144, 238, 144, 0.8);
+}
+
+td.in-progress {
+  background-color: #ffd580;
+}
+
+td.done {
+  background-color: lightgreen;
+}
+
+.danger {
+  color: red;
+}
+.warning {
+  color: orange;
+}
+.success {
+  color: green;
+}
+.nowrap {
+  white-space: nowrap;
+}
