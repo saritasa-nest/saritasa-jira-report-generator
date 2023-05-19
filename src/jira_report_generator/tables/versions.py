@@ -186,7 +186,7 @@ def generate_versions_table(df: DataFrame, versions: list):
         # overtime
         row.append(TD(
             round(overtime, OVERTIME_NDIGITS)
-            if version.released
+            if overtime is not None and version.released
             else ""
         ))
 
