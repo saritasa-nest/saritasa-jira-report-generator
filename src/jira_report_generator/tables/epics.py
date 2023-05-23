@@ -20,6 +20,7 @@ def generate_epics_table(df: DataFrame):
 
     header.append(TH("Epic"))
     header.append(TH("Jira ID"))
+    header.append(TH("Status", **{"class": "status"}))
     header.append(TH("Tasks"))
     header.append(TH("Testing"))
     header.append(TH("Completed"))
@@ -46,6 +47,7 @@ def generate_epics_table(df: DataFrame):
 
         row.append(TD(epic.summary))
         row.append(TD(A(epic.key, href=epic.link)))
+        row.append(TD(epic.status, **{"class": "status nowrap"}))
         row.append(TD(epic_tasks.id.count()))
         row.append(TD(
             epic_qa_tasks.id.count()
