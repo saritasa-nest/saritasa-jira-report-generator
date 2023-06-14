@@ -1,10 +1,10 @@
 from pandas import DataFrame
 
 from ..constants import Status
-from ..utils.tags import TD, TH, TR, A
+from ..utils.tags import TD, TH, TR, A, Table
 
 
-def generate_epics_table(df: DataFrame):
+def generate_epics_table(df: DataFrame, **table_options: str):
     rows = []
     header = TR()
     epics = df[df["type"].apply(lambda x: x.name == "Epic")]
@@ -65,4 +65,4 @@ def generate_epics_table(df: DataFrame):
 
         rows.append(row)
 
-    return rows
+    return Table(rows, **table_options)

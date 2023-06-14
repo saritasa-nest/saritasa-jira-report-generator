@@ -3,10 +3,14 @@ from pandas import DataFrame
 
 from ..utils.colors import get_danger_color_class
 from ..utils.tables import generate_component_columns
-from ..utils.tags import TD, TH, TR
+from ..utils.tags import TD, TH, TR, Table
 
 
-def generate_assignees_table(df: DataFrame, assignees: list):
+def generate_assignees_table(
+    df: DataFrame,
+    assignees: list,
+    **table_options: str,
+):
     rows = []
     header = TR()
     subheader = TR()
@@ -81,4 +85,4 @@ def generate_assignees_table(df: DataFrame, assignees: list):
             )
         )
 
-    return rows
+    return Table(rows, **table_options)
