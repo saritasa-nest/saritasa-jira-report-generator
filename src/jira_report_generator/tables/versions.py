@@ -4,7 +4,7 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
-from ..utils.tags import TD, TH, TR
+from ..utils.tags import TD, TH, TR, Table
 
 HOURS_NDIGITS = 1
 OVERTIME_NDIGITS = 2
@@ -99,7 +99,11 @@ def generate_component_columns(
     return columns
 
 
-def generate_versions_table(df: DataFrame, versions: list):
+def generate_versions_table(
+    df: DataFrame,
+    versions: list,
+    **table_options: str,
+):
     rows = []
     header = TR()
     subheader = TR()
@@ -274,4 +278,4 @@ def generate_versions_table(df: DataFrame, versions: list):
 
     rows.append(row)
 
-    return rows
+    return Table(rows, **table_options)

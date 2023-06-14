@@ -3,20 +3,30 @@ import logging
 import os
 import sys
 from logging import Formatter, StreamHandler
-from typing import Dict, List
 
 from decouple import config
 from jinja2 import Environment, FileSystemLoader
 from jira import JIRA
-from pandas import DataFrame
-
-from .constants import Status
 from .tables.assignees import generate_assignees_table
 from .tables.backlog import generate_backlog_table
 from .tables.epics import generate_epics_table
 from .tables.issues import generate_issues_table
 from .tables.statuses import generate_statuses_table
 from .tables.versions import generate_versions_table
+from pandas import DataFrame
+
+from .constants import JIRA_FETCH_FIELDS
+from .utils.data import (
+    prepare_statuses_table_data,
+    prepare_assignees_table_data,
+    prepare_issues_table_data,
+    prepare_backlog_table_data,
+    prepare_not_finished_statuses_data,
+    prepare_components_data,
+    get_dataframe,
+    get_versioned_issues,
+    render_template,
+)
 from .utils.tags import Table
 
 SERVER_URL = str(config("SERVER_URL"))
@@ -41,7 +51,7 @@ parser.add_argument(
 
 env = Environment(
     loader=FileSystemLoader(
-        os.path.join(os.path.dirname(__file__),"static"),
+        os.path.join(os.path.dirname(__file__), "static"),
     ),
 )
 
@@ -53,7 +63,7 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
-def get_data(project_key: str) -> Dict[str, list]:
+def get_data(project_key: str) -> dict[str, list]:
     logger.info(f"Connect to Jira ({project_key})")
 
     jira = JIRA(server=SERVER_URL, basic_auth=(EMAIL, API_TOKEN))
@@ -71,6 +81,7 @@ def get_data(project_key: str) -> Dict[str, list]:
             f"project={project_key}",
             startAt=offset,
             maxResults=page_size,
+            fields=JIRA_FETCH_FIELDS,
         )
         result["issues"] += issues
         offset += page_size
@@ -89,77 +100,95 @@ def get_data(project_key: str) -> Dict[str, list]:
     return result
 
 
-def get_dataframe(data: list) -> DataFrame:
-    result = []
+def construct_tables(
+    issues_dataframe: DataFrame,
+    versions: list,
+) -> list[Table]:
+    """Construct tables from data."""
+    versioned_df = get_versioned_issues(issues_dataframe)
+    tables = []
+    components = prepare_components_data(versioned_df)
+    not_finished_statuses = prepare_not_finished_statuses_data(
+        versioned_df,
+    )
 
-    logger.info("Prepare Pandas dataframe")
+    if not versioned_df.empty:
 
-    for item in data:
-        estimate = (
-            item.fields.timeoriginalestimate / 60 / 60
-            if item.fields.timeoriginalestimate
-            else 0
-        )
-        spent = (
-            item.fields.timespent / 60 / 60
-            if item.fields.timespent
-            else 0
-        )
-        release_date = [
-            getattr(v, "releaseDate", None)
-            for v
-            in item.fields.fixVersions
-        ]
+        logger.info("Generate Versions table")
 
-        result.append({
-            "id": item.id,
-            "key": item.key,
-            "status": item.fields.status,
-            "summary": item.fields.summary,
-            "assignee": item.fields.assignee,
-            "components": item.fields.components,
-            "estimate": estimate,
-            "spent": spent,
-            "ratio": (
-                round(spent / estimate, 2)
-                if spent and estimate
-                else 0
+        # versions table
+        tables.append(
+            generate_versions_table(
+                versioned_df,
+                versions,
+                **{"class": "versions"},
             ),
-            "versions": item.fields.fixVersions,
-            "link": item.permalink(),
-            "type": item.fields.issuetype,
-            "parent": getattr(item.fields, "parent", None),
-            "release_date": release_date[0] if release_date else None,
-        })
+        )
 
-    df = DataFrame(result)
-
-    # only issues with versions
-    return df
-
-
-def get_versioned_issues(df: DataFrame) -> DataFrame:
-    return df[df["versions"].apply(lambda x: len(x) > 0)].sort_values(
-        by=["release_date", "id"],
+    # statuses table
+    logger.info("Generate Statuses table")
+    statuses_df = prepare_statuses_table_data(versioned_df)
+    tables.append(
+        generate_statuses_table(
+            statuses_df,
+            not_finished_statuses,
+            **{"class": "issues"},
+        ),
     )
 
+    # assignees table
+    assignee_table_df = prepare_assignees_table_data(versioned_df)
 
-def get_backlog(df: DataFrame) -> DataFrame:
-    return df[df["versions"].apply(lambda x: len(x) == 0)]
+    if not assignee_table_df.empty:
+        logger.info("Generate Assignee table")
 
+        tables.append(
+            generate_assignees_table(
+                assignee_table_df,
+                issues_dataframe.assignee.explode().unique().tolist(),
+                **{"class": "assignees"},
+            ),
+        )
 
-def render_template(tables: List[Table], title: str) -> str:
-    """Render template."""
-    template = env.get_template("template.html")
-    sections = map(str, tables)
-
-    return template.render(
-        title=title,
-        sections=sections,
+    # epics table
+    logger.info("Generate Epics table")
+    tables.append(
+        generate_epics_table(issues_dataframe, **{"class": "epics"}),
     )
 
+    # components table
+    logger.info("Generate Components table")
 
-def write_tables(tables: List[Table], filename: str, key: str):
+    for component in components:
+        tables.append(
+            generate_issues_table(
+                prepare_issues_table_data(versioned_df, component),
+                versions,
+                **{"class": "component"},
+            ),
+        )
+
+    # backlog table
+    backlog_df = prepare_backlog_table_data(issues_dataframe)
+
+    if not backlog_df.empty:
+        logger.info("Generate Backlog table")
+        tables.append(
+            generate_backlog_table(backlog_df, **{"class": "backlog"}),
+        )
+
+    return tables
+
+
+def get_tables(jira_project_key: str) -> list[Table]:
+    """Get tables."""
+    data = get_data(jira_project_key)
+    logger.info("Prepare Pandas dataframe")
+    df = get_dataframe(data["issues"])
+    return construct_tables(df, data["versions"])
+
+
+def write_tables(tables: list[Table], filename: str, key: str):
     """Write tables."""
 
     if not os.path.exists(OUTPUT_DIR):
@@ -171,105 +200,9 @@ def write_tables(tables: List[Table], filename: str, key: str):
     logger.info(f"Write to {filename}")
 
     with open(filename, "w", encoding="utf-8") as f:
-        f.write(render_template(tables, key))
-
-
-def get_tables(jira_project_key: str) -> List[Table]:
-    """Get tables."""
-    data = get_data(jira_project_key)
-    tables = []
-    df = get_dataframe(data["issues"])
-    versioned_df = get_versioned_issues(df)
-
-    # collect used components
-    components = sorted(list(filter(
-        lambda x: hasattr(x, "name"),
-        versioned_df.components.explode().unique().tolist()
-    )), key=lambda x: x.id)
-
-    # collect used statuses
-    statuses = versioned_df.status.explode().unique().tolist()
-
-    # current statuses
-    not_finished_statuses = list(filter(lambda x: x.name in (
-        Status.IN_PROGRESS.value,
-        Status.READY_FOR_DEVELOPMENT.value,
-    ), statuses))
-
-    if not versioned_df.empty:
-        logger.info("Generate Versions table")
-
-        # versions table
-        tables.append(Table(
-            generate_versions_table(
-                versioned_df,
-                data["versions"],
-            ),
-            **{"class": "versions"},
-        ))
-
-    # statuses table
-    logger.info("Generate Statuses table")
-    tables.append(Table(
-        generate_statuses_table(
-            versioned_df[versioned_df["components"].apply(
-                lambda x: len(x) > 0 and set(x).issubset(components),
-            )],
-            not_finished_statuses,
-        ),
-        **{"class": "issues"},
-    ))
-
-    # assignees table
-    assignee_table_issues = versioned_df[versioned_df["status"].apply(
-        lambda x: x in not_finished_statuses
-    )]
-
-    if not assignee_table_issues.empty:
-        logger.info("Generate Assignee table")
-
-        tables.append(Table(
-            generate_assignees_table(
-                assignee_table_issues,
-                versioned_df.assignee.explode().unique().tolist(),
-            ),
-            **{"class": "assignees"},
-        ))
-
-    # epics table
-    logger.info("Generate Epics table")
-    tables.append(Table(
-        generate_epics_table(df),
-        **{"class": "epics"},
-    ))
-
-    # components table
-    logger.info("Generate Components table")
-
-    for component in components:
-        tables.append(Table(
-            generate_issues_table(
-                versioned_df[versioned_df["components"].apply(
-                    lambda x: component in x
-                )],
-                data["versions"],
-            ),
-            **{"class": "component"},
-        ))
-
-    # backlog table
-    backlog_issues = get_backlog(df)
-
-    if not backlog_issues.empty:
-        logger.info("Generate Backlog table")
-        tables.append(Table(
-            generate_backlog_table(
-                backlog_issues.sort_values("id"),
-            ),
-            **{"class": "backlog"},
-        ))
-
-    return tables
+        f.write(
+            render_template(tables, key, env.get_template("template.html")),
+        )
 
 
 def main():

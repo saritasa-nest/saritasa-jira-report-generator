@@ -1,5 +1,17 @@
 from enum import Enum
 
+JIRA_FETCH_FIELDS = [
+    "status",
+    "summary",
+    "assignee",
+    "components",
+    "timeoriginalestimate",
+    "timespent",
+    "fixVersions",
+    "issuetype",
+    "parent",
+]
+
 
 class Status(Enum):
     VERIFIED = "Verified"

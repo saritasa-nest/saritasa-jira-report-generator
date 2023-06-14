@@ -2,10 +2,14 @@ from pandas import DataFrame
 
 from ..constants import Status
 from ..utils.formatters import format_name
-from ..utils.tags import TD, TH, TR, A
+from ..utils.tags import TD, TH, TR, A, Table
 
 
-def generate_issues_table(df: DataFrame, versions: list):
+def generate_issues_table(
+    df: DataFrame,
+    versions: list,
+    **table_options: str,
+):
     rows = []
 
     # table header
@@ -139,4 +143,4 @@ def generate_issues_table(df: DataFrame, versions: list):
 
         rows.append(tr)
 
-    return rows
+    return Table(rows, **table_options)

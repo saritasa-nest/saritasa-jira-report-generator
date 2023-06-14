@@ -1,10 +1,10 @@
 from pandas import DataFrame
 
 from ..utils.formatters import format_name
-from ..utils.tags import TD, TH, TR, A
+from ..utils.tags import TD, TH, TR, A, Table
 
 
-def generate_backlog_table(df: DataFrame) -> list:
+def generate_backlog_table(df: DataFrame, **table_options: str):
     rows = []
 
     # table header
@@ -63,4 +63,4 @@ def generate_backlog_table(df: DataFrame) -> list:
 
     rows.append(row)
 
-    return rows
+    return Table(rows, **table_options)

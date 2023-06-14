@@ -2,16 +2,20 @@ from pandas import DataFrame
 
 from ..utils.colors import get_danger_color_class
 from ..utils.tables import generate_component_columns
-from ..utils.tags import TD, TH, TR
+from ..utils.tags import TD, TH, TR, Table
 
 
-def generate_statuses_table(df: DataFrame, statuses: list):
+def generate_statuses_table(
+    df: DataFrame,
+    statuses: list,
+    **table_options: str,
+):
     rows = []
     header = TR()
     subheader = TR()
 
     if "status" not in df.columns:
-        return rows
+        return Table(rows, **table_options)
 
     issues = df[df["status"].apply(lambda x: x in statuses)]
     components = sorted(
@@ -20,7 +24,7 @@ def generate_statuses_table(df: DataFrame, statuses: list):
     )
 
     if issues.empty:
-        return rows
+        return Table(rows, **table_options)
 
     def _generate_row(name, df, components, estimate, spent, **attrs) -> TR:
         row = TR(**attrs)
@@ -90,4 +94,4 @@ def generate_statuses_table(df: DataFrame, statuses: list):
         )
     )
 
-    return rows
+    return Table(rows, **table_options)
