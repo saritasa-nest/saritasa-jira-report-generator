@@ -66,3 +66,19 @@ class Table(Tag):
 
     def append(self, row: TR):
         self.rows.append(row)
+
+
+class Div(Tag):
+    tag = "div"
+    elements = None
+
+    def __init__(self, *elements, **attrs):
+        self.elements = elements or []
+        self.attrs = attrs
+
+    def __str__(self):
+        self.value = "".join(map(str, self.elements))
+        return super().__str__()
+
+    def append(self, element):
+        self.rows.append(element)

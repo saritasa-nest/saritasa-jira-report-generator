@@ -2,7 +2,7 @@ from pandas import DataFrame
 
 from ..constants import Status
 from ..utils.formatters import format_name
-from ..utils.tags import TD, TH, TR, A, Table
+from ..utils.tags import TD, TH, TR, A, Table, Div
 
 
 def generate_issues_table(
@@ -11,37 +11,41 @@ def generate_issues_table(
     **table_options: str,
 ):
     rows = []
+    scrollable_rows = []
 
     # table header
-    header = TR()
-    header.append(TH("Summary", **{"class": "summary", "rowspan": 2}))
-    header.append(TH("Type", **{"class": "type", "rowspan": 2}))
-    header.append(TH("Jira ID", **{"class": "key", "rowspan": 2}))
-    header.append(TH("Status", **{"class": "status", "rowspan": 2}))
-    header.append(TH("Assignee", **{"class": "assignee", "rowspan": 2}))
+    header = TR(**{"class": "h60"})
+    header.append(TH("Summary", **{"class": "summary"}))
+    header.append(TH("Type", **{"class": "type"}))
+    header.append(TH("Jira ID", **{"class": "key"}))
+    header.append(TH("Status", **{"class": "status"}))
+    header.append(TH("Assignee", **{"class": "assignee"}))
 
+    rows.append(header)
+
+    # scrollable header
+    scrollable_header = TR(**{"class": "h40"})
     for version in versions:
         releaseDate = getattr(version, "releaseDate", "")
 
-        header.append(TH(
+        scrollable_header.append(TH(
             f"{version.name}<br/><small>{releaseDate}</small>",
             **{"class": "version", "colspan": 2},
         ))
 
-    rows.append(header)
+    scrollable_rows.append(scrollable_header)
 
-    # table subheader
-    subheader = TR()
-
+    # scrollable subheader
+    scrollable_subheader = TR(**{"class": "h20"})
     for version in versions:
         version_tasks = df[df["versions"].apply(lambda x: version in x)]
         estimate = round(version_tasks.estimate.sum(), 1)
         spent = round(version_tasks.spent.sum(), 1)
 
-        subheader.append(TH(estimate, **{
+        scrollable_subheader.append(TH(estimate, **{
             "class": "hours subheader",
         }))
-        subheader.append(TH(spent, **{
+        scrollable_subheader.append(TH(spent, **{
             "class": (
                 "hours subheader danger"
                 if estimate != 0 and spent > estimate
@@ -49,11 +53,24 @@ def generate_issues_table(
             )
         }))
 
-    rows.append(subheader)
+    scrollable_header.append(scrollable_subheader)
 
     # table body
     for _, item in df.iterrows():
         tr = TR(**{
+            "data-status-id": item.status.id,
+            "data-assignee-id": (
+                item.assignee.accountId
+                if item.assignee
+                else ""
+            ),
+            "data-parent-id": (
+                item.parent.id
+                if item.parent
+                else ""
+            ),
+        })
+        scrollable_tr = TR(**{
             "data-status-id": item.status.id,
             "data-assignee-id": (
                 item.assignee.accountId
@@ -115,32 +132,43 @@ def generate_issues_table(
                 divisor = len(item.versions)
 
                 attrs = {
-                    "class": f"version {background}",
+                    "class": f"hours version {background}",
                 }
 
                 spent_attrs = dict(attrs)
 
                 if (item.estimate != 0 and item.spent > item.estimate):
                     spent_attrs.update({
-                        "class": f"version danger {background}",
+                        "class": f"hours version danger {background}",
                     })
 
-                tr.append(
+                scrollable_tr.append(
                     TD(
                         round(item.estimate / divisor, 1),
                         **attrs,
                     )
                 )
-                tr.append(
+                scrollable_tr.append(
                     TD(
                         round(item.spent / divisor, 1),
                         **spent_attrs,
                     )
                 )
             else:
-                tr.append(TD(""))
-                tr.append(TD(""))
+                scrollable_tr.append(TD("", **{"class": "hours"}))
+                scrollable_tr.append(TD("", **{"class": "hours"}))
 
         rows.append(tr)
+        scrollable_rows.append(scrollable_tr)
 
-    return Table(rows, **table_options)
+    return Div(
+        Div(
+            Table(rows, **table_options),
+            **{"class": "combined-left"},
+        ),
+        Div(
+            Table(scrollable_rows, **table_options),
+            **{"class": "combined-right scrollable"},
+        ),
+        **{"class": "combined"},
+    )
