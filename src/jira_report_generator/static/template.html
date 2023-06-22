@@ -6,10 +6,12 @@
     <script>{% include "script.js" %}</script>
   </head>
   <body>
-    {% for section in sections %}
-    <section>
-      {{ section }}
-    </section>
-    {% endfor %}
+    <div class="table-content">
+      {% for section in sections %}
+      <section>
+        {{ section }}
+      </section>
+      {% endfor %}
+    </div>
   </body>
 </html>

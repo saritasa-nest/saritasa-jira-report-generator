@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+function add_highlight() {
   var assignees = document.querySelectorAll(".assignees > tbody > tr");
   var epics = document.querySelectorAll(".epics > tbody > tr");
 
@@ -69,4 +69,8 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }
   }
-})
+}
+
+document.addEventListener("DOMContentLoaded", add_highlight)
+
+export { add_highlight };
