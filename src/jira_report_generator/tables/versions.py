@@ -4,7 +4,7 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
-from ..utils.tags import TD, TH, TR, Table
+from ..utils.tags import TD, TH, TR, Div, Table
 
 HOURS_NDIGITS = 1
 OVERTIME_NDIGITS = 2
@@ -105,8 +105,7 @@ def generate_versions_table(
     **table_options: str,
 ):
     rows = []
-    header = TR()
-    subheader = TR()
+    scrollable_rows = []
     components = sorted(
         filter(
             lambda x: isinstance(x, Component),
@@ -117,49 +116,42 @@ def generate_versions_table(
     overtimes = []
     component_overtimes_map = defaultdict(list)
 
-    # header
-    header.append(TH("Version", **{"rowspan": 2}))
-    header.append(TH("Start Date", **{"rowspan": 2}))
-    header.append(TH("Release Date", **{"rowspan": 2}))
-    header.append(TH("Tasks", **{
-        "rowspan": 2,
-        "class": "subheader hours",
-    }))
-    header.append(TH("Estimated", **{
-        "rowspan": 2,
-        "class": "subheader hours",
-    }))
-    header.append(TH("Spent", **{
-        "rowspan": 2,
-        "class": "subheader hours",
-    }))
-    header.append(TH("Overtime", **{
-        "rowspan": 2,
-        "class": "subheader hours",
-    }))
-    header.append(TH("Projection", **{
-        "rowspan": 2,
-        "class": "subheader hours",
-    }))
-
-    for component in components:
-        header.append(TH(component.name, **{"colspan": 5}))
+    # table header
+    header = TR(**{"class": "h40"})
+    header.append(TH("Version"))
+    header.append(TH("Start Date"))
+    header.append(TH("Release Date"))
+    header.append(TH("Tasks", **{"class": "subheader hours"}))
+    header.append(TH("Estimated", **{"class": "subheader hours"}))
+    header.append(TH("Spent", **{"class": "subheader hours"}))
+    header.append(TH("Overtime", **{"class": "subheader hours"}))
+    header.append(TH("Projection", **{"class": "subheader hours"}))
 
     rows.append(header)
 
-    # add components
-    for _ in components:
-        subheader.append(TH("Count", **{"class": "subheader hours"}))
-        subheader.append(TH("Estimated", **{"class": "subheader hours"}))
-        subheader.append(TH("Spent", **{"class": "subheader hours"}))
-        subheader.append(TH("Overtime", **{"class": "subheader hours"}))
-        subheader.append(TH("Projection", **{"class": "subheader hours"}))
+    # scrollable header
+    scrollable_header = TR(**{"class": "h20"})
+    for component in components:
+        scrollable_header.append(TH(component.name, **{"colspan": 5}))
 
-    rows.append(subheader)
+    scrollable_rows.append(scrollable_header)
+
+    # scrollable subheader
+    scrollable_subheader = TR(**{"class": "h20"})
+    kwargs = {"class": "subheader hours"}
+    for _ in components:
+        scrollable_subheader.append(TH("Count", **kwargs))
+        scrollable_subheader.append(TH("Estimated", **kwargs))
+        scrollable_subheader.append(TH("Spent", **kwargs))
+        scrollable_subheader.append(TH("Overtime", **kwargs))
+        scrollable_subheader.append(TH("Projection", **kwargs))
+
+    scrollable_header.append(scrollable_subheader)
 
     # body
     for version in versions:
         row = TR()
+        scrollable_row = TR()
         version_tasks = df[df["versions"].apply(lambda x: version in x)]
         estimate = round(version_tasks.estimate.sum(), HOURS_NDIGITS)
         spent = round(version_tasks.spent.sum(), HOURS_NDIGITS)
@@ -213,7 +205,7 @@ def generate_versions_table(
                 display_overtime=version.released,
                 summary=False,
         ):
-            row.append(col)
+            scrollable_row.append(col)
 
         # add overtime prediction
         if version.released and overtime:
@@ -237,6 +229,7 @@ def generate_versions_table(
                 )
 
         rows.append(row)
+        scrollable_rows.append(scrollable_row)
 
     # footer
     row = TR(**{"class": "summary"})
@@ -274,8 +267,18 @@ def generate_versions_table(
             display_overtime=False,
             summary=True,
     ):
-        row.append(col)
+        scrollable_rows.append(col)
 
     rows.append(row)
 
-    return Table(rows, **table_options)
+    return Div(
+        Div(
+            Table(rows, **table_options),
+            **{"class": "combined-left"},
+        ),
+        Div(
+            Table(scrollable_rows, **table_options),
+            **{"class": "combined-right scrollable"},
+        ),
+        **{"class": "combined"},
+    )

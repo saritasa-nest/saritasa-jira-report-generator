@@ -2,7 +2,7 @@ from pandas import DataFrame
 
 from ..utils.colors import get_danger_color_class
 from ..utils.tables import generate_component_columns
-from ..utils.tags import TD, TH, TR, Table
+from ..utils.tags import TD, TH, TR, Div, Table
 
 
 def generate_statuses_table(
@@ -11,8 +11,7 @@ def generate_statuses_table(
     **table_options: str,
 ):
     rows = []
-    header = TR()
-    subheader = TR()
+    scrollable_rows = []
 
     if "status" not in df.columns:
         return Table(rows, **table_options)
@@ -28,6 +27,7 @@ def generate_statuses_table(
 
     def _generate_row(name, df, components, estimate, spent, **attrs) -> TR:
         row = TR(**attrs)
+        scrollable_row = TR(**attrs)
         left = round(estimate - spent, 1)
 
         row.append(TD(name))
@@ -40,58 +40,75 @@ def generate_statuses_table(
 
         # add component columns filled in with values
         for col in generate_component_columns(df, components):
-            row.append(col)
+            scrollable_row.append(col)
 
-        return row
+        return row, scrollable_row
 
     # header
-    header.append(TH("Status", **{"rowspan": 2}))
-    header.append(TH("Count", **{"rowspan": 2, "class": "hours"}))
-    header.append(TH("Estimated", **{"rowspan": 2, "class": "hours"}))
-    header.append(TH("Spent", **{"rowspan": 2, "class": "hours"}))
-    header.append(TH("Left", **{"rowspan": 2, "class": "hours"}))
-
-    for component in components:
-        header.append(TH(component.name, **{"colspan": 4}))
+    header = TR(**{"class": "h40"})
+    header.append(TH("Status"))
+    header.append(TH("Count", **{"class": "hours"}))
+    header.append(TH("Estimated", **{"class": "hours"}))
+    header.append(TH("Spent", **{"class": "hours"}))
+    header.append(TH("Left", **{"class": "hours"}))
 
     rows.append(header)
 
-    # subheader
+    # scrollable header
+    scrollable_header = TR(**{"class": "h20"})
     for component in components:
-        subheader.append(TH("Count", **{"class": "subheader hours"}))
-        subheader.append(TH("Estimated", **{"class": "subheader hours"}))
-        subheader.append(TH("Spent", **{"class": "subheader hours"}))
-        subheader.append(TH("Left", **{"class": "subheader hours"}))
+        scrollable_header.append(TH(component.name, **{"colspan": 4}))
 
-    rows.append(subheader)
+    scrollable_rows.append(scrollable_header)
+
+    # scrollable subheader
+    scrollable_subheader = TR(**{"class": "h20"})
+    kwargs = {"class": "subheader hours"}
+    for component in components:
+        scrollable_subheader.append(TH("Count", **kwargs))
+        scrollable_subheader.append(TH("Estimated", **kwargs))
+        scrollable_subheader.append(TH("Spent", **kwargs))
+        scrollable_subheader.append(TH("Left", **kwargs))
+
+    scrollable_header.append(scrollable_subheader)
 
     # body
     for status in statuses:
         status_issues = issues[issues["status"].apply(lambda x: x == status)]
-
-        rows.append(
-            _generate_row(
-                status.name,
-                status_issues,
-                components,
-                round(status_issues.estimate.sum(), 1),
-                round(status_issues.spent.sum(), 1),
-                **{
-                    "data-status-id": status.id,
-                },
-            )
+        row, scrollable_row = _generate_row(
+            status.name,
+            status_issues,
+            components,
+            round(status_issues.estimate.sum(), 1),
+            round(status_issues.spent.sum(), 1),
+            **{
+                "data-status-id": status.id,
+            },
         )
+
+        rows.append(row)
+        scrollable_rows.append(scrollable_row)
 
     # footer
-    rows.append(
-        _generate_row(
-            "",
-            issues,
-            components,
-            round(issues.estimate.sum(), 1),
-            round(issues.spent.sum(), 1),
-            **{"class": "summary"},
-        )
+    footer_row, footer_scrollable_row = _generate_row(
+        "",
+        issues,
+        components,
+        round(issues.estimate.sum(), 1),
+        round(issues.spent.sum(), 1),
+        **{"class": "summary"},
     )
+    rows.append(footer_row)
+    scrollable_rows.append(footer_scrollable_row)
 
-    return Table(rows, **table_options)
+    return Div(
+        Div(
+            Table(rows, **table_options),
+            **{"class": "combined-left"},
+        ),
+        Div(
+            Table(scrollable_rows, **table_options),
+            **{"class": "combined-right scrollable"},
+        ),
+        **{"class": "combined"},
+    )
