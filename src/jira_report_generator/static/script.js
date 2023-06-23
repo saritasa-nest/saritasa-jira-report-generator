@@ -72,5 +72,3 @@ function add_highlight() {
 }
 
 document.addEventListener("DOMContentLoaded", add_highlight)
-
-export { add_highlight };

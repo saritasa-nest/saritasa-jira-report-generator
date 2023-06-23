@@ -138,12 +138,13 @@ def generate_versions_table(
 
     # scrollable subheader
     scrollable_subheader = TR(**{"class": "h20"})
+    kwargs = {"class": "subheader hours"}
     for _ in components:
-        scrollable_subheader.append(TH("Count", **{"class": "subheader hours"}))
-        scrollable_subheader.append(TH("Estimated", **{"class": "subheader hours"}))
-        scrollable_subheader.append(TH("Spent", **{"class": "subheader hours"}))
-        scrollable_subheader.append(TH("Overtime", **{"class": "subheader hours"}))
-        scrollable_subheader.append(TH("Projection", **{"class": "subheader hours"}))
+        scrollable_subheader.append(TH("Count", **kwargs))
+        scrollable_subheader.append(TH("Estimated", **kwargs))
+        scrollable_subheader.append(TH("Spent", **kwargs))
+        scrollable_subheader.append(TH("Overtime", **kwargs))
+        scrollable_subheader.append(TH("Projection", **kwargs))
 
     scrollable_header.append(scrollable_subheader)
 
