@@ -101,6 +101,9 @@ def generate_statuses_table(
     rows.append(footer_row)
     scrollable_rows.append(footer_scrollable_row)
 
+    if not components:
+        return Table(rows, **table_options)
+
     return Div(
         Div(
             Table(rows, **table_options),

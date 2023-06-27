@@ -41,11 +41,11 @@ def generate_component_columns(
 
         # generate empty columns
         if component_tasks.empty:
-            columns.append(TD())
-            columns.append(TD())
-            columns.append(TD())
-            columns.append(TD())
-            columns.append(TD())
+            columns.append(TD("&nbsp;"))
+            columns.append(TD("&nbsp;"))
+            columns.append(TD("&nbsp;"))
+            columns.append(TD("&nbsp;"))
+            columns.append(TD("&nbsp;"))
             continue
 
         component_estimate = round(
@@ -270,6 +270,9 @@ def generate_versions_table(
         scrollable_rows.append(col)
 
     rows.append(row)
+
+    if not components:
+        return Table(rows, **table_options)
 
     return Div(
         Div(

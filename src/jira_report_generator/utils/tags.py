@@ -64,6 +64,9 @@ class Table(Tag):
         self.value = "".join(map(str, self.rows))
         return super().__str__()
 
+    def __bool__(self):
+        return bool(self.rows)
+
     def append(self, row: TR):
         self.rows.append(row)
 
@@ -79,6 +82,9 @@ class Div(Tag):
     def __str__(self):
         self.value = "".join(map(str, self.elements))
         return super().__str__()
+
+    def __bool__(self):
+        return bool(self.elements)
 
     def append(self, element):
         self.rows.append(element)

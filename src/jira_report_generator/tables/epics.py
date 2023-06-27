@@ -8,6 +8,7 @@ def generate_epics_table(df: DataFrame, **table_options: str):
     rows = []
     header = TR()
     epics = df[df["type"].apply(lambda x: x.name == "Epic")]
+    epics_list = list(epics.iterrows())
     completed_statuses = (
         Status.CLIENT_REVIEW.value,
         Status.COMPLETED.value,
@@ -30,7 +31,7 @@ def generate_epics_table(df: DataFrame, **table_options: str):
 
     rows.append(header)
 
-    for _, epic in epics.iterrows():
+    for _, epic in epics_list:
         row = TR(**{"data-epic-id": epic.id})
         epic_tasks = df[df["parent"].apply(
             lambda x: x is not None and x.id == epic.id
@@ -64,5 +65,8 @@ def generate_epics_table(df: DataFrame, **table_options: str):
         row.append(TD(left if left > 0 else 0))
 
         rows.append(row)
+
+    if not epics_list:
+        rows = []
 
     return Table(rows, **table_options)

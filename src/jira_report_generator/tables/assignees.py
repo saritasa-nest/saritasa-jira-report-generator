@@ -90,6 +90,9 @@ def generate_assignees_table(
         rows.append(row)
         scrollable_rows.append(scollable_row)
 
+    if not components:
+        return Table(rows, **table_options)
+
     return Div(
         Div(
             Table(rows, **table_options),
