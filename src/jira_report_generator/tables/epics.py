@@ -8,6 +8,10 @@ def generate_epics_table(df: DataFrame, **table_options: str):
     rows = []
     header = TR()
     epics = df[df["type"].apply(lambda x: x.name == "Epic")]
+
+    if epics.empty:
+        return Table(rows, **table_options)
+
     epics_list = list(epics.iterrows())
     completed_statuses = (
         Status.CLIENT_REVIEW.value,
