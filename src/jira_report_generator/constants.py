@@ -23,3 +23,8 @@ class Status(Enum):
     READY_FOR_DEVELOPMENT = "Ready for Development"
     IN_PROGRESS = "In Progress"
     BACKLOG = "Backlog"
+
+
+class Type(Enum):
+    EPIC = "Epic"
+    STORY = "Story"

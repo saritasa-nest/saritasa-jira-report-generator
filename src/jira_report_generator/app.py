@@ -7,6 +7,7 @@ from logging import Formatter, StreamHandler
 from decouple import config
 from jinja2 import Environment, FileSystemLoader
 from jira import JIRA
+from jira_report_generator.tables.stories import generate_stories_table
 
 from jira_report_generator.tables.unversioned import generate_unversioned_table
 from .tables.assignees import generate_assignees_table
@@ -157,6 +158,12 @@ def construct_tables(
     logger.info("Generate Epics table")
     tables.append(
         generate_epics_table(issues_dataframe, **{"class": "epics"}),
+    )
+
+    # stories table
+    logger.info("Generate Stories table")
+    tables.append(
+        generate_stories_table(issues_dataframe, **{"class": "stories"}),
     )
 
     # components table

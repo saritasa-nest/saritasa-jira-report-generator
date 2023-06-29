@@ -1,6 +1,7 @@
 function add_highlight() {
   var assignees = document.querySelectorAll(".assignees > tbody > tr");
   var epics = document.querySelectorAll(".epics > tbody > tr");
+  var stories = document.querySelectorAll(".stories > tbody > tr");
 
   function deselect(doc, className) {
     doc.querySelectorAll(`tr.${className}`).forEach((el) => {
@@ -29,6 +30,7 @@ function add_highlight() {
         );
 
         deselect(document, "highlighted-epic");
+        deselect(document, "highlighted-story");
 
         this.classList.toggle("highlighted");
 
@@ -60,11 +62,46 @@ function add_highlight() {
         );
 
         deselect(document, "highlighted");
+        deselect(document, "highlighted-story");
 
         this.classList.toggle("highlighted-epic");
 
         document.querySelectorAll(selector).forEach((el) => {
           el.classList.toggle("highlighted-epic");
+        })
+      }
+    }
+  }
+
+  for (var i in stories) {
+    var story = stories[i];
+
+    if (
+        story !== undefined
+        && story.attributes !== undefined
+        && story.attributes['data-story-id'] !== undefined
+    ) {
+      var storyId = story.attributes['data-story-id'];
+
+      var listenerSelector = (
+        `table.stories [${storyId.name}="${storyId.value}"]`
+      );
+
+      document.querySelector(listenerSelector).onclick = function () {
+        console.log(story);
+
+        var attr = this.attributes['data-story-id'];
+        var selector = (
+          `table.component [data-parent-id="${attr.value}"]`
+        );
+
+        deselect(document, "highlighted");
+        deselect(document, "highlighted-epic");
+
+        this.classList.toggle("highlighted-story");
+
+        document.querySelectorAll(selector).forEach((el) => {
+          el.classList.toggle("highlighted-story");
         })
       }
     }
