@@ -7,6 +7,8 @@ from logging import Formatter, StreamHandler
 from decouple import config
 from jinja2 import Environment, FileSystemLoader
 from jira import JIRA
+
+from jira_report_generator.tables.unversioned import generate_unversioned_table
 from .tables.assignees import generate_assignees_table
 from .tables.backlog import generate_backlog_table
 from .tables.epics import generate_epics_table
@@ -25,6 +27,7 @@ from .utils.data import (
     prepare_components_data,
     get_dataframe,
     get_versioned_issues,
+    prepare_unversioned_table_data,
     render_template,
 )
 from .utils.tags import Table
@@ -167,6 +170,19 @@ def construct_tables(
                 **{"class": "component"},
             ),
         )
+
+    # unversioned issues table
+    unversioned_df = prepare_unversioned_table_data(issues_dataframe)
+
+    if not unversioned_df.empty:
+        logger.info("Generate Unversioned Issues table")
+        tables.append(
+            generate_unversioned_table(
+                unversioned_df, 
+                **{"class": "backlog"},
+            ),
+        )
+
 
     # backlog table
     backlog_df = prepare_backlog_table_data(issues_dataframe)

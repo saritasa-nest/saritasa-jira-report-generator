@@ -128,5 +128,23 @@ def prepare_issues_table_data(
 def prepare_backlog_table_data(issues_dataframe: DataFrame) -> DataFrame:
     """Prepare initial data for backlog table rendering."""
     return issues_dataframe[
+        issues_dataframe["status"].apply(
+            lambda x: x.name == Status.BACKLOG.value
+        )
+    ].sort_values("id")
+
+
+def prepare_unversioned_table_data(issues_dataframe: DataFrame) -> DataFrame:
+    """Prepare initial data for unversioned issues table rendering."""
+    to_skip_versions = (
+        Status.BACKLOG.value,
+    )
+    issues_dataframe = issues_dataframe[
+        issues_dataframe["status"].apply(
+            lambda x: x.name not in to_skip_versions,
+        )
+    ]
+
+    return issues_dataframe[
         issues_dataframe["versions"].apply(lambda x: len(x) == 0)
     ].sort_values("id")
