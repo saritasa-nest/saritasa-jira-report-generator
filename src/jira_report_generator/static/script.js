@@ -88,8 +88,6 @@ function add_highlight() {
       );
 
       document.querySelector(listenerSelector).onclick = function () {
-        console.log(story);
-
         var attr = this.attributes['data-story-id'];
         var selector = (
           `table.component [data-parent-id="${attr.value}"]`
