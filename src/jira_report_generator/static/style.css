@@ -124,6 +124,10 @@ body {
   background-color: rgba(144, 238, 144, 0.8);
 }
 
+.table-content tr.hidden {
+  display: none;
+}
+
 .table-content td.in-progress {
   background-color: #ffd580;
 }
@@ -171,4 +175,9 @@ body {
 }
 .table-content .h60 {
   height: 60px;
+}
+
+th.collapsed {
+  background: #aaa;
+  border-color: #aaa;
 }

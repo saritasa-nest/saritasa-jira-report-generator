@@ -2,6 +2,7 @@ function add_highlight() {
   var assignees = document.querySelectorAll(".assignees > tbody > tr");
   var epics = document.querySelectorAll(".epics > tbody > tr");
   var stories = document.querySelectorAll(".stories > tbody > tr");
+  var versions = document.querySelectorAll(".issues th.version");
 
   function deselect(doc, className) {
     doc.querySelectorAll(`tr.${className}`).forEach((el) => {
@@ -100,6 +101,41 @@ function add_highlight() {
 
         document.querySelectorAll(selector).forEach((el) => {
           el.classList.toggle("highlighted-story");
+        })
+      }
+    }
+  }
+
+  for (var i in versions) {
+    var version = versions[i];
+
+    if (
+        version !== undefined
+        && version.attributes !== undefined
+        && version.attributes['data-version-id'] !== undefined
+    ) {
+      var versionId = version.attributes['data-version-id'];
+      var componentId = version.attributes['data-component-id'];
+
+      var listenerSelector = (
+        `table.component [${versionId.name}="${versionId.value}"]`
+        +`[${componentId.name}="${componentId.value}"]`
+      );
+
+      console.log(listenerSelector);
+
+      document.querySelector(listenerSelector).onclick = function () {
+        var attr = this.attributes['data-version-id'];
+        var componentAttr = this.attributes['data-component-id'];
+        var selector = (
+          `table.component [data-version-ids="${attr.value}"]`
+          +`[data-component-id="${componentAttr.value}"]`
+        );
+
+        this.classList.toggle("collapsed");
+
+        document.querySelectorAll(selector).forEach((el) => {
+          el.classList.toggle("hidden");
         })
       }
     }

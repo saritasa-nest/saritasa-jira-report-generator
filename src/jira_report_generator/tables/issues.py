@@ -8,6 +8,7 @@ from ..utils.tags import TD, TH, TR, A, Table, Div
 def generate_issues_table(
     df: DataFrame,
     versions: list,
+    component_id: str,
     **table_options: str,
 ):
     rows = []
@@ -31,9 +32,10 @@ def generate_issues_table(
         scrollable_header.append(TH(
             f"{version.name}<br/><small>{releaseDate}</small>",
             **{
-                "class": "version collapsed", 
+                "class": "version",
                 "colspan": 2,
                 "data-version-id": str(version.id),
+                "data-component-id": component_id,
             },
         ))
 
@@ -165,7 +167,10 @@ def generate_issues_table(
                 scrollable_tr.append(TD("", **{"class": "hours"}))
 
         # add version ID to rows
-        version_ids_data_attr = {"data-version-ids": ",".join(version_ids)}
+        version_ids_data_attr = {
+            "data-version-ids": ",".join(version_ids),
+            "data-component-id": component_id,
+        }
         tr.attrs.update(version_ids_data_attr)
         scrollable_tr.attrs.update(version_ids_data_attr)
 
@@ -181,5 +186,5 @@ def generate_issues_table(
             Table(scrollable_rows, **table_options),
             **{"class": "combined-right scrollable"},
         ),
-        **{"class": "combined"},
+        **{"class": "combined issues"},
     )

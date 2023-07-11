@@ -174,6 +174,7 @@ def construct_tables(
             generate_issues_table(
                 prepare_issues_table_data(versioned_df, component),
                 versions,
+                component_id=component.id,
                 **{"class": "component"},
             ),
         )
