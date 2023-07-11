@@ -57,6 +57,7 @@ def generate_issues_table(
 
     # table body
     for _, item in df.iterrows():
+        version_ids = []
         tr = TR(**{
             "data-status-id": item.status.id,
             "data-assignee-id": (
@@ -130,6 +131,7 @@ def generate_issues_table(
         for version in versions:
             if (item.versions and version in item.versions):
                 divisor = len(item.versions)
+                version_ids.append(str(version.id))
 
                 attrs = {
                     "class": f"hours version {background}",
@@ -157,6 +159,11 @@ def generate_issues_table(
             else:
                 scrollable_tr.append(TD("", **{"class": "hours"}))
                 scrollable_tr.append(TD("", **{"class": "hours"}))
+
+        # add version ID to rows
+        version_ids_data_attr = {"data-version-ids": ",".join(version_ids)}
+        tr.attrs.update(version_ids_data_attr)
+        scrollable_tr.attrs.update(version_ids_data_attr)
 
         rows.append(tr)
         scrollable_rows.append(scrollable_tr)
