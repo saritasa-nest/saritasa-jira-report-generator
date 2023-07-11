@@ -30,7 +30,11 @@ def generate_issues_table(
 
         scrollable_header.append(TH(
             f"{version.name}<br/><small>{releaseDate}</small>",
-            **{"class": "version", "colspan": 2},
+            **{
+                "class": "version collapsed", 
+                "colspan": 2,
+                "data-version-id": str(version.id),
+            },
         ))
 
     scrollable_rows.append(scrollable_header)
