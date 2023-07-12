@@ -38,6 +38,7 @@ body {
   background: #eee;
   font-weight: bold;
   white-space: nowrap;
+  position: relative;
 }
 .table-content th.subheader {
   font-weight: normal;
@@ -182,7 +183,9 @@ span.collapse {
   height: 1em;
   display: block;
   text-align: center;
-  float: right;
+  position: absolute;
+  top: .5em;
+  right: .2em;
 }
 
 span.collapse:hover {
