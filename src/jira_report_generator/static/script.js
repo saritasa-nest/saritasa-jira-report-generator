@@ -119,18 +119,19 @@ function add_highlight() {
 
       var listenerSelector = (
         `table.component [${versionId.name}="${versionId.value}"]`
-        +`[${componentId.name}="${componentId.value}"]`
+        +`[${componentId.name}="${componentId.value}"] > span.collapse`
       );
 
       document.querySelector(listenerSelector).onclick = function () {
-        var attr = this.attributes['data-version-id'];
-        var componentAttr = this.attributes['data-component-id'];
+        var attr = this.parentNode.attributes['data-version-id'];
+        var componentAttr = this.parentNode.attributes['data-component-id'];
         var selector = (
           `table.component [data-version-ids="${attr.value}"]`
           +`[data-component-id="${componentAttr.value}"]`
         );
 
-        this.classList.toggle("collapsed");
+        this.classList.toggle("up");
+        this.parentNode.classList.toggle("collapsed");
 
         document.querySelectorAll(selector).forEach((el) => {
           el.classList.toggle("hidden");

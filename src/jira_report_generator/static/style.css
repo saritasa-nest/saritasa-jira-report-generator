@@ -177,7 +177,22 @@ body {
   height: 60px;
 }
 
-th.collapsed {
-  background: #aaa;
-  border-color: #aaa;
+span.collapse {
+  width: 1em;
+  height: 1em;
+  display: block;
+  text-align: center;
+  float: right;
+}
+
+span.collapse:hover {
+  cursor: pointer;
+}
+
+span.collapse:after {
+  content: "⌄";
+}
+
+span.collapse.up:after {
+  content: "⌃";
 }

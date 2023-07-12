@@ -30,7 +30,8 @@ def generate_issues_table(
         releaseDate = getattr(version, "releaseDate", "")
 
         scrollable_header.append(TH(
-            f"{version.name}<br/><small>{releaseDate}</small>",
+            f"<span>{version.name}</span><span class=\"collapse\"></span>"
+            f"<br/><small>{releaseDate}</small>",
             **{
                 "class": "version",
                 "colspan": 2,
