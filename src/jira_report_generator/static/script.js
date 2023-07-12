@@ -122,8 +122,6 @@ function add_highlight() {
         +`[${componentId.name}="${componentId.value}"]`
       );
 
-      console.log(listenerSelector);
-
       document.querySelector(listenerSelector).onclick = function () {
         var attr = this.attributes['data-version-id'];
         var componentAttr = this.attributes['data-component-id'];
