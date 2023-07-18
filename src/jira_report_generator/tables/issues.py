@@ -101,13 +101,16 @@ def generate_issues_table(
         }))
 
         # issue type
-        tr.append(TD(item.type, **{"class": "type"}))
+        tr.append(TD(item.type, **{"class": "type nowrap"}))
 
         # link to the issue
         tr.append(
             TD(
-                A(item.key, **{"href": item.link}),
-                **{"class": "nowrap"},
+                A(item.key, **{
+                    "href": item.link,
+                    "title": item.key,
+                }),
+                **{"class": "link nowrap"},
             )
         )
 
@@ -130,9 +133,13 @@ def generate_issues_table(
         tr.append(TD(item.status.name, **status_attrs))
 
         # assignee
+        display_name = format_name(getattr(item.assignee, "displayName", ""))
         tr.append(TD(
-            format_name(getattr(item.assignee, "displayName", "")),
-            **{"class": "assignee nowrap"},
+            display_name,
+            **{
+                "class": "assignee nowrap",
+                "title": display_name,
+            },
         ))
 
         for version in versions:

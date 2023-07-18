@@ -74,6 +74,25 @@ body {
     max-width: 25em;
     white-space: nowrap;
 }
+.table-content table.component td.type {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 4em;
+  white-space: nowrap;
+}
+.table-content table.component td.link {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 8em;
+  white-space: nowrap;
+}
+.table-content table.component td.status,
+.table-content table.component td.assignee {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 5em;
+  white-space: nowrap;
+}
 
 .table-content table.issues th.hours {
   width: 5em;

@@ -1,8 +1,10 @@
-function add_highlight() {
+/**
+ * Adds an ability for highlight rows by clicking.
+ */
+function init_highlights() {
   var assignees = document.querySelectorAll(".assignees > tbody > tr");
   var epics = document.querySelectorAll(".epics > tbody > tr");
   var stories = document.querySelectorAll(".stories > tbody > tr");
-  var versions = document.querySelectorAll(".issues th.version");
 
   function deselect(doc, className) {
     doc.querySelectorAll(`tr.${className}`).forEach((el) => {
@@ -105,6 +107,14 @@ function add_highlight() {
       }
     }
   }
+}
+
+/**
+ * Adds an ability to control visibility of component issue rows
+ * by clicking on version columns.
+ */
+function init_version_columns() {
+  var versions = document.querySelectorAll(".issues th.version");
 
   for (var i in versions) {
     var version = versions[i];
@@ -141,6 +151,11 @@ function add_highlight() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", add_highlight)
+function init_reports() {
+  init_highlights();
+  init_version_columns()
+}
 
-export { add_highlight };
+document.addEventListener("DOMContentLoaded", init_reports)
+
+export { init_reports };

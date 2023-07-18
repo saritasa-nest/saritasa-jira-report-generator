@@ -186,11 +186,10 @@ def construct_tables(
         logger.info("Generate Unversioned Issues table")
         tables.append(
             generate_unversioned_table(
-                unversioned_df, 
+                unversioned_df,
                 **{"class": "backlog"},
             ),
         )
-
 
     # backlog table
     backlog_df = prepare_backlog_table_data(issues_dataframe)
