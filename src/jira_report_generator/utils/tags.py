@@ -88,3 +88,19 @@ class Div(Tag):
 
     def append(self, element):
         self.rows.append(element)
+
+
+class Input(Tag):
+    tag = "input"
+
+    def __init__(self, **attrs):
+        self.attrs = attrs
+
+    def __str__(self):
+        attrs = " ".join([
+            f"{key}=\"{value}\""
+            for key, value
+            in self.attrs.items()
+        ])
+
+        return f"<{self.tag} {attrs} />"

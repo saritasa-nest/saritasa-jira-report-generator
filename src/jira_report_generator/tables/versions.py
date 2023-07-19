@@ -4,7 +4,7 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
-from ..utils.tags import TD, TH, TR, Div, Table
+from ..utils.tags import TD, TH, TR, Div, Table, Input
 
 HOURS_NDIGITS = 1
 OVERTIME_NDIGITS = 2
@@ -118,6 +118,7 @@ def generate_versions_table(
 
     # table header
     header = TR(**{"class": "h40"})
+    # header.append(TH(""))
     header.append(TH("Version"))
     header.append(TH("Start Date"))
     header.append(TH("Release Date"))
@@ -164,6 +165,10 @@ def generate_versions_table(
         if overtimes:
             avg_overtime = calculate_avg_overtime(overtimes)
 
+        # row.append(TD(Input(**{
+        #     "type": "checkbox",
+        #     "data-version-id": version.id,
+        # })))
         row.append(TD(version.name, **{
             "class": "success" if version.released else "",
         }))
@@ -237,6 +242,7 @@ def generate_versions_table(
     spent = round(df.spent.sum(), HOURS_NDIGITS)
     avg_overtime = calculate_avg_overtime(overtimes)
 
+    # row.append(TD(""))
     row.append(TD("Summary", colspan=3))
     row.append(TD(df.id.count()))
     row.append(TD(estimate))
