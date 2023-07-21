@@ -51,13 +51,15 @@ def generate_issues_table(
 
         scrollable_subheader.append(TH(estimate, **{
             "class": "hours subheader",
+            "data-version-id": str(version.id),
         }))
         scrollable_subheader.append(TH(spent, **{
             "class": (
                 "hours subheader danger"
                 if estimate != 0 and spent > estimate
                 else "hours subheader"
-            )
+            ),
+            "data-version-id": str(version.id),
         }))
 
     scrollable_header.append(scrollable_subheader)
@@ -149,6 +151,7 @@ def generate_issues_table(
 
                 attrs = {
                     "class": f"hours version {background}",
+                    "data-version-id": str(version.id),
                 }
 
                 spent_attrs = dict(attrs)
@@ -156,6 +159,7 @@ def generate_issues_table(
                 if (item.estimate != 0 and item.spent > item.estimate):
                     spent_attrs.update({
                         "class": f"hours version danger {background}",
+                        "data-version-id": str(version.id),
                     })
 
                 scrollable_tr.append(
@@ -171,8 +175,14 @@ def generate_issues_table(
                     )
                 )
             else:
-                scrollable_tr.append(TD("", **{"class": "hours"}))
-                scrollable_tr.append(TD("", **{"class": "hours"}))
+                scrollable_tr.append(TD("", **{
+                    "class": "hours",
+                    "data-version-id": str(version.id),
+                }))
+                scrollable_tr.append(TD("", **{
+                    "class": "hours",
+                    "data-version-id": str(version.id),
+                }))
 
         # add version ID to rows
         version_ids_data_attr = {

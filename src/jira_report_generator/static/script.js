@@ -109,10 +109,16 @@ function init_highlights() {
   }
 }
 
+/**
+ * Saves settings into local storage.
+ */
 function saveSettings(tableName, settingsJson) {
   localStorage.setItem(tableName, JSON.stringify(settingsJson));
 }
 
+/**
+ * Returns settings json if exists else returns an empty object.
+ */
 function getSettings(tableName) {
   const data = localStorage.getItem(tableName);
 
@@ -179,6 +185,9 @@ function init_version_columns() {
   }
 }
 
+/**
+ * Collapses version column and hides related rows.
+ */
 function setVersionCollapsed(componentId, versionId, collapsed = true) {
   var versionColumnsSelector = (
     `.issues th.version[data-component-id="${componentId}"]`
@@ -208,20 +217,62 @@ function setVersionCollapsed(componentId, versionId, collapsed = true) {
   });
 }
 
-function applyComponentTableSettings() {
-  const settings = getSettings("components");
+/**
+ * Hides version column and hides related rows.
+ */
+function setVersionHidden(versionId, hidden = true) {
+  var versionColumnsSelector = (
+    `.issues [data-version-id="${versionId}"]`
+  )
+  var versionRowsSelector = (
+    `table.component [data-version-ids="${versionId}"]`
+  );
 
-  for (var componentId in settings) {
-    for (var versionId in settings[componentId]) {
+  document.querySelectorAll(versionColumnsSelector).forEach((column) => {
+    if (hidden) {  
+      column.classList.add("hidden");
+    } else {
+      column.classList.remove("hidden");
+    }
+  });
+
+  document.querySelectorAll(versionRowsSelector).forEach((row) => {
+    if (hidden) {  
+      row.classList.add("hidden");
+    } else {
+      row.classList.remove("hidden");
+    }
+  });
+}
+
+/**
+ * Applyes stored settings for "components" table.
+ */
+function applyComponentTableSettings() {
+  const componentSettings = getSettings("components");
+  const versionSettings = getSettings("versions");
+
+  for (var componentId in componentSettings) {
+    for (var versionId in componentSettings[componentId]) {
       setVersionCollapsed(
         componentId,
         versionId,
-        settings[componentId][versionId],
+        componentSettings[componentId][versionId],
       );
     }
   }
+
+  for (var versionId in versionSettings) {
+    setVersionHidden(
+      versionId,
+      !versionSettings[versionId],
+    );
+  }
 }
 
+/**
+ * Initializes checkboxes in Versions table.
+ */
 function init_version_selector() {
   var checkboxes = document.querySelectorAll(
     "table.versions input[type=checkbox]"
@@ -230,17 +281,26 @@ function init_version_selector() {
 
   checkboxes.forEach(function(checkbox) {
     var attr = checkbox.attributes["data-version-id"];
+    var isChecked = true;
 
-    checkbox.checked = settings[attr.value] | false;
+    // set initial state -- displayed
+    if (settings[attr.value] != undefined) {
+      isChecked = settings[attr.value];
+    }
+
+    checkbox.checked = isChecked;
 
     checkbox.addEventListener("change", function() {
       settings[attr.value] = this.checked;
-
       saveSettings("versions", settings);
+      setVersionHidden(attr.value, !this.checked);
     });
   });
 }
 
+/**
+ * Initializes all action parts.
+ */
 function init_reports() {
   init_highlights();
   init_version_selector();

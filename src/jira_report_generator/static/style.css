@@ -149,6 +149,8 @@ td > input {
   background-color: rgba(144, 238, 144, 0.8);
 }
 
+.table-content th.hidden,
+.table-content td.hidden,
 .table-content tr.hidden,
 .table-content tr.collapsed {
   display: none;
@@ -201,6 +203,13 @@ td > input {
 }
 .table-content .h60 {
   height: 60px;
+}
+.table-content .p0 {
+  padding: 0;
+}
+
+.center {
+  text-align: center;
 }
 
 span.collapse {

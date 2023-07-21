@@ -154,18 +154,6 @@ def construct_tables(
             ),
         )
 
-    # epics table
-    logger.info("Generate Epics table")
-    tables.append(
-        generate_epics_table(issues_dataframe, **{"class": "epics"}),
-    )
-
-    # stories table
-    logger.info("Generate Stories table")
-    tables.append(
-        generate_stories_table(issues_dataframe, **{"class": "stories"}),
-    )
-
     # components table
     logger.info("Generate Components table")
 
@@ -178,6 +166,18 @@ def construct_tables(
                 **{"class": "component"},
             ),
         )
+
+    # epics table
+    logger.info("Generate Epics table")
+    tables.append(
+        generate_epics_table(issues_dataframe, **{"class": "epics"}),
+    )
+
+    # stories table
+    logger.info("Generate Stories table")
+    tables.append(
+        generate_stories_table(issues_dataframe, **{"class": "stories"}),
+    )
 
     # unversioned issues table
     unversioned_df = prepare_unversioned_table_data(issues_dataframe)
