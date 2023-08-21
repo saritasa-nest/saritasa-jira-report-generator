@@ -116,19 +116,6 @@ def construct_tables(
         versioned_df,
     )
 
-    if not versioned_df.empty:
-
-        logger.info("Generate Versions table")
-
-        # versions table
-        tables.append(
-            generate_versions_table(
-                versioned_df,
-                versions,
-                **{"class": "versions"},
-            ),
-        )
-
     # statuses table
     logger.info("Generate Statuses table")
     statuses_df = prepare_statuses_table_data(versioned_df)
@@ -151,6 +138,17 @@ def construct_tables(
                 assignee_table_df,
                 issues_dataframe.assignee.explode().unique().tolist(),
                 **{"class": "assignees"},
+            ),
+        )
+
+    # versions table
+    if not versioned_df.empty:
+        logger.info("Generate Versions table")
+        tables.append(
+            generate_versions_table(
+                versioned_df,
+                versions,
+                **{"class": "versions"},
             ),
         )
 
