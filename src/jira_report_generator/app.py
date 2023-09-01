@@ -139,31 +139,6 @@ def construct_tables(
             ),
         )
 
-    # # statuses table
-    # logger.info("Generate Statuses table")
-    # statuses_df = prepare_statuses_table_data(versioned_df)
-    # tables.append(
-    #     generate_statuses_table(
-    #         statuses_df,
-    #         not_finished_statuses,
-    #         **{"class": "issues"},
-    #     ),
-    # )
-
-    # # assignees table
-    # assignee_table_df = prepare_assignees_table_data(versioned_df)
-
-    # if not assignee_table_df.empty:
-    #     logger.info("Generate Assignee table")
-
-    #     tables.append(
-    #         generate_assignees_table(
-    #             assignee_table_df,
-    #             issues_dataframe.assignee.explode().unique().tolist(),
-    #             **{"class": "assignees"},
-    #         ),
-    #     )
-
     # versions table
     if not versioned_df.empty:
         logger.info("Generate Versions table")
