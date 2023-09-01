@@ -10,19 +10,19 @@ def generate_statuses_table(
     statuses: list,
     **table_options: str,
 ):
+    """Generate statuses table."""
     rows = []
     scrollable_rows = []
 
     if "status" not in df.columns:
         return Table(rows, **table_options)
 
-    issues = df[df["status"].apply(lambda x: x in statuses)]
     components = sorted(
-        issues.components.explode().unique().tolist(),
+        df.components.explode().unique().tolist(),
         key=lambda x: x.name,
     )
 
-    if issues.empty:
+    if df.empty:
         return Table(rows, **table_options)
 
     def _generate_row(name, df, components, estimate, spent, **attrs) -> TR:
@@ -74,13 +74,13 @@ def generate_statuses_table(
 
     # body
     for status in statuses:
-        status_issues = issues[issues["status"].apply(lambda x: x == status)]
+        status_df = df[df["status"].apply(lambda x: x == status)]
         row, scrollable_row = _generate_row(
             status.name,
-            status_issues,
+            status_df,
             components,
-            round(status_issues.estimate.sum(), 1),
-            round(status_issues.spent.sum(), 1),
+            round(status_df.estimate.sum(), 1),
+            round(status_df.spent.sum(), 1),
             **{
                 "data-status-id": status.id,
             },
@@ -92,10 +92,10 @@ def generate_statuses_table(
     # footer
     footer_row, footer_scrollable_row = _generate_row(
         "",
-        issues,
+        df,
         components,
-        round(issues.estimate.sum(), 1),
-        round(issues.spent.sum(), 1),
+        round(df.estimate.sum(), 1),
+        round(df.spent.sum(), 1),
         **{"class": "summary"},
     )
     rows.append(footer_row)

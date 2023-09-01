@@ -1,4 +1,3 @@
-from numpy import nan
 from pandas import DataFrame
 
 from ..utils.colors import get_danger_color_class
@@ -15,10 +14,7 @@ def generate_assignees_table(
     scrollable_rows = []
 
     components = sorted(
-        filter(
-            lambda x: x is not nan,
-            df.components.explode().unique().tolist(),
-        ),
+        df.components.explode().unique().tolist(),
         key=lambda x: getattr(x, "name", ""),
     )
 

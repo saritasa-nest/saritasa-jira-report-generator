@@ -75,9 +75,12 @@ def render_template(
 
 def prepare_components_data(issues_dataframe: DataFrame):
     """Prepare components data for usage."""
+    components = issues_dataframe.components[
+        issues_dataframe.components.explode().notna()
+    ].explode()
     return sorted(list(filter(
         lambda x: hasattr(x, "name"),
-        issues_dataframe.components.explode().unique().tolist()
+        components.unique().tolist()
     )), key=lambda x: x.id)
 
 
@@ -93,26 +96,22 @@ def prepare_not_finished_statuses_data(issues_dataframe: DataFrame):
     ), statuses))
 
 
-def prepare_statuses_table_data(
-    issues_dataframe: DataFrame,
+def filter_data_by_statuses(
+        issues_df: DataFrame,
+        statuses: list,
 ) -> DataFrame:
-    """Prepare initial data for statuses table rendering."""
-    components = prepare_components_data(issues_dataframe)
+    """Prepare data filtered by statuses."""
+    components = prepare_components_data(issues_df)
 
-    return issues_dataframe[issues_dataframe["components"].apply(
+    # only with components
+    issues_with_components_df = issues_df[issues_df["components"].apply(
         lambda x: len(x) > 0 and set(x).issubset(components),
     )]
 
-
-def prepare_assignees_table_data(issues_dataframe: DataFrame) -> DataFrame:
-    """Prepare initial data for assignees table rendering."""
-    not_finished_statuses = prepare_not_finished_statuses_data(
-        issues_dataframe,
-    )
-    # assignees table
-    return issues_dataframe[issues_dataframe["status"].apply(
-        lambda x: x in not_finished_statuses
-    )]
+    # filter by statuses
+    return issues_with_components_df[
+        issues_with_components_df["status"].apply(lambda x: x in statuses)
+    ]
 
 
 def prepare_issues_table_data(

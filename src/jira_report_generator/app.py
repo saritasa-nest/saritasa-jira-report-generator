@@ -20,8 +20,7 @@ from pandas import DataFrame
 
 from .constants import JIRA_FETCH_FIELDS
 from .utils.data import (
-    prepare_statuses_table_data,
-    prepare_assignees_table_data,
+    filter_data_by_statuses,
     prepare_issues_table_data,
     prepare_backlog_table_data,
     prepare_not_finished_statuses_data,
@@ -116,30 +115,54 @@ def construct_tables(
         versioned_df,
     )
 
-    # statuses table
-    logger.info("Generate Statuses table")
-    statuses_df = prepare_statuses_table_data(versioned_df)
-    tables.append(
-        generate_statuses_table(
-            statuses_df,
-            not_finished_statuses,
-            **{"class": "issues"},
-        ),
+    # statuses and assignees table
+    statuses_and_assignees_table_df = filter_data_by_statuses(
+        versioned_df,
+        not_finished_statuses,
     )
+    if not statuses_and_assignees_table_df.empty:
+        # statuses table
+        tables.append(
+            generate_statuses_table(
+                statuses_and_assignees_table_df,
+                not_finished_statuses,
+                **{"class": "issues"},
+            )
+        )
 
-    # assignees table
-    assignee_table_df = prepare_assignees_table_data(versioned_df)
-
-    if not assignee_table_df.empty:
-        logger.info("Generate Assignee table")
-
+        # assignees table
         tables.append(
             generate_assignees_table(
-                assignee_table_df,
+                statuses_and_assignees_table_df,
                 issues_dataframe.assignee.explode().unique().tolist(),
                 **{"class": "assignees"},
             ),
         )
+
+    # # statuses table
+    # logger.info("Generate Statuses table")
+    # statuses_df = prepare_statuses_table_data(versioned_df)
+    # tables.append(
+    #     generate_statuses_table(
+    #         statuses_df,
+    #         not_finished_statuses,
+    #         **{"class": "issues"},
+    #     ),
+    # )
+
+    # # assignees table
+    # assignee_table_df = prepare_assignees_table_data(versioned_df)
+
+    # if not assignee_table_df.empty:
+    #     logger.info("Generate Assignee table")
+
+    #     tables.append(
+    #         generate_assignees_table(
+    #             assignee_table_df,
+    #             issues_dataframe.assignee.explode().unique().tolist(),
+    #             **{"class": "assignees"},
+    #         ),
+    #     )
 
     # versions table
     if not versioned_df.empty:

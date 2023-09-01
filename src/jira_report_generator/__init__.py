@@ -1,8 +1,7 @@
 from .utils.data import (
-    prepare_assignees_table_data,
+    filter_data_by_statuses,
     prepare_backlog_table_data,
     prepare_issues_table_data,
-    prepare_statuses_table_data,
     prepare_not_finished_statuses_data,
     prepare_components_data,
 )
