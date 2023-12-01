@@ -75,9 +75,8 @@ def render_template(
 
 def prepare_components_data(issues_dataframe: DataFrame):
     """Prepare components data for usage."""
-    components = issues_dataframe.components[
-        issues_dataframe.components.explode().notna()
-    ].explode()
+    components = issues_dataframe.components.explode().dropna()
+
     return sorted(list(filter(
         lambda x: hasattr(x, "name"),
         components.unique().tolist()
