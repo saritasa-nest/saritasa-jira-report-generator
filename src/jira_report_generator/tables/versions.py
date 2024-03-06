@@ -9,6 +9,16 @@ from ..utils.tags import TD, TH, TR, Div, Table, Input
 HOURS_NDIGITS = 1
 OVERTIME_NDIGITS = 2
 
+TASKS = "tasks"
+ESTIMATED = "estimated"
+SPENT = "spent"
+OVERTIME = "overtime"
+PROJECTION = "projection"
+
+DATA_ROW_VERSION_ID = "data-row-version-id"
+DATA_ROW_VERSION_COLUMN_NAME = "data-row-version-column-name"
+DATA_COLUMN_NAME = "data-column-name"
+
 
 def calculate_avg_overtime(overtimes: List[float]) -> float:
 
@@ -141,7 +151,7 @@ def generate_versions_table(
     scrollable_subheader = TR(**{"class": "h20"})
     kwargs = {"class": "subheader hours"}
     for _ in components:
-        scrollable_subheader.append(TH("Count", **kwargs))
+        scrollable_subheader.append(TH("Tasks", **kwargs))
         scrollable_subheader.append(TH("Estimated", **kwargs))
         scrollable_subheader.append(TH("Spent", **kwargs))
         scrollable_subheader.append(TH("Overtime", **kwargs))
@@ -151,7 +161,7 @@ def generate_versions_table(
 
     # body
     for version in versions:
-        row = TR()
+        row = TR(**{DATA_ROW_VERSION_ID: version.id})
         scrollable_row = TR()
         version_tasks = df[df["versions"].apply(lambda x: version in x)]
         estimate = round(version_tasks.estimate.sum(), HOURS_NDIGITS)
@@ -177,21 +187,27 @@ def generate_versions_table(
         }))
         row.append(TD(getattr(version, "startDate", "")))
         row.append(TD(getattr(version, "releaseDate", "")))
-        row.append(TD(version_tasks.id.count()))
-        row.append(TD(estimate))
+        row.append(TD(version_tasks.id.count(), **{
+            DATA_ROW_VERSION_COLUMN_NAME: TASKS,
+        }))
+        row.append(TD(estimate, **{
+            DATA_ROW_VERSION_COLUMN_NAME: ESTIMATED,
+        }))
         row.append(TD(spent, **{
             "class": (
                 "danger"
                 if estimate != 0 and spent > estimate
                 else ""
             ),
+            DATA_ROW_VERSION_COLUMN_NAME: SPENT,
         }))
 
         # overtime
         row.append(TD(
             round(overtime, OVERTIME_NDIGITS)
             if overtime is not None and version.released
-            else ""
+            else "",
+            **{DATA_ROW_VERSION_COLUMN_NAME: OVERTIME}
         ))
 
         # estimate prediction
@@ -279,6 +295,33 @@ def generate_versions_table(
         scrollable_rows.append(col)
 
     rows.append(row)
+
+    # footer selected row
+    row = TR(**{"class": "selected"})
+
+    row.append(TD(""))
+    row.append(TD("Selected", colspan=3))
+    row.append(TD("", **{DATA_COLUMN_NAME: TASKS}))
+    row.append(TD("", **{DATA_COLUMN_NAME: ESTIMATED}))
+    row.append(TD("", **{DATA_COLUMN_NAME: SPENT}))
+    row.append(TD("", **{DATA_COLUMN_NAME: OVERTIME}))
+    row.append(TD("", **{DATA_COLUMN_NAME: PROJECTION}))
+
+    rows.append(row)
+
+    # footer selected scrollable row
+    scrollable_selected_row = TR(**{"class": "h20 selected"})
+
+    for component in components:
+        data_attr = f"{DATA_COLUMN_NAME}-{component.id}"
+
+        scrollable_selected_row.append(TD("", **{data_attr: TASKS}))
+        scrollable_selected_row.append(TD("", **{data_attr: ESTIMATED}))
+        scrollable_selected_row.append(TD("", **{data_attr: SPENT}))
+        scrollable_selected_row.append(TD("", **{data_attr: OVERTIME}))
+        scrollable_selected_row.append(TD("", **{data_attr: PROJECTION}))
+
+    scrollable_rows.append(scrollable_selected_row)
 
     if not components:
         return Table(rows, **table_options)
