@@ -271,6 +271,66 @@ function applyComponentTableSettings() {
 }
 
 /**
+ * Calculate summary for selected versions
+ */
+function recalculateSelectedSum(columnName) {
+  var value = 0;
+  let columnSelector = (
+    `.version-row-selected [data-row-version-column-name="${columnName}"]`
+  );
+  let sumColumnSelector = `[data-column-name="${columnName}"]`
+
+  document.querySelectorAll(columnSelector).forEach((column) => {
+    value += parseFloat(column.textContent) || 0;
+  });
+
+  value = Number(value.toFixed(2));
+  document.querySelector(sumColumnSelector).textContent = value;
+}
+
+/**
+ * Calculate avg for selected versions
+ */
+function recalculateSelectedAvg(columnName) {
+  var value = 0;
+  var divider = 0; // need to count because empty row should be excluded
+  let columnSelector = (
+    `.version-row-selected [data-row-version-column-name="${columnName}"]`
+  );
+  let avgColumnSelector = `[data-column-name="${columnName}"]`
+  let columns = document.querySelectorAll(columnSelector)
+
+  columns.forEach((column) => {
+    let parsedValue = parseFloat(column.textContent)
+
+    if (parsedValue && parsedValue > 0) {
+      value += parsedValue;
+      divider += 1;
+    }
+  });
+
+  value = divider ? Number((value/divider).toFixed(2)) : null;
+  document.querySelector(avgColumnSelector).textContent = value || "";
+}
+
+/**
+ * Toggle selected
+ */
+function toggleSelected(
+    selector,
+    isSelected,
+    classname="version-row-selected",
+) {
+  document.querySelectorAll(selector).forEach((elem) => {
+    if (isSelected) {
+      elem.classList.add(classname);
+    } else {
+      elem.classList.remove(classname);
+    }
+  });
+}
+
+/**
  * Initializes checkboxes in Versions table.
  */
 function init_version_selector() {
@@ -290,12 +350,28 @@ function init_version_selector() {
 
     checkbox.checked = isChecked;
 
+    // mark related row selected
+    let rowSelector = (`table.versions [data-row-version-id="${attr.value}"]`);
+    toggleSelected(rowSelector, isChecked);
+
     checkbox.addEventListener("change", function() {
       settings[attr.value] = this.checked;
       saveSettings("versions", settings);
       setVersionHidden(attr.value, !this.checked);
+      toggleSelected(rowSelector, this.checked);
+
+      recalculateSelectedSum("tasks");
+      recalculateSelectedSum("estimated");
+      recalculateSelectedSum("spent");
+      recalculateSelectedAvg("overtime");
     });
   });
+
+  // recalculate summary for selected
+  recalculateSelectedSum("tasks");
+  recalculateSelectedSum("estimated");
+  recalculateSelectedSum("spent");
+  recalculateSelectedAvg("overtime");
 }
 
 /**

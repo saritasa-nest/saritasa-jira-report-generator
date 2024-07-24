@@ -81,7 +81,7 @@ def get_data(project_key: str) -> dict[str, list]:
     # get paginated issues
     while not stop:
         issues = jira.search_issues(
-            f"project={project_key}",
+            f"project={project_key} ORDER BY created DESC",
             startAt=offset,
             maxResults=page_size,
             fields=JIRA_FETCH_FIELDS,
@@ -98,7 +98,6 @@ def get_data(project_key: str) -> dict[str, list]:
 
     # get release versions
     result["versions"] = jira.project_versions(project_key)
-    result["versions"].sort(key=lambda x: getattr(x, "releaseDate", ""))
 
     return result
 
