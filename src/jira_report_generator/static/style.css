@@ -115,8 +115,16 @@ td > input {
   width: 5em;
 }
 
+.table-content table.project th.hours {
+  width: 5em;
+}
+
 .table-content table.backlog {
   width: auto;
+  max-width: 100%;
+}
+.table-content table.project {
+  width: 640px;
   max-width: 100%;
 }
 
