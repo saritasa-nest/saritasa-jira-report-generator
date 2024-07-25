@@ -16,6 +16,7 @@ from .tables.epics import generate_epics_table
 from .tables.issues import generate_issues_table
 from .tables.statuses import generate_statuses_table
 from .tables.versions import generate_versions_table
+from .tables.project import generate_project_table
 from pandas import DataFrame
 
 from .constants import JIRA_FETCH_FIELDS
@@ -108,10 +109,23 @@ def construct_tables(
 ) -> list[Table]:
     """Construct tables from data."""
     versioned_df = get_versioned_issues(issues_dataframe)
+    unversioned_df = prepare_unversioned_table_data(issues_dataframe)
+    backlog_df = prepare_backlog_table_data(issues_dataframe)
     tables = []
     components = prepare_components_data(versioned_df)
     not_finished_statuses = prepare_not_finished_statuses_data(
         versioned_df,
+    )
+
+    # project table
+    logger.info("Generate Project table")
+    tables.append(
+        generate_project_table(
+            versioned_df,
+            unversioned_df,
+            backlog_df,
+            **{"class": "project"},
+        )
     )
 
     # statuses and assignees table
@@ -175,8 +189,6 @@ def construct_tables(
     )
 
     # unversioned issues table
-    unversioned_df = prepare_unversioned_table_data(issues_dataframe)
-
     if not unversioned_df.empty:
         logger.info("Generate Unversioned Issues table")
         tables.append(
@@ -187,8 +199,6 @@ def construct_tables(
         )
 
     # backlog table
-    backlog_df = prepare_backlog_table_data(issues_dataframe)
-
     if not backlog_df.empty:
         logger.info("Generate Backlog table")
         tables.append(
