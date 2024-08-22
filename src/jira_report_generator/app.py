@@ -99,6 +99,7 @@ def get_data(project_key: str) -> dict[str, list]:
 
     # get release versions
     result["versions"] = jira.project_versions(project_key)
+    result["versions"].sort(key=lambda x: getattr(x, "startDate", ""))
 
     return result
 
