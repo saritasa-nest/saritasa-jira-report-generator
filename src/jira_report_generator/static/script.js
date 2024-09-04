@@ -186,6 +186,62 @@ function init_version_columns() {
 }
 
 /**
+ * Adds an ability to control visibility of component issue rows
+ * by clicking on version columns.
+ */
+function init_sprint_columns() {
+  var sprints = document.querySelectorAll(".issues th.sprint");
+  var settings = getSettings("components");
+  const collapsedClassName = "collapsed";
+
+  for (var i in sprints) {
+    var sprint = sprints[i];
+
+    if (
+        sprint !== undefined
+        && sprint.attributes !== undefined
+        && sprint.attributes['data-sprint-id'] !== undefined
+    ) {
+      var sprintId = sprint.attributes['data-sprint-id'];
+      var componentId = sprint.attributes['data-component-id'];
+
+      var listenerSelector = (
+        `table.component [${sprintId.name}="${sprintId.value}"]`
+        +`[${componentId.name}="${componentId.value}"] > span.collapse`
+      );
+
+      document.querySelector(listenerSelector).onclick = function () {
+        var sprintAttr = this.parentNode.attributes['data-sprint-id'];
+        var componentAttr = this.parentNode.attributes['data-component-id'];
+        
+        var selector = (
+          `table.component [data-sprint-ids="${sprintAttr.value}"]`
+          +`[data-component-id="${componentAttr.value}"]`
+        );
+
+        this.classList.toggle("up");
+        this.parentNode.classList.toggle(collapsedClassName);
+
+        var isSprintCollapsed = this.parentNode.classList.contains(
+          collapsedClassName
+        )
+
+        if (!settings[componentAttr.value]) {
+          settings[componentAttr.value] = JSON.constructor();
+        }
+
+        settings[componentAttr.value][sprintAttr.value] = isSprintCollapsed;
+        saveSettings("components", settings)
+
+        document.querySelectorAll(selector).forEach((el) => {
+          el.classList.toggle(collapsedClassName);
+        })
+      }
+    }
+  }
+}
+
+/**
  * Collapses version column and hides related rows.
  */
 function setVersionCollapsed(componentId, versionId, collapsed = true) {
@@ -209,6 +265,38 @@ function setVersionCollapsed(componentId, versionId, collapsed = true) {
   });
 
   document.querySelectorAll(versionRowsSelector).forEach((row) => {
+    if (collapsed) {  
+      row.classList.add("collapsed");
+    } else {
+      row.classList.remove("collapsed");
+    }
+  });
+}
+
+/**
+ * Collapses sprint column and hides related rows.
+ */
+function setSprintCollapsed(componentId, sprintId, collapsed = true) {
+  var sprintColumnsSelector = (
+    `.issues th.sprint[data-component-id="${componentId}"]`
+    + `[data-sprint-id="${sprintId}"]`
+  )
+  var sprintRowsSelector = (
+    `table.component [data-component-id="${componentId}"]`
+    + `[data-sprint-ids="${sprintId}"]`
+  );
+
+  document.querySelectorAll(sprintColumnsSelector).forEach((column) => {
+    if (collapsed) {  
+      column.classList.add("collapsed");
+      column.querySelector("span.collapse").classList.add("up");
+    } else {
+      column.classList.remove("collapsed");
+      column.querySelector("span.collapse").classList.remove("up");
+    }
+  });
+
+  document.querySelectorAll(sprintRowsSelector).forEach((row) => {
     if (collapsed) {  
       row.classList.add("collapsed");
     } else {
@@ -246,9 +334,37 @@ function setVersionHidden(versionId, hidden = true) {
 }
 
 /**
+ * Hides sprint column and hides related rows.
+ */
+function setSprintHidden(sprintId, hidden = true) {
+  var sprintColumnsSelector = (
+    `.issues [data-sprint-id="${sprintId}"]`
+  )
+  var sprintRowsSelector = (
+    `table.component [data-sprint-ids="${sprintId}"]`
+  );
+
+  document.querySelectorAll(sprintColumnsSelector).forEach((column) => {
+    if (hidden) {  
+      column.classList.add("hidden");
+    } else {
+      column.classList.remove("hidden");
+    }
+  });
+
+  document.querySelectorAll(sprintRowsSelector).forEach((row) => {
+    if (hidden) {  
+      row.classList.add("hidden");
+    } else {
+      row.classList.remove("hidden");
+    }
+  });
+}
+
+/**
  * Applyes stored settings for "components" table.
  */
-function applyComponentTableSettings() {
+function applyVersionComponentTableSettings() {
   const componentSettings = getSettings("components");
   const versionSettings = getSettings("versions");
 
@@ -271,12 +387,55 @@ function applyComponentTableSettings() {
 }
 
 /**
+ * Applyes stored settings for version "components" table.
+ */
+function applySprintComponentTableSettings() {
+  const componentSettings = getSettings("components");
+  const sprintSettings = getSettings("sprints");
+
+  for (var componentId in componentSettings) {
+    for (var sprintId in componentSettings[componentId]) {
+      setSprintCollapsed(
+        componentId,
+        sprintId,
+        componentSettings[componentId][sprintId],
+      );
+    }
+  }
+
+  for (var sprintId in sprintSettings) {
+    setSprintHidden(
+      sprintId,
+      !sprintSettings[sprintId],
+    );
+  }
+}
+
+/**
  * Calculate summary for selected versions
  */
 function recalculateSelectedSum(columnName) {
   var value = 0;
   let columnSelector = (
     `.version-row-selected [data-row-version-column-name="${columnName}"]`
+  );
+  let sumColumnSelector = `[data-column-name="${columnName}"]`
+
+  document.querySelectorAll(columnSelector).forEach((column) => {
+    value += parseFloat(column.textContent) || 0;
+  });
+
+  value = Number(value.toFixed(2));
+  document.querySelector(sumColumnSelector).textContent = value;
+}
+
+/**
+ * Calculate summary for selected sprints
+ */
+function recalculateSelectedSprintsSum(columnName) {
+  var value = 0;
+  let columnSelector = (
+    `.sprint-row-selected [data-row-sprint-column-name="${columnName}"]`
   );
   let sumColumnSelector = `[data-column-name="${columnName}"]`
 
@@ -314,12 +473,37 @@ function recalculateSelectedAvg(columnName) {
 }
 
 /**
+ * Calculate avg for selected sprints
+ */
+function recalculateSelectedSprintsAvg(columnName) {
+  var value = 0;
+  var divider = 0; // need to count because empty row should be excluded
+  let columnSelector = (
+    `.sprint-row-selected [data-row-sprint-column-name="${columnName}"]`
+  );
+  let avgColumnSelector = `[data-column-name="${columnName}"]`
+  let columns = document.querySelectorAll(columnSelector)
+
+  columns.forEach((column) => {
+    let parsedValue = parseFloat(column.textContent)
+
+    if (parsedValue && parsedValue > 0) {
+      value += parsedValue;
+      divider += 1;
+    }
+  });
+
+  value = divider ? Number((value/divider).toFixed(2)) : null;
+  document.querySelector(avgColumnSelector).textContent = value || "";
+}
+
+/**
  * Toggle selected
  */
 function toggleSelected(
     selector,
     isSelected,
-    classname="version-row-selected",
+    classname,
 ) {
   document.querySelectorAll(selector).forEach((elem) => {
     if (isSelected) {
@@ -352,13 +536,13 @@ function init_version_selector() {
 
     // mark related row selected
     let rowSelector = (`table.versions [data-row-version-id="${attr.value}"]`);
-    toggleSelected(rowSelector, isChecked);
+    toggleSelected(rowSelector, isChecked, "version-row-selected");
 
     checkbox.addEventListener("change", function() {
       settings[attr.value] = this.checked;
       saveSettings("versions", settings);
       setVersionHidden(attr.value, !this.checked);
-      toggleSelected(rowSelector, this.checked);
+      toggleSelected(rowSelector, this.checked, "version-row-selected");
 
       recalculateSelectedSum("tasks");
       recalculateSelectedSum("estimated");
@@ -375,14 +559,118 @@ function init_version_selector() {
 }
 
 /**
+ * Initializes checkboxes in Sprint table.
+ */
+function init_sprint_selector() {
+  var checkboxes = document.querySelectorAll(
+    "table.sprints input[type=checkbox]"
+  )
+  let settings = getSettings("sprints");
+
+  checkboxes.forEach(function(checkbox) {
+    var attr = checkbox.attributes["data-sprint-id"];
+    var isChecked = true;
+
+    // set initial state -- displayed
+    if (settings[attr.value] != undefined) {
+      isChecked = settings[attr.value];
+    }
+
+    checkbox.checked = isChecked;
+
+    // mark related row selected
+    let rowSelector = (`table.sprints [data-row-sprint-id="${attr.value}"]`);
+    toggleSelected(rowSelector, isChecked, "sprint-row-selected");
+
+    checkbox.addEventListener("change", function() {
+      settings[attr.value] = this.checked;
+      saveSettings("sprints", settings);
+      setSprintHidden(attr.value, !this.checked);
+      toggleSelected(rowSelector, this.checked, "sprint-row-selected");
+
+      recalculateSelectedSprintsSum("tasks");
+      recalculateSelectedSprintsSum("estimated");
+      recalculateSelectedSprintsSum("spent");
+      recalculateSelectedSprintsAvg("overtime");
+    });
+  });
+
+  // recalculate summary for selected sprints
+  recalculateSelectedSprintsSum("tasks");
+  recalculateSelectedSprintsSum("estimated");
+  recalculateSelectedSprintsSum("spent");
+  recalculateSelectedSprintsAvg("overtime");
+}
+
+/**
+ * Set active tab
+ */
+function setActiveTab(id) {
+  var contentSelector = `[data-tab-content-id="${id}"]`;
+  var tab = document.querySelector(`[data-tab-header-id="${id}"]`);
+  var tabs = document.querySelectorAll(".tab-header");
+  var contents = document.querySelectorAll(".tab-content");
+
+  tabs.forEach(function(item) {
+    item.classList.remove("active");
+  });
+  contents.forEach(function(item) {
+    item.classList.remove("active");
+  })
+
+  // set current tab active
+  tab.classList.toggle("active");
+  document.querySelector(contentSelector).classList.toggle("active");
+}
+
+/**
+ * Initializes tabs
+ */
+function initTabs() {
+  var tabs = document.querySelectorAll(".tab-header");
+
+  tabs.forEach(function(tab) {
+    var attr = tab.attributes["data-tab-header-id"];
+
+    tab.querySelector("a").onclick = function () {
+      setActiveTab(attr.value);
+      saveSettings("tabs", {"activeTabId": attr.value});
+    }
+  });
+}
+
+/**
+ * Apply tabs settings
+ */
+function applyTabsSettings() {
+  var defaultTabId = 1;
+  var tabsSettings = getSettings("tabs");
+  var activeTabId = tabsSettings["activeTabId"];
+
+  if (activeTabId) {
+    setActiveTab(activeTabId);
+  } else {
+    setActiveTab(defaultTabId);
+  }
+}
+
+/**
  * Initializes all action parts.
  */
 function init_reports() {
   init_highlights();
+
   init_version_selector();
   init_version_columns();
 
-  applyComponentTableSettings();
+  init_sprint_selector()
+  init_sprint_columns();
+
+  initTabs();
+
+  applyVersionComponentTableSettings();
+  applySprintComponentTableSettings();
+  applyTabsSettings();
 }
 
 document.addEventListener("DOMContentLoaded", init_reports)

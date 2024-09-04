@@ -8,7 +8,10 @@ from ..constants import Status
 from .tags import Table
 
 
-def get_dataframe(data: list[Issue]) -> DataFrame:
+def get_dataframe(
+        data: list[Issue],
+        extra_data: dict[int, dict],
+) -> DataFrame:
     """Construct dataframe from fetched data."""
     result = []
 
@@ -28,6 +31,9 @@ def get_dataframe(data: list[Issue]) -> DataFrame:
             for v
             in item.fields.fixVersions
         ]
+        extra = extra_data.get(item.id, {})
+        board = extra.get("board", None)
+        sprint = extra.get("sprint", None)
 
         result.append({
             "id": item.id,
@@ -48,6 +54,9 @@ def get_dataframe(data: list[Issue]) -> DataFrame:
             "type": item.fields.issuetype,
             "parent": getattr(item.fields, "parent", None),
             "release_date": release_date[0] if release_date else None,
+            "sprint_date": getattr(sprint, "endDate", "") if sprint else None,
+            "board_id": board.id if board else None,
+            "sprint_id": sprint.id if sprint else None,
         })
 
     return DataFrame(result)
@@ -56,6 +65,12 @@ def get_dataframe(data: list[Issue]) -> DataFrame:
 def get_versioned_issues(df: DataFrame) -> DataFrame:
     return df[df["versions"].apply(lambda x: len(x) > 0)].sort_values(
         by=["release_date", "id"],
+    )
+
+
+def get_sprinted_issues(df: DataFrame) -> DataFrame:
+    return df[df["sprint_id"].notna()].sort_values(
+        by=["sprint_date", "id"],
     )
 
 

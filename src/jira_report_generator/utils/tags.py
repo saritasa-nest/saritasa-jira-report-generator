@@ -104,3 +104,11 @@ class Input(Tag):
         ])
 
         return f"<{self.tag} {attrs} />"
+
+
+class Section(Div):
+    tag = "section"
+
+
+class H2(Tag):
+    tag = "h2"

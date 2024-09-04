@@ -13,7 +13,6 @@ td > input {
 
 .table-content table {
   border-collapse: collapse;
-  margin-bottom: 0.5em;
   width: 100%;
 }
 
@@ -36,6 +35,8 @@ td > input {
 .table-content td, .table-content th { 
   padding: .2em .5em; 
   border: 1px solid #ccc;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .table-content th {
@@ -108,6 +109,10 @@ td > input {
 }
 
 .table-content table.versions th.hours {
+  width: 4em;
+}
+
+.table-content table.sprints th.hours {
   width: 4em;
 }
 
@@ -216,11 +221,11 @@ td > input {
   padding: 0;
 }
 
-.center {
-  text-align: center;
+th > span.name {
+  margin-right: 1em;
 }
 
-span.collapse {
+th > span.collapse {
   width: 1em;
   height: 1em;
   display: block;
@@ -230,14 +235,47 @@ span.collapse {
   right: .2em;
 }
 
-span.collapse:hover {
+th > span.collapse:hover {
   cursor: pointer;
 }
 
-span.collapse:after {
+th > span.collapse:after {
   content: "−";
 }
 
-span.collapse.up:after {
+th > span.collapse.up:after {
   content: "+";
+}
+
+.center {
+  text-align: center;
+}
+
+.tab-header {
+  display: inline-block;
+  padding: 1em;
+}
+
+.tab-header.active {
+  background: #ccc;
+}
+
+.tab-header > a {
+  text-decoration: none;
+  border-bottom: 1px dashed;
+}
+
+.tab-header.active > a {
+  border-bottom: none;
+  font-weight: bold;
+}
+
+.tab-content {
+  display: none;
+  padding: 1em;
+  border: 1px solid #ccc;
+}
+
+.tab-content.active {
+  display: block;
 }
