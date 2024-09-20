@@ -15,7 +15,7 @@ def generate_issues_table(
     scrollable_rows = []
 
     # table header
-    header = TR(**{"class": "h60"})
+    header = TR(**{"class": "h75"})
     header.append(TH("Summary", **{"class": "summary"}))
     header.append(TH("Type", **{"class": "type"}))
     header.append(TH("Jira ID", **{"class": "key"}))
@@ -25,12 +25,13 @@ def generate_issues_table(
     rows.append(header)
 
     # scrollable header
-    scrollable_header = TR(**{"class": "h40"})
+    scrollable_header = TR(**{"class": "h50"})
     for version in versions:
         releaseDate = getattr(version, "releaseDate", "")
 
         scrollable_header.append(TH(
-            f"<span>{version.name}</span><span class=\"collapse\"></span>"
+            f"<span class=\"name\">{version.name}</span>"
+            "<span class=\"collapse\"></span>"
             f"<br/><small>{releaseDate}</small>",
             **{
                 "class": "version",
@@ -43,7 +44,7 @@ def generate_issues_table(
     scrollable_rows.append(scrollable_header)
 
     # scrollable subheader
-    scrollable_subheader = TR(**{"class": "h20"})
+    scrollable_subheader = TR(**{"class": "h25"})
     for version in versions:
         version_tasks = df[df["versions"].apply(lambda x: version in x)]
         estimate = round(version_tasks.estimate.sum(), 1)
@@ -175,11 +176,11 @@ def generate_issues_table(
                     )
                 )
             else:
-                scrollable_tr.append(TD("", **{
+                scrollable_tr.append(TD("&nbsp;", **{
                     "class": "hours",
                     "data-version-id": str(version.id),
                 }))
-                scrollable_tr.append(TD("", **{
+                scrollable_tr.append(TD("&nbsp;", **{
                     "class": "hours",
                     "data-version-id": str(version.id),
                 }))

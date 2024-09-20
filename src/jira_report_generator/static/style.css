@@ -9,6 +9,12 @@ body {
 td > input {
   padding: 0;
   margin: 0;
+  height: 12px;
+  vertical-align: middle;
+}
+
+.p05 {
+  padding: 0 5px !important;
 }
 
 .table-content table {
@@ -33,9 +39,13 @@ td > input {
   background: #eee transparent;
 }
 
-.table-content td, .table-content th { 
-  padding: .2em .5em; 
+.table-content td,
+.table-content th { 
+  padding: 2px 5px; 
   border: 1px solid #ccc;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .table-content th {
@@ -178,7 +188,8 @@ td > input {
 .table-content .warning {
   color: orange;
 }
-.table-content .success {
+.table-content .success,
+.table-content .released {
   color: green;
 }
 .table-content .nowrap {
@@ -206,11 +217,20 @@ td > input {
 .table-content .h20 {
   height: 20px;
 }
+.table-content .h25 {
+  height: 25px;
+}
 .table-content .h40 {
   height: 40px;
 }
+.table-content .h50 {
+  height: 50px;
+}
 .table-content .h60 {
   height: 60px;
+}
+.table-content .h75 {
+  height: 75px;
 }
 .table-content .p0 {
   padding: 0;
@@ -220,7 +240,11 @@ td > input {
   text-align: center;
 }
 
-span.collapse {
+th > span.name {
+  margin-right: 1em;
+}
+
+th > span.collapse {
   width: 1em;
   height: 1em;
   display: block;
@@ -230,14 +254,29 @@ span.collapse {
   right: .2em;
 }
 
-span.collapse:hover {
+th > span.collapse:hover {
   cursor: pointer;
 }
 
-span.collapse:after {
+th > span.collapse:after {
   content: "−";
 }
 
-span.collapse.up:after {
+th > span.collapse.up:after {
   content: "+";
+}
+
+/* Versions and Sprints */
+table.versions td.name {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 120px;
+}
+
+table.versions td.date {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  max-width: 60px;
 }
