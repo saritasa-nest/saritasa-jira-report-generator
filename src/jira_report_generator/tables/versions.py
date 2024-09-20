@@ -127,7 +127,7 @@ def generate_versions_table(
     component_overtimes_map = defaultdict(list)
 
     # table header
-    header = TR(**{"class": "h40"})
+    header = TR(**{"class": "h50"})
     header.append(TH(""))
     header.append(TH("Version"))
     header.append(TH("Start Date"))
@@ -141,14 +141,14 @@ def generate_versions_table(
     rows.append(header)
 
     # scrollable header
-    scrollable_header = TR(**{"class": "h20"})
+    scrollable_header = TR(**{"class": "h25"})
     for component in components:
         scrollable_header.append(TH(component.name, **{"colspan": 5}))
 
     scrollable_rows.append(scrollable_header)
 
     # scrollable subheader
-    scrollable_subheader = TR(**{"class": "h20"})
+    scrollable_subheader = TR(**{"class": "h25"})
     kwargs = {"class": "subheader hours"}
     for _ in components:
         scrollable_subheader.append(TH("Tasks", **kwargs))
@@ -180,13 +180,19 @@ def generate_versions_table(
                 "type": "checkbox",
                 "data-version-id": version.id,
             }),
-            **{"class": "center p0"},
+            **{"class": "center p05"},
         ))
+
         row.append(TD(version.name, **{
-            "class": "success" if version.released else "",
+            "class": f"name {'released' if version.released else ''}",
+            "title": version.name,
         }))
-        row.append(TD(getattr(version, "startDate", "")))
-        row.append(TD(getattr(version, "releaseDate", "")))
+        row.append(TD(getattr(version, "startDate", ""), **{
+            "class": "date",
+        }))
+        row.append(TD(getattr(version, "releaseDate", ""), **{
+            "class": "date",
+        }))
         row.append(TD(version_tasks.id.count(), **{
             DATA_ROW_VERSION_COLUMN_NAME: TASKS,
         }))
