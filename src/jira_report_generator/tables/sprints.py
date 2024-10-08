@@ -288,17 +288,19 @@ def generate_sprints_table(
         title=f"{estimate}*{avg_overtime}",
     ))
 
+    rows.append(row)
     # add summary component columns filled in with values
-    for col in generate_component_columns(
+    scrollable_summary_row = TR(
+        generate_component_columns(
             df,
             components,
             component_overtimes_map,
             display_overtime=False,
             summary=True,
-    ):
-        scrollable_rows.append(col)
-
-    rows.append(row)
+        ),
+        **{"class": "summary"},
+    )
+    scrollable_rows.append(scrollable_summary_row)
 
     # footer selected row
     row = TR(**{"class": "selected"})
@@ -314,16 +316,16 @@ def generate_sprints_table(
     rows.append(row)
 
     # footer selected scrollable row
-    scrollable_selected_row = TR(**{"class": "h20 selected"})
+    scrollable_selected_row = TR(**{"class": "selected"})
 
     for component in components:
         data_attr = f"{DATA_COLUMN_NAME}-{component.id}"
 
-        scrollable_selected_row.append(TD("", **{data_attr: TASKS}))
-        scrollable_selected_row.append(TD("", **{data_attr: ESTIMATED}))
-        scrollable_selected_row.append(TD("", **{data_attr: SPENT}))
-        scrollable_selected_row.append(TD("", **{data_attr: OVERTIME}))
-        scrollable_selected_row.append(TD("", **{data_attr: PROJECTION}))
+        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: TASKS}))
+        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: ESTIMATED}))
+        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: SPENT}))
+        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: OVERTIME}))
+        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: PROJECTION}))
 
     scrollable_rows.append(scrollable_selected_row)
 

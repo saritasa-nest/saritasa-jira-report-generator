@@ -32,7 +32,7 @@ markupsafe==2.1.2
     # via jinja2
 matplotlib-inline==0.1.6
     # via ipython
-numpy==1.24.3
+numpy==1.26.4
     # via pandas
 oauthlib==3.2.2
     # via requests-oauthlib
