@@ -246,8 +246,8 @@ def construct_tables(
     tabs_header: list[str, int] = [
         ("Versions", VERSIONS_TAB_ID),
     ]
-    if boards and boards[0]["sprints"]:
-        for board in boards:
+    for board in boards:
+        if board["sprints"]:
             tabs_header.append((
                 board["board"].name,
                 board["board"].id,
