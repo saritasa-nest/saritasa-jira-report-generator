@@ -63,7 +63,9 @@ def get_dataframe(
 
 
 def get_versioned_issues(df: DataFrame) -> DataFrame:
-    return df[df["versions"].apply(lambda x: len(x) > 0)].sort_values(
+    return df[df["versions"].apply(
+        lambda x: any([not getattr(v, "archived", False) for v in x])
+    )].sort_values(
         by=["release_date", "id"],
     )
 

@@ -38,7 +38,7 @@ def generate_assignees_table(
         return row, scrollable_row
 
     # header
-    header = TR(**{"class": "h40"})
+    header = TR(**{"class": "h50"})
     header.append(TH("Assignee", **{"class": "nowrap"}))
     header.append(TH("Count", **{"class": "hours"}))
     header.append(TH("Estimated", **{"class": "hours"}))
@@ -47,13 +47,13 @@ def generate_assignees_table(
     rows.append(header)
 
     # scrollable header
-    scrollable_header = TR(**{"class": "h20"})
+    scrollable_header = TR(**{"class": "h25"})
     for component in components:
         scrollable_header.append(TH(component.name, **{"colspan": 4}))
     scrollable_rows.append(scrollable_header)
 
     # scrollable subheader
-    scrollable_subheader = TR(**{"class": "h20"})
+    scrollable_subheader = TR(**{"class": "h25"})
     kwargs = {"class": "subheader hours"}
     for component in components:
         scrollable_subheader.append(TH("Count", **kwargs))

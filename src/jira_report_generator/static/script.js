@@ -313,7 +313,7 @@ function setVersionHidden(versionId, hidden = true) {
     `.issues [data-version-id="${versionId}"]`
   )
   var versionRowsSelector = (
-    `table.component [data-version-ids="${versionId}"]`
+    `table.component [data-version-ids*="${versionId}"]`
   );
 
   document.querySelectorAll(versionColumnsSelector).forEach((column) => {
