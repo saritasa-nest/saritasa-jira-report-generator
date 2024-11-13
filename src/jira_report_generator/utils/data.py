@@ -6,11 +6,13 @@ from pandas import DataFrame
 
 from ..constants import Status
 from .tags import Table
+from .formatters import get_issue_permalink
 
 
 def get_dataframe(
         data: list[Issue],
         extra_data: dict[int, dict],
+        jira_server_url: str,
 ) -> DataFrame:
     """Construct dataframe from fetched data."""
     result = []
@@ -35,6 +37,11 @@ def get_dataframe(
         board = extra.get("board", None)
         sprint = extra.get("sprint", None)
 
+        item_permalink = get_issue_permalink(
+            jira_server_url,
+            item.key,
+        )
+
         result.append({
             "id": item.id,
             "key": item.key,
@@ -50,7 +57,7 @@ def get_dataframe(
                 else 0
             ),
             "versions": item.fields.fixVersions,
-            "link": item.permalink(),
+            "link": item_permalink,
             "type": item.fields.issuetype,
             "parent": getattr(item.fields, "parent", None),
             "release_date": release_date[0] if release_date else None,

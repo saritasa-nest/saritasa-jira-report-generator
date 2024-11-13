@@ -269,6 +269,10 @@ th > span.collapse.up:after {
   text-align: center;
 }
 
+.tabs {
+  margin-bottom: 0.5em;
+}
+
 .tab-header {
   display: inline-block;
   padding: 1em;

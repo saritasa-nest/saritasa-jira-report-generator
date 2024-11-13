@@ -157,7 +157,7 @@ function init_version_columns() {
       document.querySelector(listenerSelector).onclick = function () {
         var versionAttr = this.parentNode.attributes['data-version-id'];
         var componentAttr = this.parentNode.attributes['data-component-id'];
-        
+
         var selector = (
           `table.component [data-version-ids="${versionAttr.value}"]`
           +`[data-component-id="${componentAttr.value}"]`
@@ -213,7 +213,7 @@ function init_sprint_columns() {
       document.querySelector(listenerSelector).onclick = function () {
         var sprintAttr = this.parentNode.attributes['data-sprint-id'];
         var componentAttr = this.parentNode.attributes['data-component-id'];
-        
+
         var selector = (
           `table.component [data-sprint-ids="${sprintAttr.value}"]`
           +`[data-component-id="${componentAttr.value}"]`
@@ -255,7 +255,7 @@ function setVersionCollapsed(componentId, versionId, collapsed = true) {
   );
 
   document.querySelectorAll(versionColumnsSelector).forEach((column) => {
-    if (collapsed) {  
+    if (collapsed) {
       column.classList.add("collapsed");
       column.querySelector("span.collapse").classList.add("up");
     } else {
@@ -265,7 +265,7 @@ function setVersionCollapsed(componentId, versionId, collapsed = true) {
   });
 
   document.querySelectorAll(versionRowsSelector).forEach((row) => {
-    if (collapsed) {  
+    if (collapsed) {
       row.classList.add("collapsed");
     } else {
       row.classList.remove("collapsed");
@@ -287,7 +287,7 @@ function setSprintCollapsed(componentId, sprintId, collapsed = true) {
   );
 
   document.querySelectorAll(sprintColumnsSelector).forEach((column) => {
-    if (collapsed) {  
+    if (collapsed) {
       column.classList.add("collapsed");
       column.querySelector("span.collapse").classList.add("up");
     } else {
@@ -297,7 +297,7 @@ function setSprintCollapsed(componentId, sprintId, collapsed = true) {
   });
 
   document.querySelectorAll(sprintRowsSelector).forEach((row) => {
-    if (collapsed) {  
+    if (collapsed) {
       row.classList.add("collapsed");
     } else {
       row.classList.remove("collapsed");
@@ -317,7 +317,7 @@ function setVersionHidden(versionId, hidden = true) {
   );
 
   document.querySelectorAll(versionColumnsSelector).forEach((column) => {
-    if (hidden) {  
+    if (hidden) {
       column.classList.add("hidden");
     } else {
       column.classList.remove("hidden");
@@ -325,7 +325,7 @@ function setVersionHidden(versionId, hidden = true) {
   });
 
   document.querySelectorAll(versionRowsSelector).forEach((row) => {
-    if (hidden) {  
+    if (hidden) {
       row.classList.add("hidden");
     } else {
       row.classList.remove("hidden");
@@ -345,7 +345,7 @@ function setSprintHidden(sprintId, hidden = true) {
   );
 
   document.querySelectorAll(sprintColumnsSelector).forEach((column) => {
-    if (hidden) {  
+    if (hidden) {
       column.classList.add("hidden");
     } else {
       column.classList.remove("hidden");
@@ -353,7 +353,7 @@ function setSprintHidden(sprintId, hidden = true) {
   });
 
   document.querySelectorAll(sprintRowsSelector).forEach((row) => {
-    if (hidden) {  
+    if (hidden) {
       row.classList.add("hidden");
     } else {
       row.classList.remove("hidden");
@@ -362,7 +362,7 @@ function setSprintHidden(sprintId, hidden = true) {
 }
 
 /**
- * Applyes stored settings for "components" table.
+ * Applies stored settings for "components" table.
  */
 function applyVersionComponentTableSettings() {
   const componentSettings = getSettings("components");
@@ -387,7 +387,7 @@ function applyVersionComponentTableSettings() {
 }
 
 /**
- * Applyes stored settings for version "components" table.
+ * Applies stored settings for version "components" table.
  */
 function applySprintComponentTableSettings() {
   const componentSettings = getSettings("components");

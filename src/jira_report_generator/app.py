@@ -5,7 +5,6 @@ import sys
 from logging import Formatter, StreamHandler
 from datetime import datetime
 
-from decouple import config
 from jinja2 import Environment, FileSystemLoader
 from jira import JIRA
 from pandas import DataFrame
@@ -32,15 +31,9 @@ from .utils.data import (
     get_dataframe,
     get_versioned_issues,
     prepare_unversioned_table_data,
-    render_template,
 )
 from .utils.tags import H2, Div, Section, Table
 from .utils.tabs import wrap_with_tabs
-
-SERVER_URL = str(config("SERVER_URL"))
-EMAIL = str(config("EMAIL"))
-API_TOKEN = str(config("API_TOKEN"))
-OUTPUT_DIR = ".output"
 
 parser = argparse.ArgumentParser()
 parser.add_argument("key", type=str, help="JIRA project key")
@@ -65,16 +58,16 @@ env = Environment(
 
 logger = logging.getLogger(__name__)
 handler = StreamHandler(stream=sys.stdout)
-formatter = Formatter(fmt='[%(asctime)s: %(levelname)s] %(message)s')
+formatter = Formatter(fmt="[%(asctime)s: %(levelname)s] %(message)s")
 
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
 def get_paginated_issues(
-        jira_client: JIRA,
-        jql_str: str,
-        fields: list = JIRA_FETCH_FIELDS,
+    jira_client: JIRA,
+    jql_str: str,
+    fields: list = JIRA_FETCH_FIELDS,
 ) -> list:
     result = []
     offset = 0
@@ -99,15 +92,17 @@ def get_paginated_issues(
     return result
 
 
-def get_extra_data(project_key) -> dict[str, list or dict]:
+def get_extra_data(
+    jira_client: JIRA,
+    project_key: str,
+) -> dict[str, list | dict]:
     logger.info(f"Connect to Jira ({project_key})")
 
-    jira = JIRA(server=SERVER_URL, basic_auth=(EMAIL, API_TOKEN))
     result = {
         "boards": [],
         "issues": {},
     }
-    boards = jira.boards(projectKeyOrID=project_key)
+    boards = jira_client.boards(projectKeyOrID=project_key)
 
     logger.info(f"Collected {len(boards)} board(s)")
 
@@ -115,7 +110,7 @@ def get_extra_data(project_key) -> dict[str, list or dict]:
         logger.info(f"Collect sprints for Board {board.id}")
 
         try:
-            sprints = jira.sprints(board_id=board.id)
+            sprints = jira_client.sprints(board_id=board.id)
         except Exception as e:
             logger.debug(e)
             sprints = []
@@ -131,7 +126,7 @@ def get_extra_data(project_key) -> dict[str, list or dict]:
             logger.info(f"Collect issues for Sprint {sprint.id}")
 
             issues = get_paginated_issues(
-                jira_client=jira,
+                jira_client=jira_client,
                 jql_str=(
                     f"project={project_key} "
                     f"AND sprint={sprint.id} "
@@ -162,24 +157,26 @@ def get_extra_data(project_key) -> dict[str, list or dict]:
     return result
 
 
-def get_data(project_key: str) -> dict[str, list]:
+def get_data(jira_client: JIRA, project_key: str) -> dict[str, list]:
     logger.info(f"Connect to Jira ({project_key})")
 
-    jira = JIRA(server=SERVER_URL, basic_auth=(EMAIL, API_TOKEN))
     result = {
         "issues": [],
         "versions": [],
     }
 
     result["issues"] = get_paginated_issues(
-        jira_client=jira,
+        jira_client=jira_client,
         jql_str=f"project={project_key} ORDER BY created DESC",
     )
 
     logger.info("Get versions")
 
-    # get release versions
-    result["versions"] = jira.project_versions(project_key)
+    # get not archived release versions
+    result["versions"] = list(filter(
+        lambda x: x.archived == False,
+        jira_client.project_versions(project_key),
+    ))
     result["versions"].sort(key=lambda x: getattr(x, "startDate", ""))
 
     return result
@@ -378,15 +375,20 @@ def construct_tables(
     return tables
 
 
-def get_tables(jira_project_key: str) -> list[Table]:
+def get_tables(
+        jira_client: JIRA,
+        jira_project_key: str,
+        jira_server_url: str,
+) -> list[Table]:
     """Get tables."""
-    data = get_data(jira_project_key)
-    extra_data = get_extra_data(jira_project_key)
+    data = get_data(jira_client, jira_project_key)
+    extra_data = get_extra_data(jira_client, jira_project_key)
 
     logger.info("Prepare Pandas dataframe")
     dataframe = get_dataframe(
         data["issues"],
         extra_data["issues"],
+        jira_server_url,
     )
 
     return construct_tables(
@@ -394,39 +396,3 @@ def get_tables(jira_project_key: str) -> list[Table]:
         data["versions"],
         extra_data["boards"],
     )
-
-
-def write_tables(tables: list[Table], filename: str, key: str):
-    """Write tables."""
-
-    if not os.path.exists(OUTPUT_DIR):
-        os.makedirs(OUTPUT_DIR)
-
-    if not filename:
-        filename = f"{OUTPUT_DIR}/{key}.html"
-
-    logger.info(f"Write to {filename}")
-
-    with open(filename, "w", encoding="utf-8") as f:
-        f.write(render_template(
-            tables,
-            key,
-            env.get_template("template.html"),
-        ))
-
-
-def main():
-    cli_args = parser.parse_args()
-
-    if cli_args.verbose:
-        logger.setLevel(logging.INFO)
-
-    write_tables(
-        get_tables(cli_args.key),
-        cli_args.output,
-        cli_args.key,
-    )
-
-
-if __name__ == "__main__":
-    main()
