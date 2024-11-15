@@ -4,7 +4,7 @@ from jinja2 import Template
 from jira import Issue
 from pandas import DataFrame
 
-from ..constants import Status
+from ..constants import Status, Type
 from .tags import Table
 from .formatters import get_issue_permalink
 
@@ -170,3 +170,21 @@ def prepare_unversioned_table_data(issues_dataframe: DataFrame) -> DataFrame:
     return issues_dataframe[
         issues_dataframe["versions"].apply(lambda x: len(x) == 0)
     ].sort_values("id")
+
+
+def get_epics(issues_dataframe: DataFrame) -> DataFrame:
+    """Returns a dataframe of issues type Epic"""
+    return issues_dataframe[
+        issues_dataframe["type"].apply(
+            lambda x: x.name == Type.EPIC.value,
+        )
+    ]
+
+
+def get_stories(issues_dataframe: DataFrame) -> DataFrame:
+    """Returns a dataframe of issues type Story"""
+    return issues_dataframe[
+        issues_dataframe["type"].apply(
+            lambda x: x.name == Type.STORY.value,
+        )
+    ]

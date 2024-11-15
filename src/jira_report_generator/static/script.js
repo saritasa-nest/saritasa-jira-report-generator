@@ -414,19 +414,25 @@ function applySprintComponentTableSettings() {
 /**
  * Calculate summary for selected versions
  */
-function recalculateSelectedSum(columnName) {
+function recalculateSelectedVersionSum(columnName) {
   var value = 0;
   let columnSelector = (
     `.version-row-selected [data-row-version-column-name="${columnName}"]`
   );
-  let sumColumnSelector = `[data-column-name="${columnName}"]`
+  let sumColumnSelector = (
+    `table.versions [data-column-name="${columnName}"]`
+  )
+  let field = document.querySelector(sumColumnSelector)
 
   document.querySelectorAll(columnSelector).forEach((column) => {
     value += parseFloat(column.textContent) || 0;
   });
 
   value = Number(value.toFixed(2));
-  document.querySelector(sumColumnSelector).textContent = value;
+
+  if (field) {
+    field.textContent = value;
+  }
 }
 
 /**
@@ -437,27 +443,36 @@ function recalculateSelectedSprintsSum(columnName) {
   let columnSelector = (
     `.sprint-row-selected [data-row-sprint-column-name="${columnName}"]`
   );
-  let sumColumnSelector = `[data-column-name="${columnName}"]`
+  let sumColumnSelector = (
+    `table.sprints [data-column-name="${columnName}"]`
+  )
+  let field = document.querySelector(sumColumnSelector)
 
   document.querySelectorAll(columnSelector).forEach((column) => {
     value += parseFloat(column.textContent) || 0;
   });
 
   value = Number(value.toFixed(2));
-  document.querySelector(sumColumnSelector).textContent = value;
+  
+  if (field) {
+    field.textContent = value;
+  }
 }
 
 /**
  * Calculate avg for selected versions
  */
-function recalculateSelectedAvg(columnName) {
+function recalculateSelectedVersionAvg(columnName) {
   var value = 0;
   var divider = 0; // need to count because empty row should be excluded
   let columnSelector = (
     `.version-row-selected [data-row-version-column-name="${columnName}"]`
   );
-  let avgColumnSelector = `[data-column-name="${columnName}"]`
+  let avgColumnSelector = (
+    `table.versions [data-column-name="${columnName}"]`
+  )
   let columns = document.querySelectorAll(columnSelector)
+  let field = document.querySelector(avgColumnSelector)
 
   columns.forEach((column) => {
     let parsedValue = parseFloat(column.textContent)
@@ -469,7 +484,10 @@ function recalculateSelectedAvg(columnName) {
   });
 
   value = divider ? Number((value/divider).toFixed(2)) : null;
-  document.querySelector(avgColumnSelector).textContent = value || "";
+
+  if (field) {
+    field.textContent = value || "";
+  }
 }
 
 /**
@@ -481,8 +499,11 @@ function recalculateSelectedSprintsAvg(columnName) {
   let columnSelector = (
     `.sprint-row-selected [data-row-sprint-column-name="${columnName}"]`
   );
-  let avgColumnSelector = `[data-column-name="${columnName}"]`
+  let avgColumnSelector = (
+    `table.sprints [data-column-name="${columnName}"]`
+  )
   let columns = document.querySelectorAll(columnSelector)
+  let field = document.querySelector(avgColumnSelector)
 
   columns.forEach((column) => {
     let parsedValue = parseFloat(column.textContent)
@@ -494,7 +515,10 @@ function recalculateSelectedSprintsAvg(columnName) {
   });
 
   value = divider ? Number((value/divider).toFixed(2)) : null;
-  document.querySelector(avgColumnSelector).textContent = value || "";
+
+  if (field) {
+    field.textContent = value || "";
+  }
 }
 
 /**
@@ -544,18 +568,18 @@ function init_version_selector() {
       setVersionHidden(attr.value, !this.checked);
       toggleSelected(rowSelector, this.checked, "version-row-selected");
 
-      recalculateSelectedSum("tasks");
-      recalculateSelectedSum("estimated");
-      recalculateSelectedSum("spent");
-      recalculateSelectedAvg("overtime");
+      recalculateSelectedVersionSum("tasks");
+      recalculateSelectedVersionSum("estimated");
+      recalculateSelectedVersionSum("spent");
+      recalculateSelectedVersionAvg("overtime");
     });
   });
 
   // recalculate summary for selected
-  recalculateSelectedSum("tasks");
-  recalculateSelectedSum("estimated");
-  recalculateSelectedSum("spent");
-  recalculateSelectedAvg("overtime");
+  recalculateSelectedVersionSum("tasks");
+  recalculateSelectedVersionSum("estimated");
+  recalculateSelectedVersionSum("spent");
+  recalculateSelectedVersionAvg("overtime");
 }
 
 /**
@@ -646,8 +670,12 @@ function applyTabsSettings() {
   var defaultTabId = 1;
   var tabsSettings = getSettings("tabs");
   var activeTabId = tabsSettings["activeTabId"];
+  var availableTabIds = [
+    ...document.querySelectorAll("[data-tab-header-id]")].map(
+      a => a.attributes["data-tab-header-id"].value
+  )
 
-  if (activeTabId) {
+  if (activeTabId && availableTabIds.includes(activeTabId)) {
     setActiveTab(activeTabId);
   } else {
     setActiveTab(defaultTabId);

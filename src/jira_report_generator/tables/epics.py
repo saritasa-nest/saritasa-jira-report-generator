@@ -4,10 +4,13 @@ from ..constants import Status
 from ..utils.tags import TD, TH, TR, A, Table
 
 
-def generate_epics_table(df: DataFrame, **table_options: str):
+def generate_epics_table(
+        df: DataFrame,
+        epics: DataFrame,
+        **table_options: str,
+):
     rows = []
     header = TR()
-    epics = df[df["type"].apply(lambda x: x.name == "Epic")]
 
     if epics.empty:
         return Table(rows, **table_options)

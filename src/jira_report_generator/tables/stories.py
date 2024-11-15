@@ -4,10 +4,13 @@ from ..constants import Status, Type
 from ..utils.tags import TD, TH, TR, A, Table
 
 
-def generate_stories_table(df: DataFrame, **table_options: str):
+def generate_stories_table(
+        df: DataFrame,
+        stories: DataFrame,
+        **table_options: str,
+):
     rows = []
     header = TR()
-    stories = df[df["type"].apply(lambda x: x.name == Type.STORY.value)]
 
     if stories.empty:
         return Table(rows, **table_options)

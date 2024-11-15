@@ -31,6 +31,8 @@ from .utils.data import (
     get_dataframe,
     get_versioned_issues,
     prepare_unversioned_table_data,
+    get_epics,
+    get_stories,
 )
 from .utils.tags import H2, Div, Section, Table
 from .utils.tabs import wrap_with_tabs
@@ -304,10 +306,18 @@ def construct_tables(
             ))
             logger.info("Generate Components table")
             for component in components:
+                component_issues_df = prepare_issues_table_data(
+                    sprinted_df,
+                    component,
+                )
+
+                if component_issues_df.empty:
+                    continue
+
                 board_sections.append(Section(
                     H2(component),
                     generate_board_table(
-                        prepare_issues_table_data(sprinted_df, component),
+                        component_issues_df,
                         board["sprints"],
                         component_id=component.id,
                         **{"class": "component"},
@@ -331,24 +341,30 @@ def construct_tables(
     )
 
     # epics table
-    logger.info("Generate Epics table")
-    tables.append(Section(
-        H2("Epics"),
-        generate_epics_table(
-            issues_dataframe,
-            **{"class": "epics"},
-        ),
-    ))
+    epics_dataframe = get_epics(issues_dataframe)
+    if not epics_dataframe.empty:
+        logger.info("Generate Epics table")
+        tables.append(Section(
+            H2("Epics"),
+            generate_epics_table(
+                issues_dataframe,
+                epics_dataframe,
+                **{"class": "epics"},
+            ),
+        ))
 
     # stories table
-    logger.info("Generate Stories table")
-    tables.append(Section(
-        H2("Stories"),
-        generate_stories_table(
-            issues_dataframe,
-            **{"class": "stories"},
-        ),
-    ))
+    stories_dataframe = get_stories(issues_dataframe)
+    if not stories_dataframe.empty:
+        logger.info("Generate Stories table")
+        tables.append(Section(
+            H2("Stories"),
+            generate_stories_table(
+                issues_dataframe,
+                stories_dataframe,
+                **{"class": "stories"},
+            ),
+        ))
 
     # unversioned issues table
     if not unversioned_df.empty:
