@@ -1,7 +1,7 @@
 from pandas import DataFrame
 
 from ..utils.formatters import format_name
-from ..utils.tags import TD, TH, TR, A, Table
+from ..utils.tags import TD, TH, TR, A, Table, NumTD
 
 
 def generate_backlog_table(df: DataFrame, **table_options: str):
@@ -51,7 +51,7 @@ def generate_backlog_table(df: DataFrame, **table_options: str):
         tr.append(TD(", ".join([c.name for c in item.components])))
 
         # spent
-        tr.append(TD(round(item.spent, 1)))
+        tr.append(NumTD(round(item.spent, 1)))
 
         rows.append(tr)
 
@@ -59,7 +59,7 @@ def generate_backlog_table(df: DataFrame, **table_options: str):
     row = TR(**{"class": "summary"})
 
     row.append(TD("", colspan=6))
-    row.append(TD(round(df.spent.sum(), 1)))
+    row.append(NumTD(round(df.spent.sum(), 1)))
 
     rows.append(row)
 

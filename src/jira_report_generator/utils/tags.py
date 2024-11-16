@@ -1,3 +1,6 @@
+NUMERIC_FIELD_CLASS_NAME = "numeric"
+
+
 class Tag:
     attrs: dict = {}
     value: str
@@ -24,6 +27,17 @@ class Tag:
 
 class TD(Tag):
     tag = "td"
+
+
+class NumTD(TD):
+    def __init__(self, value="", **attrs):
+        super().__init__(value, **attrs)
+        classnames = [NUMERIC_FIELD_CLASS_NAME]
+
+        if "class" in self.attrs:
+            classnames.append(self.attrs.get("class", ""))
+
+        self.attrs["class"] = " ".join(classnames)
 
 
 class TH(Tag):

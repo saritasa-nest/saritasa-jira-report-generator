@@ -2,7 +2,7 @@ from pandas import DataFrame
 
 from ..utils.colors import get_danger_color_class
 from ..utils.tables import generate_component_columns
-from ..utils.tags import TD, TH, TR, Div, Table
+from ..utils.tags import TD, TH, TR, Div, Table, NumTD
 
 
 def generate_assignees_table(
@@ -24,12 +24,12 @@ def generate_assignees_table(
         left = round(estimate - spent, 1)
 
         row.append(TD(name))
-        row.append(TD(len(df)))
-        row.append(TD(estimate))
-        row.append(TD(spent, **{
+        row.append(NumTD(len(df)))
+        row.append(NumTD(estimate))
+        row.append(NumTD(spent, **{
             "class": get_danger_color_class(spent > estimate),
         }))
-        row.append(TD(left if estimate and left > 0 else 0))
+        row.append(NumTD(left if estimate and left > 0 else 0))
 
         # add component columns filled in with values
         for col in generate_component_columns(df, components):

@@ -2,7 +2,7 @@ from pandas import DataFrame
 
 from ..constants import Status
 from ..utils.formatters import format_name
-from ..utils.tags import TD, TH, TR, A, Table, Div
+from ..utils.tags import TD, TH, TR, A, Table, Div, NumTD
 
 
 def generate_board_table(
@@ -51,14 +51,14 @@ def generate_board_table(
         spent = round(sprint_tasks.spent.sum(), 1)
 
         scrollable_subheader.append(TH(estimate, **{
-            "class": "hours subheader",
+            "class": "hours subheader numeric",
             "data-sprint-id": str(sprint.id),
         }))
         scrollable_subheader.append(TH(spent, **{
             "class": (
-                "hours subheader danger"
+                "hours subheader danger numeric"
                 if estimate != 0 and spent > estimate
-                else "hours subheader"
+                else "hours subheader numeric"
             ),
             "data-sprint-id": str(sprint.id),
         }))
@@ -163,23 +163,23 @@ def generate_board_table(
                     })
 
                 scrollable_tr.append(
-                    TD(
+                    NumTD(
                         round(item.estimate, 1),
                         **attrs,
                     )
                 )
                 scrollable_tr.append(
-                    TD(
+                    NumTD(
                         round(item.spent, 1),
                         **spent_attrs,
                     )
                 )
             else:
-                scrollable_tr.append(TD("", **{
+                scrollable_tr.append(NumTD("", **{
                     "class": "hours",
                     "data-sprint-id": str(sprint.id),
                 }))
-                scrollable_tr.append(TD("", **{
+                scrollable_tr.append(NumTD("", **{
                     "class": "hours",
                     "data-sprint-id": str(sprint.id),
                 }))

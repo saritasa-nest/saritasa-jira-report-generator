@@ -1,6 +1,6 @@
 from pandas import DataFrame
 
-from ..utils.tags import TD, TH, TR, Table
+from ..utils.tags import TD, TH, TR, Table, NumTD
 
 HOURS_NDIGITS = 1
 
@@ -31,10 +31,10 @@ def generate_project_table(
     versioned_left = versioned_estimate - versioned_spent
 
     versioned_row.append(TD("Versioned"))
-    versioned_row.append(TD(versioned_count))
-    versioned_row.append(TD(round(versioned_estimate, HOURS_NDIGITS)))
-    versioned_row.append(TD(round(versioned_spent, HOURS_NDIGITS)))
-    versioned_row.append(TD(round(versioned_left, HOURS_NDIGITS)))
+    versioned_row.append(NumTD(versioned_count))
+    versioned_row.append(NumTD(round(versioned_estimate, HOURS_NDIGITS)))
+    versioned_row.append(NumTD(round(versioned_spent, HOURS_NDIGITS)))
+    versioned_row.append(NumTD(round(versioned_left, HOURS_NDIGITS)))
 
     rows.append(versioned_row)
 
@@ -46,10 +46,10 @@ def generate_project_table(
     unversioned_left = unversioned_estimate - unversioned_spent
 
     unversioned_row.append(TD("Unversioned"))
-    unversioned_row.append(TD(unversioned_count))
-    unversioned_row.append(TD(round(unversioned_estimate, HOURS_NDIGITS)))
-    unversioned_row.append(TD(round(unversioned_spent, HOURS_NDIGITS)))
-    unversioned_row.append(TD(round(unversioned_left, HOURS_NDIGITS)))
+    unversioned_row.append(NumTD(unversioned_count))
+    unversioned_row.append(NumTD(round(unversioned_estimate, HOURS_NDIGITS)))
+    unversioned_row.append(NumTD(round(unversioned_spent, HOURS_NDIGITS)))
+    unversioned_row.append(NumTD(round(unversioned_left, HOURS_NDIGITS)))
 
     rows.append(unversioned_row)
 
@@ -61,10 +61,10 @@ def generate_project_table(
     backlog_left = backlog_estimate - backlog_spent
 
     backlog_row.append(TD("Backlog"))
-    backlog_row.append(TD(backlog_count))
-    backlog_row.append(TD(round(backlog_estimate, HOURS_NDIGITS)))
-    backlog_row.append(TD(round(backlog_spent, HOURS_NDIGITS)))
-    backlog_row.append(TD(round(backlog_left, HOURS_NDIGITS)))
+    backlog_row.append(NumTD(backlog_count))
+    backlog_row.append(NumTD(round(backlog_estimate, HOURS_NDIGITS)))
+    backlog_row.append(NumTD(round(backlog_spent, HOURS_NDIGITS)))
+    backlog_row.append(NumTD(round(backlog_left, HOURS_NDIGITS)))
 
     rows.append(backlog_row)
 
@@ -76,10 +76,10 @@ def generate_project_table(
 
     row = TR(**{"class": "summary"})
     row.append(TD("Summary"))
-    row.append(TD(count_sum))
-    row.append(TD(round(estimate_sum, HOURS_NDIGITS)))
-    row.append(TD(round(spent_sum, HOURS_NDIGITS)))
-    row.append(TD(round(left_sum, HOURS_NDIGITS)))
+    row.append(NumTD(count_sum))
+    row.append(NumTD(round(estimate_sum, HOURS_NDIGITS)))
+    row.append(NumTD(round(spent_sum, HOURS_NDIGITS)))
+    row.append(NumTD(round(left_sum, HOURS_NDIGITS)))
 
     rows.append(row)
 

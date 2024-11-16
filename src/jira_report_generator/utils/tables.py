@@ -3,7 +3,7 @@ from typing import List
 from pandas import DataFrame
 
 from .colors import get_danger_color_class
-from .tags import TD
+from .tags import TD, NumTD
 
 
 def calculate_issues_count(component_issues: DataFrame) -> int:
@@ -51,13 +51,13 @@ def generate_component_columns(df: DataFrame, components: list) -> List[TD]:
         issues_count = calculate_issues_count(component_issues)
         if issues_count:
             default = 0
-        columns.append(TD(str(issues_count or default)))
+        columns.append(NumTD(str(issues_count or default)))
 
         component_estimate = calculate_component_estimate(component_issues)
-        columns.append(TD(str(component_estimate or default)))
+        columns.append(NumTD(str(component_estimate or default)))
 
         component_spent = calculate_component_spent(component_issues)
-        columns.append(TD(
+        columns.append(NumTD(
             str(component_spent or default),
             **{
                 "class": get_danger_color_class(
@@ -71,6 +71,6 @@ def generate_component_columns(df: DataFrame, components: list) -> List[TD]:
             component_estimate,
             component_spent,
         )
-        columns.append(TD(str(component_left or default)))
+        columns.append(NumTD(str(component_left or default)))
 
     return columns

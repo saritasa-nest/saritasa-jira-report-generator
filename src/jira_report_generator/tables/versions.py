@@ -4,7 +4,7 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
-from ..utils.tags import TD, TH, TR, Div, Table, Input
+from ..utils.tags import TD, TH, TR, Div, Table, Input, NumTD
 
 HOURS_NDIGITS = 1
 OVERTIME_NDIGITS = 2
@@ -81,9 +81,9 @@ def generate_component_columns(
         if summary and avg_component_overtime:
             component_overtime = avg_component_overtime
 
-        columns.append(TD(component_tasks.id.count()))
-        columns.append(TD(component_estimate))
-        columns.append(TD(component_spent, **{
+        columns.append(NumTD(component_tasks.id.count()))
+        columns.append(NumTD(component_estimate))
+        columns.append(NumTD(component_spent, **{
             "class": (
                 "danger"
                 if component_estimate != 0
@@ -91,12 +91,12 @@ def generate_component_columns(
                 else ""
             ),
         }))
-        columns.append(TD(
+        columns.append(NumTD(
             round(component_overtime, OVERTIME_NDIGITS)
             if component_overtime and (display_overtime or summary)
             else "",
         ))
-        columns.append(TD(
+        columns.append(NumTD(
             round(predict_estimate(
                 component_estimate,
                 avg_component_overtime,
@@ -193,13 +193,13 @@ def generate_versions_table(
         row.append(TD(getattr(version, "releaseDate", ""), **{
             "class": "date",
         }))
-        row.append(TD(version_tasks.id.count(), **{
+        row.append(NumTD(version_tasks.id.count(), **{
             DATA_ROW_VERSION_COLUMN_NAME: TASKS,
         }))
-        row.append(TD(estimate, **{
+        row.append(NumTD(estimate, **{
             DATA_ROW_VERSION_COLUMN_NAME: ESTIMATED,
         }))
-        row.append(TD(spent, **{
+        row.append(NumTD(spent, **{
             "class": (
                 "danger"
                 if estimate != 0 and spent > estimate
@@ -209,7 +209,7 @@ def generate_versions_table(
         }))
 
         # overtime
-        row.append(TD(
+        row.append(NumTD(
             round(overtime, OVERTIME_NDIGITS)
             if overtime is not None and version.released
             else "",
@@ -217,7 +217,7 @@ def generate_versions_table(
         ))
 
         # estimate prediction
-        row.append(TD(
+        row.append(NumTD(
             round(predict_estimate(
                 estimate,
                 avg_overtime,
@@ -269,9 +269,9 @@ def generate_versions_table(
 
     row.append(TD(""))
     row.append(TD("Summary", colspan=3))
-    row.append(TD(df.id.count()))
-    row.append(TD(estimate))
-    row.append(TD(spent, **{
+    row.append(NumTD(df.id.count()))
+    row.append(NumTD(estimate))
+    row.append(NumTD(spent, **{
         "class": (
             "danger"
             if estimate != 0
@@ -279,10 +279,10 @@ def generate_versions_table(
             else ""
         ),
     }))
-    row.append(TD(
+    row.append(NumTD(
         round(avg_overtime, OVERTIME_NDIGITS) or ""
     ))
-    row.append(TD(
+    row.append(NumTD(
         round(predict_estimate(
             estimate,
             avg_overtime,
@@ -309,11 +309,11 @@ def generate_versions_table(
 
     row.append(TD(""))
     row.append(TD("Selected", colspan=3))
-    row.append(TD("", **{DATA_COLUMN_NAME: TASKS}))
-    row.append(TD("", **{DATA_COLUMN_NAME: ESTIMATED}))
-    row.append(TD("", **{DATA_COLUMN_NAME: SPENT}))
-    row.append(TD("", **{DATA_COLUMN_NAME: OVERTIME}))
-    row.append(TD("", **{DATA_COLUMN_NAME: PROJECTION}))
+    row.append(NumTD("", **{DATA_COLUMN_NAME: TASKS}))
+    row.append(NumTD("", **{DATA_COLUMN_NAME: ESTIMATED}))
+    row.append(NumTD("", **{DATA_COLUMN_NAME: SPENT}))
+    row.append(NumTD("", **{DATA_COLUMN_NAME: OVERTIME}))
+    row.append(NumTD("", **{DATA_COLUMN_NAME: PROJECTION}))
 
     rows.append(row)
 

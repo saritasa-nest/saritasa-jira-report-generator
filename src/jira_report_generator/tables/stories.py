@@ -1,7 +1,7 @@
 from pandas import DataFrame
 
 from ..constants import Status, Type
-from ..utils.tags import TD, TH, TR, A, Table
+from ..utils.tags import TD, TH, TR, A, Table, NumTD
 
 
 def generate_stories_table(
@@ -56,20 +56,20 @@ def generate_stories_table(
         row.append(TD(story.summary))
         row.append(TD(A(story.key, href=story.link)))
         row.append(TD(story.status, **{"class": "status nowrap"}))
-        row.append(TD(story_tasks.id.count()))
-        row.append(TD(
+        row.append(NumTD(story_tasks.id.count()))
+        row.append(NumTD(
             story_qa_tasks.id.count()
             if not story_qa_tasks.empty
             else 0
         ))
-        row.append(TD(
+        row.append(NumTD(
             story_completed_tasks.id.count()
             if not story_completed_tasks.empty
             else 0
         ))
-        row.append(TD(estimate))
-        row.append(TD(spent))
-        row.append(TD(left if left > 0 else 0))
+        row.append(NumTD(estimate))
+        row.append(NumTD(spent))
+        row.append(NumTD(left if left > 0 else 0))
 
         rows.append(row)
 

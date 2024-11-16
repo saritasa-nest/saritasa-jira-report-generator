@@ -1,7 +1,7 @@
 from pandas import DataFrame
 
 from ..constants import Status
-from ..utils.tags import TD, TH, TR, A, Table
+from ..utils.tags import TD, TH, TR, A, Table, NumTD
 
 
 def generate_epics_table(
@@ -56,20 +56,20 @@ def generate_epics_table(
         row.append(TD(epic.summary))
         row.append(TD(A(epic.key, href=epic.link)))
         row.append(TD(epic.status, **{"class": "status nowrap"}))
-        row.append(TD(epic_tasks.id.count()))
-        row.append(TD(
+        row.append(NumTD(epic_tasks.id.count()))
+        row.append(NumTD(
             epic_qa_tasks.id.count()
             if not epic_qa_tasks.empty
             else 0
         ))
-        row.append(TD(
+        row.append(NumTD(
             epic_completed_tasks.id.count()
             if not epic_completed_tasks.empty
             else 0
         ))
-        row.append(TD(estimate))
-        row.append(TD(spent))
-        row.append(TD(left if left > 0 else 0))
+        row.append(NumTD(estimate))
+        row.append(NumTD(spent))
+        row.append(NumTD(left if left > 0 else 0))
 
         rows.append(row)
 

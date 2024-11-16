@@ -2,7 +2,7 @@ from pandas import DataFrame
 
 from ..constants import Status
 from ..utils.formatters import format_name
-from ..utils.tags import TD, TH, TR, A, Table, Div
+from ..utils.tags import TD, TH, TR, A, Table, Div, NumTD
 
 
 def generate_issues_table(
@@ -51,14 +51,14 @@ def generate_issues_table(
         spent = round(version_tasks.spent.sum(), 1)
 
         scrollable_subheader.append(TH(estimate, **{
-            "class": "hours subheader",
+            "class": "hours subheader numeric",
             "data-version-id": str(version.id),
         }))
         scrollable_subheader.append(TH(spent, **{
             "class": (
-                "hours subheader danger"
+                "hours subheader danger numeric"
                 if estimate != 0 and spent > estimate
-                else "hours subheader"
+                else "hours subheader numeric"
             ),
             "data-version-id": str(version.id),
         }))
@@ -164,23 +164,23 @@ def generate_issues_table(
                     })
 
                 scrollable_tr.append(
-                    TD(
+                    NumTD(
                         round(item.estimate / divisor, 1),
                         **attrs,
                     )
                 )
                 scrollable_tr.append(
-                    TD(
+                    NumTD(
                         round(item.spent / divisor, 1),
                         **spent_attrs,
                     )
                 )
             else:
-                scrollable_tr.append(TD("&nbsp;", **{
+                scrollable_tr.append(NumTD("&nbsp;", **{
                     "class": "hours",
                     "data-version-id": str(version.id),
                 }))
-                scrollable_tr.append(TD("&nbsp;", **{
+                scrollable_tr.append(NumTD("&nbsp;", **{
                     "class": "hours",
                     "data-version-id": str(version.id),
                 }))

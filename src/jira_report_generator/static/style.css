@@ -301,3 +301,8 @@ th > span.collapse.up:after {
 .tab-content.active {
   display: block;
 }
+
+.numeric,
+.table-content th.numeric {
+  text-align: right;
+}
