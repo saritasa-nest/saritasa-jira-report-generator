@@ -4,7 +4,7 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
-from ..utils.tags import TD, TH, TR, Div, Table, Input, NumTD
+from ..utils.tags import TD, TH, TR, Div, Input, NumTD, Table
 
 HOURS_NDIGITS = 1
 OVERTIME_NDIGITS = 2
@@ -129,7 +129,7 @@ def generate_sprints_table(
     component_overtimes_map = defaultdict(list)
 
     # table header
-    header = TR(**{"class": "h40"})
+    header = TR(**{"class": "h50"})
     header.append(TH(""))
     header.append(TH("Sprint"))
     header.append(TH("Start Date"))
@@ -143,14 +143,14 @@ def generate_sprints_table(
     rows.append(header)
 
     # scrollable header
-    scrollable_header = TR(**{"class": "h20"})
+    scrollable_header = TR(**{"class": "h25"})
     for component in components:
         scrollable_header.append(TH(component.name, **{"colspan": 5}))
 
     scrollable_rows.append(scrollable_header)
 
     # scrollable subheader
-    scrollable_subheader = TR(**{"class": "h20"})
+    scrollable_subheader = TR(**{"class": "h25"})
     kwargs = {"class": "subheader hours"}
     for _ in components:
         scrollable_subheader.append(TH("Tasks", **kwargs))
@@ -182,11 +182,12 @@ def generate_sprints_table(
                 "type": "checkbox",
                 "data-sprint-id": sprint.id,
             }),
-            **{"class": "center p0"},
+            **{"class": "center p05"},
         ))
 
         row.append(TD(sprint.name, **{
-            "class": "success" if sprint.state == CLOSED else "",
+            "class": f"name {'released' if sprint.state == CLOSED else ''}",
+            "title": sprint.name,
         }))
 
         row.append(TD(getattr(sprint, "startDate", "")[:10]))

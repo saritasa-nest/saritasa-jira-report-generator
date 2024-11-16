@@ -2,25 +2,25 @@ import argparse
 import logging
 import os
 import sys
-from logging import Formatter, StreamHandler
 from datetime import datetime
+from logging import Formatter, StreamHandler
 
 from jinja2 import Environment, FileSystemLoader
 from jira import JIRA
 from pandas import DataFrame
 
+from .constants import JIRA_FETCH_FIELDS
 from .tables.assignees import generate_assignees_table
 from .tables.backlog import generate_backlog_table
+from .tables.board import generate_board_table
 from .tables.epics import generate_epics_table
 from .tables.issues import generate_issues_table
-from .tables.statuses import generate_statuses_table
-from .tables.versions import generate_versions_table
 from .tables.project import generate_project_table
-from .tables.board import generate_board_table
 from .tables.sprints import generate_sprints_table
+from .tables.statuses import generate_statuses_table
 from .tables.stories import generate_stories_table
 from .tables.unversioned import generate_unversioned_table
-from .constants import JIRA_FETCH_FIELDS
+from .tables.versions import generate_versions_table
 from .utils.data import (
     filter_data_by_statuses,
     get_sprinted_issues,
@@ -34,8 +34,8 @@ from .utils.data import (
     get_epics,
     get_stories,
 )
-from .utils.tags import H2, Div, Section, Table
 from .utils.tabs import wrap_with_tabs
+from .utils.tags import H2, Div, Section, Table
 
 parser = argparse.ArgumentParser()
 parser.add_argument("key", type=str, help="JIRA project key")
@@ -281,6 +281,18 @@ def construct_tables(
                     **{"class": "component"},
                 ),
             ))
+
+        # unversioned issues table
+        if not unversioned_df.empty:
+            logger.info("Generate Unversioned Issues table")
+            version_sections.append(Section(
+                H2("Unversioned"),
+                generate_unversioned_table(
+                    unversioned_df,
+                    **{"class": "backlog"},
+                ),
+            ))
+
         tabs_content.append((
             "".join(map(str, version_sections)),
             VERSIONS_TAB_ID,
@@ -363,17 +375,6 @@ def construct_tables(
                 issues_dataframe,
                 stories_dataframe,
                 **{"class": "stories"},
-            ),
-        ))
-
-    # unversioned issues table
-    if not unversioned_df.empty:
-        logger.info("Generate Unversioned Issues table")
-        tables.append(Section(
-            H2("Unversioned"),
-            generate_unversioned_table(
-                unversioned_df,
-                **{"class": "backlog"},
             ),
         ))
 

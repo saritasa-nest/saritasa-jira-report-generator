@@ -2,7 +2,7 @@ from pandas import DataFrame
 
 from ..constants import Status
 from ..utils.formatters import format_name
-from ..utils.tags import TD, TH, TR, A, Table, Div, NumTD
+from ..utils.tags import TD, TH, TR, A, Div, NumTD, Table
 
 
 def generate_board_table(
@@ -15,7 +15,7 @@ def generate_board_table(
     scrollable_rows = []
 
     # table header
-    header = TR(**{"class": "h60"})
+    header = TR(**{"class": "h75"})
     header.append(TH("Summary", **{"class": "summary"}))
     header.append(TH("Type", **{"class": "type"}))
     header.append(TH("Jira ID", **{"class": "key"}))
@@ -25,7 +25,7 @@ def generate_board_table(
     rows.append(header)
 
     # scrollable header
-    scrollable_header = TR(**{"class": "h40"})
+    scrollable_header = TR(**{"class": "h50"})
     for sprint in sprints:
         endDate = getattr(sprint, "endDate", "")[:10]
 
@@ -44,7 +44,7 @@ def generate_board_table(
     scrollable_rows.append(scrollable_header)
 
     # scrollable subheader
-    scrollable_subheader = TR(**{"class": "h20"})
+    scrollable_subheader = TR(**{"class": "h25"})
     for sprint in sprints:
         sprint_tasks = df[df["sprint_id"] == sprint.id]
         estimate = round(sprint_tasks.estimate.sum(), 1)
