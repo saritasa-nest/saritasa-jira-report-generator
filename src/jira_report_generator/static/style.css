@@ -19,7 +19,7 @@ td > input {
 
 .table-content table {
   border-collapse: collapse;
-  width: 100%;
+  /* width: 100%; */
 }
 
 .table-content table:last-child {
@@ -79,9 +79,9 @@ td > input {
 .table-content table.component th.key {
   width: 4%;
 }
-.table-content table.component th.hours {
+/* .table-content table.component th.hours {
   width: 2.5em;
-}
+} */
 .table-content table.component td.summary {
     text-overflow: ellipsis;
     overflow: hidden;
@@ -108,7 +108,7 @@ td > input {
   white-space: nowrap;
 }
 
-.table-content table.issues th.hours {
+/* .table-content table.issues th.hours {
   width: 5em;
 }
 
@@ -130,16 +130,16 @@ td > input {
 
 .table-content table.project th.hours {
   width: 5em;
-}
+} */
 
-.table-content table.backlog {
+/* .table-content table.backlog {
   width: auto;
   max-width: 100%;
-}
-.table-content table.project {
+} */
+/* .table-content table.project {
   width: 640px;
   max-width: 100%;
-}
+} */
 
 .table-content tr.highlighted,
 .table-content tr.highlighted:hover {
@@ -200,7 +200,7 @@ td > input {
 }
 
 
-.table-content .combined {
+/* .table-content .combined {
   overflow: hidden;
   width: 100%;
 }
@@ -210,7 +210,7 @@ td > input {
 }
 .table-content .combined > .combined-right {
   margin-left: 640px;
-}
+} */
 
 .table-content .scrollable {
   overflow-x: scroll;
@@ -294,7 +294,7 @@ th > span.collapse.up:after {
 
 .tab-content {
   display: none;
-  padding: 1em;
+  padding: 12px;
   border: 1px solid #ccc;
 }
 
@@ -302,7 +302,65 @@ th > span.collapse.up:after {
   display: block;
 }
 
-.numeric,
+
+td.date {
+  text-align: right;
+  width: 60px;
+  min-width: 60px;
+}
+
+td.numeric,
 .table-content th.numeric {
   text-align: right;
+  width: 80px;
+  min-width: 80px;
+}
+
+
+.combined {
+  overflow: hidden;
+}
+
+.combined-left table {
+  width: 100%;
+  max-width: 652px;
+}
+
+.combined-left td.numeric,
+table.project td.numeric {
+  width: 60px;
+  min-width: 60px;
+}
+
+.combined-left {
+  width: 652px;
+  float: left;
+}
+
+.combined-right {
+  margin-left: 652px;
+}
+
+.tabs .combined-left {
+  width: 640px;
+}
+
+.tabs .combined-left table {
+  max-width: 640px;
+}
+
+.tabs .combined-right {
+  margin-left: 640px;
+}
+
+table.project,
+table.backlog {
+  width: 652px;
+}
+
+td.name {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  width: 80px;
+  max-width: 80px;
 }

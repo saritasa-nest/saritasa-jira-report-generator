@@ -190,8 +190,12 @@ def generate_sprints_table(
             "title": sprint.name,
         }))
 
-        row.append(TD(getattr(sprint, "startDate", "")[:10]))
-        row.append(TD(getattr(sprint, "endDate", "")[:10]))
+        row.append(TD(getattr(sprint, "startDate", "")[:10], **{
+            "class": "date",
+        }))
+        row.append(TD(getattr(sprint, "endDate", "")[:10], **{
+            "class": "date",
+        }))
         row.append(NumTD(sprint_tasks.id.count(), **{
             DATA_ROW_SPRINT_COLUMN_NAME: TASKS,
         }))
