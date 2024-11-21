@@ -1,7 +1,7 @@
 from pandas import DataFrame
 
-from ..constants import Status, Type
-from ..utils.tags import TD, TH, TR, A, Table, NumTD
+from ..constants import Status
+from ..utils.tags import TD, TH, TR, A, NumTD, Table
 
 
 def generate_stories_table(
@@ -41,7 +41,7 @@ def generate_stories_table(
     for _, story in stories_list:
         row = TR(**{"data-story-id": story.id})
         story_tasks = df[df["parent"].apply(
-            lambda x: x is not None and x.id == story.id
+            lambda x: x is not None and x.id == story.id,
         )]
         story_completed_tasks = story_tasks[story_tasks["status"].apply(
             lambda x: x.name in completed_statuses,
@@ -60,12 +60,12 @@ def generate_stories_table(
         row.append(NumTD(
             story_qa_tasks.id.count()
             if not story_qa_tasks.empty
-            else 0
+            else 0,
         ))
         row.append(NumTD(
             story_completed_tasks.id.count()
             if not story_completed_tasks.empty
-            else 0
+            else 0,
         ))
         row.append(NumTD(estimate))
         row.append(NumTD(spent))

@@ -2,8 +2,8 @@ from .tags import A, Div, Tag
 
 
 def wrap_with_tabs(
-        header: list[str, int],
-        content: list[str, int],
+    header: list[tuple[str, int]],
+    content: list[tuple[str, int]],
 ) -> Tag:
     tabs_header = Div(
         *[Div(A(title, **{"href": "javascript:;"}), **{

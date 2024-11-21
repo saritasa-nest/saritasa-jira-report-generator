@@ -2,7 +2,7 @@ from pandas import DataFrame
 
 from ..utils.colors import get_danger_color_class
 from ..utils.tables import generate_component_columns
-from ..utils.tags import TD, TH, TR, Div, Table, NumTD
+from ..utils.tags import TD, TH, TR, Div, NumTD, Table
 
 
 def generate_assignees_table(
@@ -55,7 +55,7 @@ def generate_assignees_table(
     # scrollable subheader
     scrollable_subheader = TR(**{"class": "h25"})
     kwargs = {"class": "subheader hours"}
-    for component in components:
+    for _component in components:
         scrollable_subheader.append(TH("Count", **kwargs))
         scrollable_subheader.append(TH("Estimated", **kwargs))
         scrollable_subheader.append(TH("Spent", **kwargs))
@@ -80,7 +80,7 @@ def generate_assignees_table(
             round(assignee_issues.spent.sum(), 1),
             **{
                 "data-assignee-id": getattr(assignee, "accountId", None),
-            }
+            },
         )
 
         rows.append(row)

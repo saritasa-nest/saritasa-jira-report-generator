@@ -5,8 +5,8 @@ from jira import Issue
 from pandas import DataFrame
 
 from ..constants import Status, Type
-from .tags import Table
 from .formatters import get_issue_permalink
+from .tags import Table
 
 
 def get_dataframe(
@@ -71,7 +71,7 @@ def get_dataframe(
 
 def get_versioned_issues(df: DataFrame) -> DataFrame:
     return df[df["versions"].apply(
-        lambda x: any([not getattr(v, "archived", False) for v in x])
+        lambda x: any([not getattr(v, "archived", False) for v in x]),
     )].sort_values(
         by=["release_date", "id"],
     )
@@ -103,7 +103,7 @@ def prepare_components_data(issues_dataframe: DataFrame):
 
     return sorted(list(filter(
         lambda x: hasattr(x, "name"),
-        components.unique().tolist()
+        components.unique().tolist(),
     )), key=lambda x: x.id)
 
 
@@ -147,7 +147,7 @@ def prepare_issues_table_data(
 ) -> DataFrame:
     """Prepare initial data for issues table rendering."""
     return issues_dataframe[issues_dataframe["components"].apply(
-        lambda x: component in x
+        lambda x: component in x,
     )]
 
 
@@ -155,7 +155,7 @@ def prepare_backlog_table_data(issues_dataframe: DataFrame) -> DataFrame:
     """Prepare initial data for backlog table rendering."""
     return issues_dataframe[
         issues_dataframe["status"].apply(
-            lambda x: x.name in Status.BACKLOG.value
+            lambda x: x.name in Status.BACKLOG.value,
         )
     ].sort_values("id")
 
