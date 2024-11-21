@@ -114,8 +114,8 @@ def prepare_not_finished_statuses_data(issues_dataframe: DataFrame):
 
     # not finished statuses
     return list(filter(lambda x: x.name in (
-        Status.IN_PROGRESS.value,
-        Status.READY_FOR_DEVELOPMENT.value,
+        *Status.IN_PROGRESS.value,
+        *Status.READY_FOR_DEVELOPMENT.value,
     ), statuses))
 
 
@@ -130,6 +130,10 @@ def filter_data_by_statuses(
     issues_with_components_df = issues_df[issues_df["components"].apply(
         lambda x: len(x) > 0 and set(x).issubset(components),
     )]
+
+    # return empty dataframe
+    if not statuses:
+        return DataFrame()
 
     # filter by statuses
     return issues_with_components_df[
@@ -151,7 +155,7 @@ def prepare_backlog_table_data(issues_dataframe: DataFrame) -> DataFrame:
     """Prepare initial data for backlog table rendering."""
     return issues_dataframe[
         issues_dataframe["status"].apply(
-            lambda x: x.name == Status.BACKLOG.value
+            lambda x: x.name in Status.BACKLOG.value
         )
     ].sort_values("id")
 
@@ -159,7 +163,7 @@ def prepare_backlog_table_data(issues_dataframe: DataFrame) -> DataFrame:
 def prepare_unversioned_table_data(issues_dataframe: DataFrame) -> DataFrame:
     """Prepare initial data for unversioned issues table rendering."""
     to_skip_versions = (
-        Status.BACKLOG.value,
+        *Status.BACKLOG.value,
     )
     issues_dataframe = issues_dataframe[
         issues_dataframe["status"].apply(

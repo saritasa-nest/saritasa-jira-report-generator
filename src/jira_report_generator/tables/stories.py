@@ -17,13 +17,13 @@ def generate_stories_table(
 
     stories_list = list(stories.iterrows())
     completed_statuses = (
-        Status.CLIENT_REVIEW.value,
-        Status.COMPLETED.value,
-        Status.VERIFIED.value,
-        Status.TM_PM_VERIFY.value,
+        *Status.CLIENT_REVIEW.value,
+        *Status.COMPLETED.value,
+        *Status.VERIFIED.value,
+        *Status.TM_PM_VERIFY.value,
     )
     qa_statuses = (
-        Status.IN_QA.value,
+        *Status.IN_QA.value,
     )
 
     header.append(TH("Story"))

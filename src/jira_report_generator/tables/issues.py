@@ -118,16 +118,16 @@ def generate_issues_table(
         )
 
         if item.status.name in (
-                Status.VERIFIED.value,
-                Status.CLIENT_REVIEW.value,
-                Status.COMPLETED.value,
-                Status.TM_PM_VERIFY.value,
+                *Status.VERIFIED.value,
+                *Status.CLIENT_REVIEW.value,
+                *Status.COMPLETED.value,
+                *Status.TM_PM_VERIFY.value,
         ):
             status_attrs.update({"class": "status nowrap success"})
             background = "done"
         elif item.status.name in (
-                Status.IN_QA.value,
-                Status.CODE_REVIEW.value,
+                *Status.IN_QA.value,
+                *Status.CODE_REVIEW.value,
         ):
             status_attrs.update({"class": "status nowrap warning"})
             background = "in-progress"

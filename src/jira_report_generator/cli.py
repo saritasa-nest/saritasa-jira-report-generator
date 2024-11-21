@@ -44,6 +44,7 @@ formatter = logging.Formatter(fmt='[%(asctime)s: %(levelname)s] %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+
 def write_tables(tables: list[Table], filename: str, key: str):
     """Write tables."""
 
@@ -61,6 +62,7 @@ def write_tables(tables: list[Table], filename: str, key: str):
             key,
             env.get_template("template.html"),
         ))
+
 
 def main():
     cli_args = parser.parse_args()

@@ -176,7 +176,7 @@ def get_data(jira_client: JIRA, project_key: str) -> dict[str, list]:
 
     # get not archived release versions
     result["versions"] = list(filter(
-        lambda x: x.archived == False,
+        lambda x: not x.archived,
         jira_client.project_versions(project_key),
     ))
     result["versions"].sort(key=lambda x: getattr(x, "startDate", ""))
@@ -198,7 +198,6 @@ def construct_tables(
     sprinted_df = get_sprinted_issues(issues_dataframe)
     backlog_df = prepare_backlog_table_data(issues_dataframe)
     tables = []
-    components = prepare_components_data(versioned_df)
     not_finished_statuses = prepare_not_finished_statuses_data(
         versioned_df,
     )
@@ -271,7 +270,7 @@ def construct_tables(
 
         # version components table
         logger.info("Generate Components table")
-        for component in components:
+        for component in prepare_components_data(versioned_df):
             version_sections.append(Section(
                 H2(component),
                 generate_issues_table(
@@ -316,8 +315,9 @@ def construct_tables(
                     **{"class": "sprints"},
                 ),
             ))
+
             logger.info("Generate Components table")
-            for component in components:
+            for component in prepare_components_data(sprinted_df):
                 component_issues_df = prepare_issues_table_data(
                     sprinted_df,
                     component,
