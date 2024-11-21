@@ -163,7 +163,7 @@ def get_extra_data(
             jira_client,
             project_key,
         )
-        results = executor.map(board_issues_data_func, boards)
+        results = list(executor.map(board_issues_data_func, boards))
     return {
         "boards": [result["board"] for result in results],
         "issues": dict(
