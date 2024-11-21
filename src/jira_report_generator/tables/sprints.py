@@ -47,7 +47,7 @@ def generate_component_columns(
 
     for component in components:
         component_tasks = df[df["components"].apply(
-            lambda x: component in x
+            lambda x: component in x,
         )]
         avg_component_overtime = None
 
@@ -77,7 +77,7 @@ def generate_component_columns(
         # calculate component avg overtime
         if component_overtimes_map:
             avg_component_overtime = calculate_avg_overtime(
-                component_overtimes_map[component.id]
+                component_overtimes_map[component.id],
             )
 
         if summary and avg_component_overtime:
@@ -105,7 +105,7 @@ def generate_component_columns(
             ), HOURS_NDIGITS)
             if avg_component_overtime
             else "",
-            title=f"{component_estimate}*{avg_component_overtime}"
+            title=f"{component_estimate}*{avg_component_overtime}",
         ))
 
     return columns
@@ -121,7 +121,7 @@ def generate_sprints_table(
     components = sorted(
         filter(
             lambda x: isinstance(x, Component),
-            df.components.explode().unique().tolist()
+            df.components.explode().unique().tolist(),
         ),
         key=lambda x: getattr(x, "name", ""),
     )
@@ -216,7 +216,7 @@ def generate_sprints_table(
             round(overtime, OVERTIME_NDIGITS)
             if overtime is not None and sprint.state == CLOSED
             else "",
-            **{DATA_ROW_SPRINT_COLUMN_NAME: OVERTIME}
+            **{DATA_ROW_SPRINT_COLUMN_NAME: OVERTIME},
         ))
 
         # estimate prediction
@@ -248,7 +248,7 @@ def generate_sprints_table(
             for component in components:
                 component_tasks = sprint_tasks[
                     sprint_tasks["components"].apply(
-                        lambda x: component in x
+                        lambda x: component in x,
                     )
                 ]
                 component_estimate = component_tasks.estimate.sum()
@@ -283,7 +283,7 @@ def generate_sprints_table(
         ),
     }))
     row.append(NumTD(
-        round(avg_overtime, OVERTIME_NDIGITS) or ""
+        round(avg_overtime, OVERTIME_NDIGITS) or "",
     ))
     row.append(NumTD(
         round(predict_estimate(

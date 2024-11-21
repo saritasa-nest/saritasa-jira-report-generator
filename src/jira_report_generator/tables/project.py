@@ -1,6 +1,6 @@
 from pandas import DataFrame
 
-from ..utils.tags import TD, TH, TR, Table, NumTD
+from ..utils.tags import TD, TH, TR, NumTD, Table
 
 HOURS_NDIGITS = 1
 

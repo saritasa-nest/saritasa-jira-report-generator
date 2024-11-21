@@ -12,6 +12,8 @@ JIRA_FETCH_FIELDS = [
     "parent",
 ]
 
+MAX_THREADS_COUNT = 4
+
 
 class Status(Enum):
     VERIFIED = (

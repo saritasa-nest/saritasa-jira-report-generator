@@ -1,7 +1,7 @@
 from pandas import DataFrame
 
 from ..constants import Status
-from ..utils.tags import TD, TH, TR, A, Table, NumTD
+from ..utils.tags import TD, TH, TR, A, NumTD, Table
 
 
 def generate_epics_table(
@@ -41,7 +41,7 @@ def generate_epics_table(
     for _, epic in epics_list:
         row = TR(**{"data-epic-id": epic.id})
         epic_tasks = df[df["parent"].apply(
-            lambda x: x is not None and x.id == epic.id
+            lambda x: x is not None and x.id == epic.id,
         )]
         epic_completed_tasks = epic_tasks[epic_tasks["status"].apply(
             lambda x: x.name in completed_statuses,
@@ -60,12 +60,12 @@ def generate_epics_table(
         row.append(NumTD(
             epic_qa_tasks.id.count()
             if not epic_qa_tasks.empty
-            else 0
+            else 0,
         ))
         row.append(NumTD(
             epic_completed_tasks.id.count()
             if not epic_completed_tasks.empty
-            else 0
+            else 0,
         ))
         row.append(NumTD(estimate))
         row.append(NumTD(spent))

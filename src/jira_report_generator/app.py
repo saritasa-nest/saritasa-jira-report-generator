@@ -1,15 +1,21 @@
 import argparse
+import collections
+import functools
+import itertools
 import logging
 import os
 import sys
+import typing
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from logging import Formatter, StreamHandler
 
+import jira.resources
 from jinja2 import Environment, FileSystemLoader
 from jira import JIRA
 from pandas import DataFrame
 
-from .constants import JIRA_FETCH_FIELDS
+from .constants import JIRA_FETCH_FIELDS, MAX_THREADS_COUNT
 from .tables.assignees import generate_assignees_table
 from .tables.backlog import generate_backlog_table
 from .tables.board import generate_board_table
@@ -23,19 +29,19 @@ from .tables.unversioned import generate_unversioned_table
 from .tables.versions import generate_versions_table
 from .utils.data import (
     filter_data_by_statuses,
-    get_sprinted_issues,
-    prepare_issues_table_data,
-    prepare_backlog_table_data,
-    prepare_not_finished_statuses_data,
-    prepare_components_data,
     get_dataframe,
-    get_versioned_issues,
-    prepare_unversioned_table_data,
     get_epics,
+    get_sprinted_issues,
     get_stories,
+    get_versioned_issues,
+    prepare_backlog_table_data,
+    prepare_components_data,
+    prepare_issues_table_data,
+    prepare_not_finished_statuses_data,
+    prepare_unversioned_table_data,
 )
 from .utils.tabs import wrap_with_tabs
-from .utils.tags import H2, Div, Section, Table
+from .utils.tags import H2, Div, Section
 
 parser = argparse.ArgumentParser()
 parser.add_argument("key", type=str, help="JIRA project key")
@@ -66,129 +72,137 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
-def get_paginated_issues(
+def get_paginated_issues_for_sprint(
+    project_key: str,
     jira_client: JIRA,
-    jql_str: str,
+    sprint: jira.resources.Sprint,
     fields: list = JIRA_FETCH_FIELDS,
-) -> list:
-    result = []
-    offset = 0
-    stop = False
-    page_size = 100
+) -> list[dict[str, typing.Any]]:
+    """Get list of issues for project sprint."""
+    jql_str = (
+        f"project={project_key} "
+        f"AND sprint={sprint.id} "
+        f"ORDER BY created DESC"
+    )
+    issues = jira_client.search_issues(
+        jql_str,
+        startAt=0,
+        maxResults=False,
+        fields=fields,
+    )
+    return [
+        {"issue_id": issue.id, "sprint": sprint}
+        for issue in issues
+    ]
 
-    while not stop:
-        issues = jira_client.search_issues(
-            jql_str,
-            startAt=offset,
-            maxResults=page_size,
-            fields=fields,
+
+def get_board_issues_data(
+    jira_client: JIRA,
+    project_key: str,
+    board: jira.resources.Board,
+) -> dict[str, list | dict]:
+    """Get issues for board with info about sprints."""
+    logger.info(f"Collect sprints for Board {board.id}")
+
+    try:
+        sprints = jira_client.sprints(board_id=board.id, maxResults=False)
+    except Exception as e:
+        logger.debug(e)
+        sprints = []
+
+    sprints.sort(
+        key=lambda x: getattr(
+            x,
+            "startDate",
+            # required for correct ordering of future sprints
+            # without start date
+            str(datetime.now().isoformat()),
+        ),
+    )
+
+    logger.info(f"Collected {len(sprints)} sprints(s)")
+
+    with ThreadPoolExecutor(max_workers=MAX_THREADS_COUNT) as executor:
+        issues_for_sprint_func = functools.partial(
+            get_paginated_issues_for_sprint,
+            project_key,
+            jira_client,
         )
-        result += issues
-        offset += page_size
+        issues_result_lists = executor.map(issues_for_sprint_func, sprints)
+        issues_data = itertools.chain(*issues_result_lists)
 
-        logger.info(f"Collected {len(issues)} issue(s)")
-
-        if len(issues) < page_size:
-            stop = True
-
-    return result
+    return {
+        "board": {
+            "board": board,
+            "sprints": sprints,
+        },
+        "issues": {
+            issue_data["issue_id"]: {
+                "board": board,
+                "sprint": issue_data["sprint"],
+            }
+            for issue_data in issues_data
+        },
+    }
 
 
 def get_extra_data(
     jira_client: JIRA,
     project_key: str,
 ) -> dict[str, list | dict]:
+    """Get boards and issues data."""
     logger.info(f"Connect to Jira ({project_key})")
 
-    result = {
-        "boards": [],
-        "issues": {},
-    }
     boards = jira_client.boards(projectKeyOrID=project_key)
 
     logger.info(f"Collected {len(boards)} board(s)")
 
-    for board in boards:
-        logger.info(f"Collect sprints for Board {board.id}")
-
-        try:
-            sprints = jira_client.sprints(board_id=board.id)
-        except Exception as e:
-            logger.debug(e)
-            sprints = []
-
-        board_data = {
-            "board": board,
-            "sprints": [],
-        }
-
-        logger.info(f"Collected {len(sprints)} sprints(s)")
-
-        for sprint in sprints:
-            logger.info(f"Collect issues for Sprint {sprint.id}")
-
-            issues = get_paginated_issues(
-                jira_client=jira_client,
-                jql_str=(
-                    f"project={project_key} "
-                    f"AND sprint={sprint.id} "
-                    f"ORDER BY created DESC"
-                ),
-                fields=[],
-            )
-
-            for issue in issues:
-                result["issues"][issue.id] = {
-                    "board": board,
-                    "sprint": sprint,
-                }
-
-            board_data["sprints"].append(sprint)
-
-        board_data["sprints"].sort(
-            key=lambda x: getattr(
-                x,
-                "startDate",
-                # required for correct ordering of future sprints
-                # without start date
-                str(datetime.now().isoformat()),
-            ),
+    with ThreadPoolExecutor(max_workers=MAX_THREADS_COUNT) as executor:
+        board_issues_data_func = functools.partial(
+            get_board_issues_data,
+            jira_client,
+            project_key,
         )
-        result["boards"].append(board_data)
-
-    return result
+        results = executor.map(board_issues_data_func, boards)
+    return {
+        "boards": [result["board"] for result in results],
+        "issues": dict(
+            collections.ChainMap(*[result["issues"] for result in results]),
+        ),
+    }
 
 
 def get_data(jira_client: JIRA, project_key: str) -> dict[str, list]:
+    """Get all project issues and versions."""
     logger.info(f"Connect to Jira ({project_key})")
 
-    result = {
-        "issues": [],
-        "versions": [],
-    }
-
-    result["issues"] = get_paginated_issues(
-        jira_client=jira_client,
-        jql_str=f"project={project_key} ORDER BY created DESC",
+    issues = jira_client.search_issues(
+        f"project={project_key} ORDER BY created DESC",
+        startAt=0,
+        maxResults=False,
+        fields=JIRA_FETCH_FIELDS,
     )
 
     logger.info("Get versions")
 
     # get not archived release versions
-    result["versions"] = list(filter(
-        lambda x: not x.archived,
-        jira_client.project_versions(project_key),
-    ))
-    result["versions"].sort(key=lambda x: getattr(x, "startDate", ""))
+    versions = [
+        version for version in jira_client.project_versions(project_key)
+        if not version.archived
+    ]
+    versions.sort(key=lambda x: getattr(x, "startDate", ""))
 
-    return result
+    return {
+        "versions": versions,
+        "issues": issues,
+    }
 
 
 def construct_tables(
     issues_dataframe: DataFrame,
     versions: list,
     boards: list,
-) -> list[Table]:
+) -> list[Section | Div]:
     """Construct tables from data."""
     VERSIONS_TAB_ID = 1
     EMPTY_TAB_CONTENT = "No data."
@@ -241,7 +255,7 @@ def construct_tables(
         ))
 
     # prepare tabs header
-    tabs_header: list[str, int] = [
+    tabs_header: list[tuple[str, int]] = [
         ("Versions", VERSIONS_TAB_ID),
     ]
     for board in boards:
@@ -252,7 +266,7 @@ def construct_tables(
             ))
 
     # prepare tabs content
-    tabs_content: list[Div, int] = []
+    tabs_content: list[tuple[str, int]] = []
 
     # versions tab
     if not versioned_df.empty:
@@ -393,10 +407,10 @@ def construct_tables(
 
 
 def get_tables(
-        jira_client: JIRA,
-        jira_project_key: str,
-        jira_server_url: str,
-) -> list[Table]:
+    jira_client: JIRA,
+    jira_project_key: str,
+    jira_server_url: str,
+) -> list[Section | Div]:
     """Get tables."""
     data = get_data(jira_client, jira_project_key)
     extra_data = get_extra_data(jira_client, jira_project_key)

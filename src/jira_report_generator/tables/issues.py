@@ -2,7 +2,7 @@ from pandas import DataFrame
 
 from ..constants import Status
 from ..utils.formatters import format_name
-from ..utils.tags import TD, TH, TR, A, Table, Div, NumTD
+from ..utils.tags import TD, TH, TR, A, Div, NumTD, Table
 
 
 def generate_issues_table(
@@ -114,7 +114,7 @@ def generate_issues_table(
                     "title": item.key,
                 }),
                 **{"class": "link nowrap"},
-            )
+            ),
         )
 
         if item.status.name in (
@@ -167,13 +167,13 @@ def generate_issues_table(
                     NumTD(
                         round(item.estimate / divisor, 1),
                         **attrs,
-                    )
+                    ),
                 )
                 scrollable_tr.append(
                     NumTD(
                         round(item.spent / divisor, 1),
                         **spent_attrs,
-                    )
+                    ),
                 )
             else:
                 scrollable_tr.append(NumTD("&nbsp;", **{

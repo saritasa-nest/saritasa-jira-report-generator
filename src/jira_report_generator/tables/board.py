@@ -114,7 +114,7 @@ def generate_board_table(
                     "title": item.key,
                 }),
                 **{"class": "link nowrap"},
-            )
+            ),
         )
 
         if item.status.name in (
@@ -166,13 +166,13 @@ def generate_board_table(
                     NumTD(
                         round(item.estimate, 1),
                         **attrs,
-                    )
+                    ),
                 )
                 scrollable_tr.append(
                     NumTD(
                         round(item.spent, 1),
                         **spent_attrs,
-                    )
+                    ),
                 )
             else:
                 scrollable_tr.append(NumTD("", **{

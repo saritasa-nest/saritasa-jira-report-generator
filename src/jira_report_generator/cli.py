@@ -3,13 +3,13 @@ import logging
 import os
 import sys
 
+from decouple import config
 from jinja2 import Environment, FileSystemLoader
 from jira import JIRA
-from decouple import config
 
 from .app import get_tables
-from .utils.tags import Table
 from .utils.data import render_template
+from .utils.tags import Table
 
 SERVER_URL = str(config("SERVER_URL"))
 EMAIL = str(config("EMAIL"))
@@ -66,7 +66,12 @@ def write_tables(tables: list[Table], filename: str, key: str):
 
 def main():
     cli_args = parser.parse_args()
-    jira_client = JIRA(server=SERVER_URL, basic_auth=(EMAIL, API_TOKEN))
+    jira_client = JIRA(
+        server=SERVER_URL,
+        basic_auth=(EMAIL, API_TOKEN),
+        async_=True,
+        async_workers=4,
+    )
 
     if cli_args.verbose:
         logger.setLevel(logging.INFO)

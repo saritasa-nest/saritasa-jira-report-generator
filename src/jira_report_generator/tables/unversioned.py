@@ -1,7 +1,7 @@
 from pandas import DataFrame
 
 from ..utils.formatters import format_name
-from ..utils.tags import TD, TH, TR, A, Table, NumTD
+from ..utils.tags import TD, TH, TR, A, NumTD, Table
 
 
 def generate_unversioned_table(df: DataFrame, **table_options: str):
@@ -35,7 +35,7 @@ def generate_unversioned_table(df: DataFrame, **table_options: str):
             TD(
                 A(item.key, **{"href": item.link}),
                 **{"class": "nowrap"},
-            )
+            ),
         )
 
         # status
