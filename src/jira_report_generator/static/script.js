@@ -1,3 +1,6 @@
+const TAB_CONTENT_ID_ATTRIBUTE = 'data-tab-content-id';
+const TAB_CONTENT_CLASS = 'tab-content';
+
 /**
  * Adds an ability for highlight rows by clicking.
  */
@@ -438,13 +441,13 @@ function recalculateSelectedVersionSum(columnName) {
 /**
  * Calculate summary for selected sprints
  */
-function recalculateSelectedSprintsSum(columnName) {
+function recalculateSelectedSprintsSum(columnName, tabId) {
   var value = 0;
   let columnSelector = (
-    `.sprint-row-selected [data-row-sprint-column-name="${columnName}"]`
+    `[${TAB_CONTENT_ID_ATTRIBUTE}="${tabId}"] .sprint-row-selected [data-row-sprint-column-name="${columnName}"]`
   );
   let sumColumnSelector = (
-    `table.sprints [data-column-name="${columnName}"]`
+    `[${TAB_CONTENT_ID_ATTRIBUTE}="${tabId}"] table.sprints [data-column-name="${columnName}"]`
   )
   let field = document.querySelector(sumColumnSelector)
 
@@ -493,14 +496,14 @@ function recalculateSelectedVersionAvg(columnName) {
 /**
  * Calculate avg for selected sprints
  */
-function recalculateSelectedSprintsAvg(columnName) {
+function recalculateSelectedSprintsAvg(columnName, tabId) {
   var value = 0;
   var divider = 0; // need to count because empty row should be excluded
   let columnSelector = (
-    `.sprint-row-selected [data-row-sprint-column-name="${columnName}"]`
+    `[${TAB_CONTENT_ID_ATTRIBUTE}="${tabId}"] .sprint-row-selected [data-row-sprint-column-name="${columnName}"]`
   );
   let avgColumnSelector = (
-    `table.sprints [data-column-name="${columnName}"]`
+    `[${TAB_CONTENT_ID_ATTRIBUTE}="${tabId}"] table.sprints [data-column-name="${columnName}"]`
   )
   let columns = document.querySelectorAll(columnSelector)
   let field = document.querySelector(avgColumnSelector)
@@ -586,44 +589,54 @@ function init_version_selector() {
  * Initializes checkboxes in Sprint table.
  */
 function init_sprint_selector() {
-  var checkboxes = document.querySelectorAll(
-    "table.sprints input[type=checkbox]"
-  )
   let settings = getSettings("sprints");
+  
+  var tabs = document.getElementsByClassName(TAB_CONTENT_CLASS);
+  
+  for (const tab of tabs) {
+    const tabId = tab.getAttribute(TAB_CONTENT_ID_ATTRIBUTE);
+    var checkboxes = tab.querySelectorAll(
+      "table.sprints input[type=checkbox]"
+    )
 
-  checkboxes.forEach(function(checkbox) {
-    var attr = checkbox.attributes["data-sprint-id"];
-    var isChecked = true;
-
-    // set initial state -- displayed
-    if (settings[attr.value] != undefined) {
-      isChecked = settings[attr.value];
+    if (checkboxes.length === 0) {
+      continue;
     }
 
-    checkbox.checked = isChecked;
-
-    // mark related row selected
-    let rowSelector = (`table.sprints [data-row-sprint-id="${attr.value}"]`);
-    toggleSelected(rowSelector, isChecked, "sprint-row-selected");
-
-    checkbox.addEventListener("change", function() {
-      settings[attr.value] = this.checked;
-      saveSettings("sprints", settings);
-      setSprintHidden(attr.value, !this.checked);
-      toggleSelected(rowSelector, this.checked, "sprint-row-selected");
-
-      recalculateSelectedSprintsSum("tasks");
-      recalculateSelectedSprintsSum("estimated");
-      recalculateSelectedSprintsSum("spent");
-      recalculateSelectedSprintsAvg("overtime");
+    checkboxes.forEach(function(checkbox) {
+      var attr = checkbox.attributes["data-sprint-id"];
+      var isChecked = true;
+  
+      // set initial state -- displayed
+      if (settings[attr.value] != undefined) {
+        isChecked = settings[attr.value];
+      }
+  
+      checkbox.checked = isChecked;
+  
+      // mark related row selected
+      let rowSelector = (`[${TAB_CONTENT_ID_ATTRIBUTE}="${tabId}"] table.sprints [data-row-sprint-id="${attr.value}"]`);
+      toggleSelected(rowSelector, isChecked, "sprint-row-selected");
+  
+      checkbox.addEventListener("change", function() {
+        settings[attr.value] = this.checked;
+        saveSettings("sprints", settings);
+        setSprintHidden(attr.value, !this.checked);
+        toggleSelected(rowSelector, this.checked, "sprint-row-selected");
+  
+        recalculateSelectedSprintsSum("tasks", tabId);
+        recalculateSelectedSprintsSum("estimated", tabId);
+        recalculateSelectedSprintsSum("spent", tabId);
+        recalculateSelectedSprintsAvg("overtime", tabId);
+      });
     });
-  });
 
-  // recalculate summary for selected sprints
-  recalculateSelectedSprintsSum("tasks");
-  recalculateSelectedSprintsSum("estimated");
-  recalculateSelectedSprintsSum("spent");
-  recalculateSelectedSprintsAvg("overtime");
+    // recalculate summary for selected sprints
+    recalculateSelectedSprintsSum("tasks", tabId);
+    recalculateSelectedSprintsSum("estimated", tabId);
+    recalculateSelectedSprintsSum("spent", tabId);
+    recalculateSelectedSprintsAvg("overtime", tabId);
+  }
 }
 
 /**
