@@ -1,5 +1,7 @@
-const TAB_CONTENT_ID_ATTRIBUTE = 'data-tab-content-id';
 const TAB_CONTENT_CLASS = 'tab-content';
+const SUM_COLUMNS_NAMES = ['tasks', 'estimated', 'spent'];
+const AVERAGE_COLUMN_NAMES = ['overtime'];
+const VERSION_TAB_ID = 1;
 
 /**
  * Adds an ability for highlight rows by clicking.
@@ -417,140 +419,107 @@ function applySprintComponentTableSettings() {
 /**
  * Calculate summary for selected versions
  */
-function recalculateSelectedVersionSum(columnName) {
-  var value = 0;
-  let columnSelector = (
-    `.version-row-selected [data-row-version-column-name="${columnName}"]`
-  );
-  let sumColumnSelector = (
-    `table.versions [data-column-name="${columnName}"]`
-  )
-  let field = document.querySelector(sumColumnSelector)
-
-  document.querySelectorAll(columnSelector).forEach((column) => {
-    value += parseFloat(column.textContent) || 0;
-  });
-
-  value = Number(value.toFixed(2));
-
-  if (field) {
-    field.textContent = value;
-  }
+function recalculateSelectedVersions(tab, checkboxArray) {
+  aggregateSelectedRows(tab, checkboxArray, SUM_COLUMNS_NAMES, true, calculateSumForSelected);  
+  aggregateSelectedRows(tab, checkboxArray, AVERAGE_COLUMN_NAMES, true, calculateAverageForSelected);    
 }
 
 /**
  * Calculate summary for selected sprints
  */
-function recalculateSelectedSprintsSum(columnName, tabId) {
-  var value = 0;
-  let columnSelector = (
-    `[${TAB_CONTENT_ID_ATTRIBUTE}="${tabId}"] .sprint-row-selected [data-row-sprint-column-name="${columnName}"]`
-  );
-  let sumColumnSelector = (
-    `[${TAB_CONTENT_ID_ATTRIBUTE}="${tabId}"] table.sprints [data-column-name="${columnName}"]`
-  )
-  let field = document.querySelector(sumColumnSelector)
-
-  document.querySelectorAll(columnSelector).forEach((column) => {
-    value += parseFloat(column.textContent) || 0;
-  });
-
-  value = Number(value.toFixed(2));
-  
-  if (field) {
-    field.textContent = value;
-  }
+function recalculateSelectedSprints(tab, checkboxArray) {
+  aggregateSelectedRows(tab, checkboxArray, SUM_COLUMNS_NAMES, false, calculateSumForSelected);
+  aggregateSelectedRows(tab, checkboxArray, AVERAGE_COLUMN_NAMES, false, calculateAverageForSelected);  
 }
 
-/**
- * Calculate avg for selected versions
- */
-function recalculateSelectedVersionAvg(columnName) {
-  var value = 0;
-  var divider = 0; // need to count because empty row should be excluded
-  let columnSelector = (
-    `.version-row-selected [data-row-version-column-name="${columnName}"]`
-  );
-  let avgColumnSelector = (
-    `table.versions [data-column-name="${columnName}"]`
-  )
-  let columns = document.querySelectorAll(columnSelector)
-  let field = document.querySelector(avgColumnSelector)
-
-  columns.forEach((column) => {
-    let parsedValue = parseFloat(column.textContent)
-
-    if (parsedValue && parsedValue > 0) {
-      value += parsedValue;
-      divider += 1;
-    }
-  });
-
-  value = divider ? Number((value/divider).toFixed(2)) : null;
-
-  if (field) {
-    field.textContent = value || "";
-  }
-}
-
-/**
- * Calculate avg for selected sprints
- */
-function recalculateSelectedSprintsAvg(columnName, tabId) {
-  var value = 0;
-  var divider = 0; // need to count because empty row should be excluded
-  let columnSelector = (
-    `[${TAB_CONTENT_ID_ATTRIBUTE}="${tabId}"] .sprint-row-selected [data-row-sprint-column-name="${columnName}"]`
-  );
-  let avgColumnSelector = (
-    `[${TAB_CONTENT_ID_ATTRIBUTE}="${tabId}"] table.sprints [data-column-name="${columnName}"]`
-  )
-  let columns = document.querySelectorAll(columnSelector)
-  let field = document.querySelector(avgColumnSelector)
-
-  columns.forEach((column) => {
-    let parsedValue = parseFloat(column.textContent)
-
-    if (parsedValue && parsedValue > 0) {
-      value += parsedValue;
-      divider += 1;
-    }
-  });
-
-  value = divider ? Number((value/divider).toFixed(2)) : null;
-
-  if (field) {
-    field.textContent = value || "";
-  }
-}
-
-/**
- * Toggle selected
- */
-function toggleSelected(
-    selector,
-    isSelected,
-    classname,
+function aggregateSelectedRows(
+  tab, 
+  checkboxArray, 
+  columnNames,
+  isVersion,
+  aggregator
 ) {
-  document.querySelectorAll(selector).forEach((elem) => {
-    if (isSelected) {
-      elem.classList.add(classname);
-    } else {
-      elem.classList.remove(classname);
+  const attributePrefix = isVersion ? 'version' : 'sprint';
+
+  const selectedRowIds = checkboxArray
+    .filter(checkbox => checkbox.checked)
+    .map(checkbox => checkbox.getAttribute(`data-${attributePrefix}-id`));
+  
+    for (const columnName of columnNames) {
+      const aggregationCell = tab.querySelector(`[data-column-name="${columnName}"]`);
+
+      if (!aggregationCell) {
+        continue;
+      }
+    
+      const cells = selectedRowIds.map(selectedRowId => tab.querySelector(
+        `[data-row-${attributePrefix}-id="${selectedRowId}"] [data-row-${attributePrefix}-column-name="${columnName}"]`
+      ));
+
+      aggregationCell.textContent = aggregator(cells) ?? '';
+    }
+}
+
+function calculateSumForSelected(cells) {
+  const value = cells.reduce((acc, cell) => acc + parseFloat(cell.textContent) || 0, 0);
+
+  return Number(value.toFixed(2));
+}
+
+function calculateAverageForSelected(cells) {
+  let value = 0;
+  let divider = 0;
+  cells.forEach(cell => {
+    let parsedValue = parseFloat(cell.textContent)
+
+    if (parsedValue && parsedValue > 0) {
+      value += parsedValue;
+      divider += 1;
     }
   });
+
+  return divider ? Number((value/divider).toFixed(2)) : null;
+}
+
+function initSelectAllCheckbox(tab, checkboxArray, recalculateSelectedRows) {
+  const selectAllCheckbox = document.createElement('input');
+  selectAllCheckbox.type = 'checkbox';
+
+  const selectAllCheckboxCell = tab.getElementsByTagName('th')[0];
+  selectAllCheckboxCell.className = 'center';
+  selectAllCheckboxCell.appendChild(selectAllCheckbox);
+
+  selectAllCheckbox.addEventListener('change', event => {
+    for (const checkbox of checkboxArray) {
+      checkbox.checked = event.currentTarget.checked;  
+    }
+    recalculateSelectedRows(tab, checkboxArray);
+  });
+
+  const setChecked = () => {
+    selectAllCheckbox.checked = checkboxArray.every(checkbox => checkbox.checked);
+  };
+
+  for (const checkbox of checkboxArray) {
+    checkbox.addEventListener('change', setChecked);  
+  }
+
+  setChecked();
 }
 
 /**
  * Initializes checkboxes in Versions table.
  */
 function init_version_selector() {
-  var checkboxes = document.querySelectorAll(
+  const tab = document.querySelector(`[data-tab-content-id="${VERSION_TAB_ID}"]`);
+  var checkboxes = tab.querySelectorAll(
     "table.versions input[type=checkbox]"
   )
   let settings = getSettings("versions");
 
-  checkboxes.forEach(function(checkbox) {
+  const checkboxArray = [...checkboxes];
+
+  checkboxArray.forEach(function(checkbox) {
     var attr = checkbox.attributes["data-version-id"];
     var isChecked = true;
 
@@ -561,28 +530,18 @@ function init_version_selector() {
 
     checkbox.checked = isChecked;
 
-    // mark related row selected
-    let rowSelector = (`table.versions [data-row-version-id="${attr.value}"]`);
-    toggleSelected(rowSelector, isChecked, "version-row-selected");
-
     checkbox.addEventListener("change", function() {
       settings[attr.value] = this.checked;
       saveSettings("versions", settings);
       setVersionHidden(attr.value, !this.checked);
       toggleSelected(rowSelector, this.checked, "version-row-selected");
 
-      recalculateSelectedVersionSum("tasks");
-      recalculateSelectedVersionSum("estimated");
-      recalculateSelectedVersionSum("spent");
-      recalculateSelectedVersionAvg("overtime");
+      recalculateSelectedVersions(tab, checkboxArray);
     });
   });
 
-  // recalculate summary for selected
-  recalculateSelectedVersionSum("tasks");
-  recalculateSelectedVersionSum("estimated");
-  recalculateSelectedVersionSum("spent");
-  recalculateSelectedVersionAvg("overtime");
+  recalculateSelectedVersions(tab, checkboxArray);
+  initSelectAllCheckbox(tab, checkboxArray, recalculateSelectedVersions);
 }
 
 /**
@@ -594,16 +553,17 @@ function init_sprint_selector() {
   var tabs = document.getElementsByClassName(TAB_CONTENT_CLASS);
   
   for (const tab of tabs) {
-    const tabId = tab.getAttribute(TAB_CONTENT_ID_ATTRIBUTE);
     var checkboxes = tab.querySelectorAll(
       "table.sprints input[type=checkbox]"
     )
 
+    const checkboxArray = [...checkboxes];
+
     if (checkboxes.length === 0) {
       continue;
     }
-
-    checkboxes.forEach(function(checkbox) {
+  
+    checkboxArray.forEach(function(checkbox) {
       var attr = checkbox.attributes["data-sprint-id"];
       var isChecked = true;
   
@@ -614,28 +574,18 @@ function init_sprint_selector() {
   
       checkbox.checked = isChecked;
   
-      // mark related row selected
-      let rowSelector = (`[${TAB_CONTENT_ID_ATTRIBUTE}="${tabId}"] table.sprints [data-row-sprint-id="${attr.value}"]`);
-      toggleSelected(rowSelector, isChecked, "sprint-row-selected");
-  
       checkbox.addEventListener("change", function() {
         settings[attr.value] = this.checked;
         saveSettings("sprints", settings);
         setSprintHidden(attr.value, !this.checked);
-        toggleSelected(rowSelector, this.checked, "sprint-row-selected");
   
-        recalculateSelectedSprintsSum("tasks", tabId);
-        recalculateSelectedSprintsSum("estimated", tabId);
-        recalculateSelectedSprintsSum("spent", tabId);
-        recalculateSelectedSprintsAvg("overtime", tabId);
+        recalculateSelectedSprints(tab, checkboxArray);
       });
     });
 
     // recalculate summary for selected sprints
-    recalculateSelectedSprintsSum("tasks", tabId);
-    recalculateSelectedSprintsSum("estimated", tabId);
-    recalculateSelectedSprintsSum("spent", tabId);
-    recalculateSelectedSprintsAvg("overtime", tabId);
+    recalculateSelectedSprints(tab, checkboxArray);
+    initSelectAllCheckbox(tab, checkboxArray, recalculateSelectedSprints);
   }
 }
 
@@ -680,7 +630,7 @@ function initTabs() {
  * Apply tabs settings
  */
 function applyTabsSettings() {
-  var defaultTabId = 1;
+  var defaultTabId = VERSION_TAB_ID;
   var tabsSettings = getSettings("tabs");
   var activeTabId = tabsSettings["activeTabId"];
   var availableTabIds = [
@@ -715,5 +665,3 @@ function init_reports() {
 }
 
 document.addEventListener("DOMContentLoaded", init_reports)
-
-export { init_reports };
