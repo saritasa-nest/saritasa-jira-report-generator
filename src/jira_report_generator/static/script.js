@@ -534,7 +534,6 @@ function init_version_selector() {
       settings[attr.value] = this.checked;
       saveSettings("versions", settings);
       setVersionHidden(attr.value, !this.checked);
-      toggleSelected(rowSelector, this.checked, "version-row-selected");
 
       recalculateSelectedVersions(tab, checkboxArray);
     });
