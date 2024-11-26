@@ -664,4 +664,6 @@ function init_reports() {
   applyTabsSettings();
 }
 
-document.addEventListener("DOMContentLoaded", init_reports)
+document.addEventListener("DOMContentLoaded", init_reports);
+
+export { init_reports };
