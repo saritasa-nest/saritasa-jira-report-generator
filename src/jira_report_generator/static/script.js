@@ -2,6 +2,14 @@ const TAB_CONTENT_CLASS = 'tab-content';
 const SUM_COLUMNS_NAMES = ['tasks', 'estimated', 'spent'];
 const AVERAGE_COLUMN_NAMES = ['overtime'];
 const VERSION_TAB_ID = 1;
+const VERSION_SETTINGS_ID = 'versions';
+const VERSION_ID_CHECKBOX_ATTRIBUTE = 'data-version-id';
+const SPRINT_ID_CHECKBOX_ATTRIBUTE = 'data-sprint-id';
+
+function getSprintSettingsId(tab) {
+  const tabId = tab.getAttribute('data-tab-content-id');
+  return `sprint_${tabId}`;
+}
 
 /**
  * Adds an ability for highlight rows by clicking.
@@ -341,7 +349,7 @@ function setVersionHidden(versionId, hidden = true) {
 /**
  * Hides sprint column and hides related rows.
  */
-function setSprintHidden(sprintId, hidden = true) {
+function setSprintHidden(sprintId, tab, hidden = true) {
   var sprintColumnsSelector = (
     `.issues [data-sprint-id="${sprintId}"]`
   )
@@ -349,7 +357,7 @@ function setSprintHidden(sprintId, hidden = true) {
     `table.component [data-sprint-ids="${sprintId}"]`
   );
 
-  document.querySelectorAll(sprintColumnsSelector).forEach((column) => {
+  tab.querySelectorAll(sprintColumnsSelector).forEach((column) => {
     if (hidden) {
       column.classList.add("hidden");
     } else {
@@ -357,7 +365,7 @@ function setSprintHidden(sprintId, hidden = true) {
     }
   });
 
-  document.querySelectorAll(sprintRowsSelector).forEach((row) => {
+  tab.querySelectorAll(sprintRowsSelector).forEach((row) => {
     if (hidden) {
       row.classList.add("hidden");
     } else {
@@ -396,23 +404,27 @@ function applyVersionComponentTableSettings() {
  */
 function applySprintComponentTableSettings() {
   const componentSettings = getSettings("components");
-  const sprintSettings = getSettings("sprints");
+  const tabs = document.getElementsByClassName(TAB_CONTENT_CLASS);
 
-  for (var componentId in componentSettings) {
-    for (var sprintId in componentSettings[componentId]) {
-      setSprintCollapsed(
-        componentId,
-        sprintId,
-        componentSettings[componentId][sprintId],
-      );
+  for (const tab of tabs) {
+    const sprintSettings = getSettings(getSprintSettingsId(tab));
+    for (const componentId in componentSettings) {
+      for (var sprintId in componentSettings[componentId]) {
+        setSprintCollapsed(
+          componentId,
+          sprintId,
+          componentSettings[componentId][sprintId],
+        );
+      }
     }
-  }
-
-  for (var sprintId in sprintSettings) {
-    setSprintHidden(
-      sprintId,
-      !sprintSettings[sprintId],
-    );
+  
+    for (const sprintId in sprintSettings) {
+      setSprintHidden(
+        sprintId,
+        tab,
+        !sprintSettings[sprintId],
+      );
+    } 
   }
 }
 
@@ -481,7 +493,11 @@ function calculateAverageForSelected(cells) {
   return divider ? Number((value/divider).toFixed(2)) : null;
 }
 
-function initSelectAllCheckbox(tab, checkboxArray, recalculateSelectedRows) {
+function initSelectAllCheckbox(
+  tab, 
+  checkboxArray, 
+  isVersion
+) {
   const selectAllCheckbox = document.createElement('input');
   selectAllCheckbox.type = 'checkbox';
 
@@ -490,10 +506,28 @@ function initSelectAllCheckbox(tab, checkboxArray, recalculateSelectedRows) {
   selectAllCheckboxCell.appendChild(selectAllCheckbox);
 
   selectAllCheckbox.addEventListener('change', event => {
+    const { checked } = event.currentTarget;
+    const newSettings = {};
     for (const checkbox of checkboxArray) {
-      checkbox.checked = event.currentTarget.checked;  
+      checkbox.checked = checked;
+      
+      let id = 0;
+      if (isVersion)  {
+        id = checkbox.getAttribute(VERSION_ID_CHECKBOX_ATTRIBUTE);
+        setVersionHidden(id, !checked);
+      } else {
+        id = checkbox.getAttribute(SPRINT_ID_CHECKBOX_ATTRIBUTE);
+        setSprintHidden(id, tab, !checked);  
+      }
+      newSettings[id] = checked;
     }
-    recalculateSelectedRows(tab, checkboxArray);
+    if (isVersion) {
+      saveSettings(VERSION_SETTINGS_ID, newSettings);
+      recalculateSelectedVersions(tab, checkboxArray);
+    } else {
+      saveSettings(getSprintSettingsId(tab), newSettings);  
+      recalculateSelectedSprints(tab, checkboxArray);
+    }
   });
 
   const setChecked = () => {
@@ -515,7 +549,7 @@ function init_version_selector() {
   var checkboxes = tab.querySelectorAll(
     "table.versions input[type=checkbox]"
   )
-  let settings = getSettings("versions");
+  let settings = getSettings(VERSION_SETTINGS_ID);
 
   const checkboxArray = [...checkboxes];
 
@@ -531,8 +565,9 @@ function init_version_selector() {
     checkbox.checked = isChecked;
 
     checkbox.addEventListener("change", function() {
+      settings = getSettings(VERSION_SETTINGS_ID);
       settings[attr.value] = this.checked;
-      saveSettings("versions", settings);
+      saveSettings(VERSION_SETTINGS_ID, settings);
       setVersionHidden(attr.value, !this.checked);
 
       recalculateSelectedVersions(tab, checkboxArray);
@@ -540,19 +575,19 @@ function init_version_selector() {
   });
 
   recalculateSelectedVersions(tab, checkboxArray);
-  initSelectAllCheckbox(tab, checkboxArray, recalculateSelectedVersions);
+  initSelectAllCheckbox(tab, checkboxArray, true);
 }
 
 /**
  * Initializes checkboxes in Sprint table.
  */
 function init_sprint_selector() {
-  let settings = getSettings("sprints");
-  
-  var tabs = document.getElementsByClassName(TAB_CONTENT_CLASS);
+  const tabs = document.getElementsByClassName(TAB_CONTENT_CLASS);
   
   for (const tab of tabs) {
-    var checkboxes = tab.querySelectorAll(
+    const settingsId = getSprintSettingsId(tab);
+    let settings = getSettings(settingsId);
+    const checkboxes = tab.querySelectorAll(
       "table.sprints input[type=checkbox]"
     )
 
@@ -563,8 +598,8 @@ function init_sprint_selector() {
     }
   
     checkboxArray.forEach(function(checkbox) {
-      var attr = checkbox.attributes["data-sprint-id"];
-      var isChecked = true;
+      const attr = checkbox.attributes[SPRINT_ID_CHECKBOX_ATTRIBUTE];
+      let isChecked = true;
   
       // set initial state -- displayed
       if (settings[attr.value] != undefined) {
@@ -574,9 +609,10 @@ function init_sprint_selector() {
       checkbox.checked = isChecked;
   
       checkbox.addEventListener("change", function() {
+        settings = getSettings(settingsId);
         settings[attr.value] = this.checked;
-        saveSettings("sprints", settings);
-        setSprintHidden(attr.value, !this.checked);
+        saveSettings(settingsId, settings);
+        setSprintHidden(attr.value, tab, !this.checked);
   
         recalculateSelectedSprints(tab, checkboxArray);
       });
@@ -584,7 +620,7 @@ function init_sprint_selector() {
 
     // recalculate summary for selected sprints
     recalculateSelectedSprints(tab, checkboxArray);
-    initSelectAllCheckbox(tab, checkboxArray, recalculateSelectedSprints);
+    initSelectAllCheckbox(tab, checkboxArray, false);
   }
 }
 
