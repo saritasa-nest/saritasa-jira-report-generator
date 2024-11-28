@@ -507,7 +507,8 @@ function initSelectAllCheckbox(
 
   selectAllCheckbox.addEventListener('change', event => {
     const { checked } = event.currentTarget;
-    const newSettings = {};
+    const settingsId = isVersion ? VERSION_SETTINGS_ID : getSprintSettingsId(tab);
+    const settings = getSettings(settingsId);
     for (const checkbox of checkboxArray) {
       checkbox.checked = checked;
       
@@ -519,13 +520,12 @@ function initSelectAllCheckbox(
         id = checkbox.getAttribute(SPRINT_ID_CHECKBOX_ATTRIBUTE);
         setSprintHidden(id, tab, !checked);  
       }
-      newSettings[id] = checked;
+      settings[id] = checked;
     }
+    saveSettings(settingsId, settings);
     if (isVersion) {
-      saveSettings(VERSION_SETTINGS_ID, newSettings);
       recalculateSelectedVersions(tab, checkboxArray);
     } else {
-      saveSettings(getSprintSettingsId(tab), newSettings);  
       recalculateSelectedSprints(tab, checkboxArray);
     }
   });
@@ -700,5 +700,4 @@ function init_reports() {
 }
 
 document.addEventListener("DOMContentLoaded", init_reports);
-
 export { init_reports };
