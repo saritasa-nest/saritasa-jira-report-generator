@@ -2,6 +2,7 @@ from typing import Any
 
 from jinja2 import Template
 from jira import Issue
+from jira.resources import Board
 from pandas import DataFrame
 
 from ..constants import Status, Type
@@ -190,5 +191,14 @@ def get_stories(issues_dataframe: DataFrame) -> DataFrame:
     return issues_dataframe[
         issues_dataframe["type"].apply(
             lambda x: x.name == Type.STORY.value,
+        )
+    ]
+
+
+def filter_by_board(issues_dataframe: DataFrame, board: Board) -> DataFrame:
+    """Filter issues by board"""
+    return issues_dataframe[
+        issues_dataframe["board_id"].apply(
+            lambda x: x == getattr(board, "id", None),
         )
     ]

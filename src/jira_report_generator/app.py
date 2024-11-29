@@ -28,6 +28,7 @@ from .tables.stories import generate_stories_table
 from .tables.unversioned import generate_unversioned_table
 from .tables.versions import generate_versions_table
 from .utils.data import (
+    filter_by_board,
     filter_data_by_statuses,
     get_dataframe,
     get_epics,
@@ -319,21 +320,22 @@ def construct_tables(
     # boards tab
     for board in boards:
         if board["sprints"]:
+            board_issues_df = filter_by_board(sprinted_df, board["board"])
             board_sections = []
             logger.info("Generate Sprints table")
             board_sections.append(Section(
                 H2("Sprints"),
                 generate_sprints_table(
-                    sprinted_df,
+                    board_issues_df,
                     board["sprints"],
                     **{"class": "sprints"},
                 ),
             ))
 
             logger.info("Generate Components table")
-            for component in prepare_components_data(sprinted_df):
+            for component in prepare_components_data(board_issues_df):
                 component_issues_df = prepare_issues_table_data(
-                    sprinted_df,
+                    board_issues_df,
                     component,
                 )
 
