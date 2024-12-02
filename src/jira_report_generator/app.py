@@ -319,8 +319,8 @@ def construct_tables(
 
     # boards tab
     for board in boards:
-        if board["sprints"]:
-            board_issues_df = filter_by_board(sprinted_df, board["board"])
+        board_issues_df = filter_by_board(sprinted_df, board["board"])
+        if board["sprints"] and not board_issues_df.empty:
             board_sections = []
             logger.info("Generate Sprints table")
             board_sections.append(Section(
