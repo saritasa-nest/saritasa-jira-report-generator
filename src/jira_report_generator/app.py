@@ -203,6 +203,7 @@ def construct_tables(
     issues_dataframe: DataFrame,
     versions: list,
     boards: list,
+    show_sprint_limit_column: True,
 ) -> list[Section | Div]:
     """Construct tables from data."""
     VERSIONS_TAB_ID = 1
@@ -328,6 +329,7 @@ def construct_tables(
                 generate_sprints_table(
                     board_issues_df,
                     board["sprints"],
+                    show_sprint_limit_column=show_sprint_limit_column,
                     **{"class": "sprints"},
                 ),
             ))
@@ -412,6 +414,7 @@ def get_tables(
     jira_client: JIRA,
     jira_project_key: str,
     jira_server_url: str,
+    show_sprint_limit_column: bool = True,
 ) -> list[Section | Div]:
     """Get tables."""
     data = get_data(jira_client, jira_project_key)
@@ -428,4 +431,5 @@ def get_tables(
         dataframe,
         data["versions"],
         extra_data["boards"],
+        show_sprint_limit_column = show_sprint_limit_column,
     )

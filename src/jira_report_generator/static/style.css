@@ -19,7 +19,6 @@ td > input {
 
 .table-content table {
   border-collapse: collapse;
-  /* width: 100%; */
 }
 
 .table-content table:last-child {
@@ -79,9 +78,6 @@ td > input {
 .table-content table.component th.key {
   width: 4%;
 }
-/* .table-content table.component th.hours {
-  width: 2.5em;
-} */
 .table-content table.component td.summary {
     text-overflow: ellipsis;
     overflow: hidden;
@@ -107,39 +103,6 @@ td > input {
   max-width: 5em;
   white-space: nowrap;
 }
-
-/* .table-content table.issues th.hours {
-  width: 5em;
-}
-
-.table-content table.assignees th.hours {
-  width: 5em;
-}
-
-.table-content table.versions th.hours {
-  width: 4em;
-}
-
-.table-content table.sprints th.hours {
-  width: 4em;
-}
-
-.table-content table.epics th.hours {
-  width: 5em;
-}
-
-.table-content table.project th.hours {
-  width: 5em;
-} */
-
-/* .table-content table.backlog {
-  width: auto;
-  max-width: 100%;
-} */
-/* .table-content table.project {
-  width: 640px;
-  max-width: 100%;
-} */
 
 .table-content tr.highlighted,
 .table-content tr.highlighted:hover {
@@ -198,19 +161,6 @@ td > input {
 .table-content .nowrap {
   white-space: nowrap;
 }
-
-
-/* .table-content .combined {
-  overflow: hidden;
-  width: 100%;
-}
-.table-content .combined > .combined-left {
-  float: left;
-  width: 640px;
-}
-.table-content .combined > .combined-right {
-  margin-left: 640px;
-} */
 
 .table-content .scrollable {
   overflow-x: scroll;
@@ -323,7 +273,7 @@ td.numeric,
 
 .combined-left table {
   width: 100%;
-  max-width: 652px;
+  max-width: 732px;
 }
 
 .combined-left td.numeric,
@@ -333,34 +283,39 @@ table.project td.numeric {
 }
 
 .combined-left {
-  width: 652px;
+  width: 732px;
   float: left;
 }
 
 .combined-right {
-  margin-left: 652px;
+  margin-left: 732px;
 }
 
 .tabs .combined-left {
-  width: 640px;
+  width: 720px;
 }
 
 .tabs .combined-left table {
-  max-width: 640px;
+  max-width: 720px;
 }
 
 .tabs .combined-right {
-  margin-left: 640px;
+  margin-left: 720px;
 }
 
 table.project,
 table.backlog {
-  width: 652px;
+  width: 732px;
 }
 
 td.name {
   text-overflow: ellipsis;
   overflow: hidden;
-  width: 80px;
-  max-width: 80px;
+  width: 89px;
+  max-width: 89px;
+}
+
+.versions td.name {
+  width: 160px;
+  max-width: 160px;
 }

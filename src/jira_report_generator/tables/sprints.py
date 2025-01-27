@@ -14,6 +14,7 @@ ESTIMATED = "estimated"
 SPENT = "spent"
 OVERTIME = "overtime"
 PROJECTION = "projection"
+LIMIT = "limit"
 
 DATA_ROW_SPRINT_ID = "data-row-sprint-id"
 DATA_ROW_SPRINT_COLUMN_NAME = "data-row-sprint-column-name"
@@ -114,6 +115,7 @@ def generate_component_columns(
 def generate_sprints_table(
     df: DataFrame,
     sprints: list,
+    show_sprint_limit_column: False,
     **table_options: str,
 ):
     rows = []
@@ -135,6 +137,10 @@ def generate_sprints_table(
     header.append(TH("Start Date"))
     header.append(TH("Release Date"))
     header.append(TH("Tasks", **{"class": "subheader hours"}))
+
+    if show_sprint_limit_column:
+        header.append(TH("Limit", **{"class": "subheader limit"}))
+
     header.append(TH("Estimated", **{"class": "subheader hours"}))
     header.append(TH("Spent", **{"class": "subheader hours"}))
     header.append(TH("Overtime", **{"class": "subheader hours"}))
@@ -199,6 +205,12 @@ def generate_sprints_table(
         row.append(NumTD(sprint_tasks.id.count(), **{
             DATA_ROW_SPRINT_COLUMN_NAME: TASKS,
         }))
+
+        if show_sprint_limit_column:
+            row.append(NumTD("", **{
+                DATA_ROW_SPRINT_COLUMN_NAME: LIMIT,
+            }))
+
         row.append(NumTD(estimate, **{
             DATA_ROW_SPRINT_COLUMN_NAME: ESTIMATED,
         }))
@@ -273,6 +285,10 @@ def generate_sprints_table(
     row.append(TD(""))
     row.append(TD("Summary", colspan=3))
     row.append(NumTD(df.id.count()))
+
+    if show_sprint_limit_column:
+        row.append(NumTD(""))
+
     row.append(NumTD(estimate))
     row.append(NumTD(spent, **{
         "class": (
@@ -313,6 +329,10 @@ def generate_sprints_table(
     row.append(TD(""))
     row.append(TD("Selected", colspan=3))
     row.append(NumTD("", **{DATA_COLUMN_NAME: TASKS}))
+
+    if show_sprint_limit_column:
+        row.append(NumTD("", **{DATA_COLUMN_NAME: LIMIT}))
+
     row.append(NumTD("", **{DATA_COLUMN_NAME: ESTIMATED}))
     row.append(NumTD("", **{DATA_COLUMN_NAME: SPENT}))
     row.append(NumTD("", **{DATA_COLUMN_NAME: OVERTIME}))
