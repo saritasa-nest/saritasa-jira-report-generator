@@ -502,8 +502,10 @@ function initSelectAllCheckbox(
   selectAllCheckbox.type = 'checkbox';
 
   const selectAllCheckboxCell = tab.getElementsByTagName('th')[0];
-  selectAllCheckboxCell.className = 'center';
-  selectAllCheckboxCell.appendChild(selectAllCheckbox);
+  if (selectAllCheckboxCell) {
+    selectAllCheckboxCell.className = 'center';
+    selectAllCheckboxCell.appendChild(selectAllCheckbox);
+  }
 
   selectAllCheckbox.addEventListener('change', event => {
     const { checked } = event.currentTarget;
