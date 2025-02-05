@@ -152,6 +152,36 @@ def prepare_issues_table_data(
     )]
 
 
+def filter_unclassified_issues(
+    issues_dataframe: DataFrame,
+) -> DataFrame:
+    """Returns unclassified issues."""
+    to_skip_versions = (
+        *Status.BACKLOG.value,
+        *Status.CANCELLED.value,
+        *Status.VERIFIED.value,
+        *Status.COMPLETED.value,
+    )
+    issues_dataframe = issues_dataframe[
+        issues_dataframe["components"].apply(
+            lambda x: len(x) == 0,
+        )
+    ]
+
+    issues_dataframe = issues_dataframe[
+        issues_dataframe["type"].apply(
+            lambda x: x.name not in [
+                Type.EPIC.value,
+                Type.STORY.value,
+            ]
+        )
+    ]
+
+    return issues_dataframe[issues_dataframe["status"].apply(
+        lambda x: x.name not in to_skip_versions,
+    )]
+
+
 def prepare_backlog_table_data(issues_dataframe: DataFrame) -> DataFrame:
     """Prepare initial data for backlog table rendering."""
     return issues_dataframe[
@@ -169,6 +199,15 @@ def prepare_unversioned_table_data(issues_dataframe: DataFrame) -> DataFrame:
     issues_dataframe = issues_dataframe[
         issues_dataframe["status"].apply(
             lambda x: x.name not in to_skip_versions,
+        )
+    ]
+
+    issues_dataframe = issues_dataframe[
+        issues_dataframe["type"].apply(
+            lambda x: x.name not in [
+                Type.EPIC.value,
+                Type.STORY.value,
+            ]
         )
     ]
 

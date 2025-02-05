@@ -40,9 +40,13 @@ class Status(Enum):
     )
     IN_PROGRESS = (
         "In Progress",
+        "In Development",
     )
     BACKLOG = (
         "Backlog",
+    )
+    CANCELLED = (
+        "Cancelled",
     )
 
 

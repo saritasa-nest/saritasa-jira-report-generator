@@ -25,11 +25,13 @@ from .tables.project import generate_project_table
 from .tables.sprints import generate_sprints_table
 from .tables.statuses import generate_statuses_table
 from .tables.stories import generate_stories_table
+from .tables.unclassified import generate_unclassified_table
 from .tables.unversioned import generate_unversioned_table
 from .tables.versions import generate_versions_table
 from .utils.data import (
     filter_by_board,
     filter_data_by_statuses,
+    filter_unclassified_issues,
     get_dataframe,
     get_epics,
     get_sprinted_issues,
@@ -212,6 +214,7 @@ def construct_tables(
     versioned_df = get_versioned_issues(issues_dataframe)
     unversioned_df = prepare_unversioned_table_data(issues_dataframe)
     sprinted_df = get_sprinted_issues(issues_dataframe)
+    unclassified_df = filter_unclassified_issues(issues_dataframe)
     backlog_df = prepare_backlog_table_data(issues_dataframe)
     tables = []
     not_finished_statuses = prepare_not_finished_statuses_data(
@@ -284,8 +287,8 @@ def construct_tables(
             ),
         ))
 
-        # version components table
-        logger.info("Generate Components table")
+        # version component tables
+        logger.info("Generate Component tables")
         for component in prepare_components_data(versioned_df):
             version_sections.append(Section(
                 H2(component),
@@ -294,17 +297,6 @@ def construct_tables(
                     versions,
                     component_id=component.id,
                     **{"class": "component"},
-                ),
-            ))
-
-        # unversioned issues table
-        if not unversioned_df.empty:
-            logger.info("Generate Unversioned Issues table")
-            version_sections.append(Section(
-                H2("Unversioned"),
-                generate_unversioned_table(
-                    unversioned_df,
-                    **{"class": "backlog"},
                 ),
             ))
 
@@ -334,7 +326,8 @@ def construct_tables(
                 ),
             ))
 
-            logger.info("Generate Components table")
+            # board component tables
+            logger.info("Generate Component tables")
             for component in prepare_components_data(board_issues_df):
                 component_issues_df = prepare_issues_table_data(
                     board_issues_df,
@@ -394,6 +387,17 @@ def construct_tables(
                 stories_dataframe,
                 **{"class": "stories"},
             ),
+        ))
+
+    # issues without components
+    if not unclassified_df.empty:
+        logger.info("Generate Unclassified table")
+        tables.append(Section(
+            H2("Unclassified"),
+            generate_unclassified_table(
+                unclassified_df,
+                **{"class": "backlog"},
+            )
         ))
 
     # backlog table
