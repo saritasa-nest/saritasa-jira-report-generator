@@ -3,7 +3,10 @@
     <meta charset="utf-8" />
     <title>{{ title }}</title>
     <style>{% include "style.css" %}</style>
-    <script type="module">{% include "script.js" %}</script>
+    <script type="module">
+    {% include "script.js" %}
+    window.initReports = init_reports;
+    </script>
   </head>
   <body>
     <div class="table-content">
@@ -11,5 +14,10 @@
       {{ section }}
       {% endfor %}
     </div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        initReports();
+      });
+    </script>
   </body>
 </html>

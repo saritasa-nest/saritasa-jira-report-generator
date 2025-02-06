@@ -692,7 +692,7 @@ function applyTabsSettings(projectId) {
  */
 function init_reports(projectId) {
   if (!projectId) {
-    projectId = 'unknown project';
+    projectId = "undefined";
   }
 
   init_highlights();
