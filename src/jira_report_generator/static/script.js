@@ -650,7 +650,7 @@ function setActiveTab(id) {
 /**
  * Initializes tabs
  */
-function initTabs() {
+function initTabs(projectId) {
   var tabs = document.querySelectorAll(".tab-header");
 
   tabs.forEach(function(tab) {
@@ -658,7 +658,12 @@ function initTabs() {
 
     tab.querySelector("a").onclick = function () {
       setActiveTab(attr.value);
-      saveSettings("tabs", {"activeTabId": attr.value});
+      const tabSettings = getSettings("tabs");
+      if (tabSettings == null) {
+        tabSettings = {};
+      }
+      tabSettings[projectId] = attr.value;
+      saveSettings("tabs", tabSettings);
     }
   });
 }
@@ -666,10 +671,10 @@ function initTabs() {
 /**
  * Apply tabs settings
  */
-function applyTabsSettings() {
+function applyTabsSettings(projectId) {
   var defaultTabId = VERSION_TAB_ID;
   var tabsSettings = getSettings("tabs");
-  var activeTabId = tabsSettings["activeTabId"];
+  var activeTabId = tabsSettings[projectId];
   var availableTabIds = [
     ...document.querySelectorAll("[data-tab-header-id]")].map(
       a => a.attributes["data-tab-header-id"].value
@@ -685,7 +690,11 @@ function applyTabsSettings() {
 /**
  * Initializes all action parts.
  */
-function init_reports() {
+function init_reports(projectId) {
+  if (!projectId) {
+    projectId = 'unknown project';
+  }
+
   init_highlights();
 
   init_version_selector();
@@ -694,12 +703,11 @@ function init_reports() {
   init_sprint_selector()
   init_sprint_columns();
 
-  initTabs();
+  initTabs(projectId);
 
   applyVersionComponentTableSettings();
   applySprintComponentTableSettings();
-  applyTabsSettings();
+  applyTabsSettings(projectId);
 }
 
-document.addEventListener("DOMContentLoaded", init_reports);
 export { init_reports };
