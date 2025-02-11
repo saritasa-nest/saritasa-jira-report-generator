@@ -76,7 +76,8 @@ td > input {
 .table-content table.component th.key {
   width: 8em;
 } */
-.table-content table.component td.summary {
+.table-content table.component td.summary,
+.table-content table.backlog td.summary {
     text-overflow: ellipsis;
     overflow: hidden;
     max-width: 25em;

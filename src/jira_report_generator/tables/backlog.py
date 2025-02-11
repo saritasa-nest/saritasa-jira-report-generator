@@ -25,7 +25,13 @@ def generate_backlog_table(df: DataFrame, **table_options: str):
         status_attrs = {"class": "status nowrap"}
 
         # summary
-        tr.append(TD(item.summary, **{"class": "summary"}))
+        tr.append(TD(
+            item.summary,
+            **{
+                "class": "summary",
+                "title": item.summary,
+            },
+        ))
 
         # issue type
         tr.append(TD(item.type, **{"class": "type"}))
