@@ -119,7 +119,7 @@ def generate_issues_table(
 
         if item.status.name in (
                 *Status.VERIFIED.value,
-                *Status.CLIENT_REVIEW.value,
+                *Status.IN_REVIEW.value,
                 *Status.COMPLETED.value,
                 *Status.TM_PM_VERIFY.value,
         ):
@@ -133,7 +133,12 @@ def generate_issues_table(
             background = "in-progress"
 
         # status
-        tr.append(TD(item.status.name, **status_attrs))
+        tr.append(TD(
+            item.status.name, **{
+                **status_attrs,
+                "title": item.status.name,
+            },
+        ))
 
         # assignee
         display_name = format_name(getattr(item.assignee, "displayName", ""))

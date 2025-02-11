@@ -119,7 +119,7 @@ def generate_board_table(
 
         if item.status.name in (
                 *Status.VERIFIED.value,
-                *Status.CLIENT_REVIEW.value,
+                *Status.IN_REVIEW.value,
                 *Status.COMPLETED.value,
                 *Status.TM_PM_VERIFY.value,
         ):

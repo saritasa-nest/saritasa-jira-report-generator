@@ -17,7 +17,7 @@ def generate_stories_table(
 
     stories_list = list(stories.iterrows())
     completed_statuses = (
-        *Status.CLIENT_REVIEW.value,
+        *Status.IN_REVIEW.value,
         *Status.COMPLETED.value,
         *Status.VERIFIED.value,
         *Status.TM_PM_VERIFY.value,

@@ -19,11 +19,14 @@ class Status(Enum):
     VERIFIED = (
         "Verified",
     )
-    CLIENT_REVIEW = (
+    IN_REVIEW = (
         "Client Review",
+        "In Review",
     )
     IN_QA = (
         "In QA",
+        "Ready for QA",
+        "QA Passed",
     )
     COMPLETED = (
         "Completed.",

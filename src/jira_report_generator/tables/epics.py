@@ -17,7 +17,7 @@ def generate_epics_table(
 
     epics_list = list(epics.iterrows())
     completed_statuses = (
-        *Status.CLIENT_REVIEW.value,
+        *Status.IN_REVIEW.value,
         *Status.COMPLETED.value,
         *Status.VERIFIED.value,
         *Status.TM_PM_VERIFY.value,

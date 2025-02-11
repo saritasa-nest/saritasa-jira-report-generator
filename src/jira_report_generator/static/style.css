@@ -66,18 +66,16 @@ td > input {
   font-weight: normal;
 }
 
-.table-content table.component th.summary {
+/* .table-content table.component th.summary {
   width: auto;
 }
 .table-content table.component th.version {
   width: auto;
 }
-.table-content table.component th.status {
-  width: 6%;
-}
+.table-content table.component th.status,
 .table-content table.component th.key {
-  width: 4%;
-}
+  width: 8em;
+} */
 .table-content table.component td.summary {
     text-overflow: ellipsis;
     overflow: hidden;
@@ -87,20 +85,23 @@ td > input {
 .table-content table.component td.type {
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 4em;
+  max-width: 60px;
+  width: 60px;
   white-space: nowrap;
 }
 .table-content table.component td.link {
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 8em;
+  max-width: 80px;
+  width: 80px;
   white-space: nowrap;
 }
 .table-content table.component td.status,
 .table-content table.component td.assignee {
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 5em;
+  max-width: 80px;
+  width: 80px;
   white-space: nowrap;
 }
 
