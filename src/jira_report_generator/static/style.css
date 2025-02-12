@@ -1,9 +1,13 @@
-.table-content * {
-  font-size: 12px !important;
-}
-
 body {
   margin: 0.5em;
+}
+
+table, th, td {
+  box-sizing: border-box;
+}
+
+.table-content * {
+  font-size: 12px !important;
 }
 
 td > input {
@@ -21,16 +25,13 @@ td > input {
   border-collapse: collapse;
 }
 
+.table-content section:last-child,
 .table-content table:last-child {
   margin-bottom: 0;
 }
 
 .table-content section {
   margin-bottom: 0.5em;
-}
-
-.table-content section:last-child {
-  margin-bottom: none;
 }
 
 .table-content tr:hover > td {
@@ -50,7 +51,6 @@ td > input {
   text-align: left;
   background: #eee;
   font-weight: bold;
-  white-space: nowrap;
   position: relative;
 }
 .table-content th.subheader {
@@ -66,16 +66,6 @@ td > input {
   font-weight: normal;
 }
 
-/* .table-content table.component th.summary {
-  width: auto;
-}
-.table-content table.component th.version {
-  width: auto;
-}
-.table-content table.component th.status,
-.table-content table.component th.key {
-  width: 8em;
-} */
 .table-content table.component td.summary,
 .table-content table.backlog td.summary {
     text-overflow: ellipsis;
@@ -83,26 +73,26 @@ td > input {
     max-width: 25em;
     white-space: nowrap;
 }
+
+.table-content table.component th.link,
+.table-content table.component th.status,
+.table-content table.component td.link,
+.table-content table.component td.status {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 140px;
+  width: 140px;
+  white-space: nowrap;
+}
+
+.table-content table.component td.assignee,
+.table-content table.component td.type,
+.table-content table.component td.assignee,
 .table-content table.component td.type {
   text-overflow: ellipsis;
   overflow: hidden;
-  max-width: 60px;
-  width: 60px;
-  white-space: nowrap;
-}
-.table-content table.component td.link {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  max-width: 80px;
-  width: 80px;
-  white-space: nowrap;
-}
-.table-content table.component td.status,
-.table-content table.component td.assignee {
-  text-overflow: ellipsis;
-  overflow: hidden;
-  max-width: 80px;
-  width: 80px;
+  max-width: 70px;
+  width: 70px;
   white-space: nowrap;
 }
 
@@ -255,19 +245,12 @@ th > span.collapse.up:after {
 }
 
 
-td.date {
+td.date,
+td.numeric {
   text-align: right;
-  width: 60px;
-  min-width: 60px;
+  width: 70px;
+  min-width: 70px;
 }
-
-td.numeric,
-.table-content th.numeric {
-  text-align: right;
-  width: 80px;
-  min-width: 80px;
-}
-
 
 .combined {
   overflow: hidden;
@@ -275,49 +258,43 @@ td.numeric,
 
 .combined-left table {
   width: 100%;
-  max-width: 732px;
-}
-
-.combined-left td.numeric,
-table.project td.numeric {
-  width: 60px;
-  min-width: 60px;
+  max-width: 752px;
 }
 
 .combined-left {
-  width: 732px;
+  width: 752px;
   float: left;
 }
 
 .combined-right {
-  margin-left: 732px;
+  margin-left: 752px;
 }
 
 .tabs .combined-left {
-  width: 720px;
+  width: 740px;
 }
 
 .tabs .combined-left table {
-  max-width: 720px;
+  max-width: 740px;
 }
 
 .tabs .combined-right {
-  margin-left: 720px;
+  margin-left: 740px;
 }
 
 table.project,
 table.backlog {
-  width: 732px;
+  width: 752px;
 }
 
 td.name {
   text-overflow: ellipsis;
   overflow: hidden;
-  width: 89px;
-  max-width: 89px;
+  width: 130px;
+  max-width: 130px;
 }
 
 .versions td.name {
-  width: 160px;
-  max-width: 160px;
+  width: 200px;
+  max-width: 200px;
 }

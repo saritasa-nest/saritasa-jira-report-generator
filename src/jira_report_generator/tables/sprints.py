@@ -134,8 +134,8 @@ def generate_sprints_table(
     header = TR(**{"class": "h50"})
     header.append(TH(""))
     header.append(TH("Sprint"))
-    header.append(TH("Start Date"))
-    header.append(TH("Release Date"))
+    header.append(TH("Start"))
+    header.append(TH("Release"))
     header.append(TH("Tasks", **{"class": "subheader hours"}))
 
     if show_sprint_limit_column:
