@@ -6,6 +6,10 @@ table, th, td {
   box-sizing: border-box;
 }
 
+abbr {
+  cursor: help;
+}
+
 .table-content * {
   font-size: 12px !important;
 }
@@ -246,7 +250,8 @@ th > span.collapse.up:after {
 
 
 td.date,
-td.numeric {
+td.numeric,
+th.numeric {
   text-align: right;
   width: 70px;
   min-width: 70px;

@@ -4,7 +4,7 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
-from ..utils.tags import TD, TH, TR, Div, Input, NumTD, Table
+from ..utils.tags import TD, TH, TR, Abbr, Div, Input, NumTD, Table
 
 HOURS_NDIGITS = 1
 OVERTIME_NDIGITS = 2
@@ -15,6 +15,7 @@ SPENT = "spent"
 OVERTIME = "overtime"
 PROJECTION = "projection"
 LIMIT = "limit"
+BUDGET = "budget"
 
 DATA_ROW_SPRINT_ID = "data-row-sprint-id"
 DATA_ROW_SPRINT_COLUMN_NAME = "data-row-sprint-column-name"
@@ -58,7 +59,6 @@ def generate_component_columns(
             columns.append(TD("&nbsp;"))
             columns.append(TD("&nbsp;"))
             columns.append(TD("&nbsp;"))
-            columns.append(TD("&nbsp;"))
             continue
 
         component_estimate = round(
@@ -73,7 +73,7 @@ def generate_component_columns(
 
         # calculate overtime only for non-summary rows
         if component_spent and component_estimate and not summary:
-            component_overtime = component_spent / component_estimate
+            component_overtime = component_estimate / component_spent
 
         # calculate component avg overtime
         if component_overtimes_map:
@@ -99,15 +99,6 @@ def generate_component_columns(
             if component_overtime and (display_overtime or summary)
             else "",
         ))
-        columns.append(NumTD(
-            round(predict_estimate(
-                component_estimate,
-                avg_component_overtime,
-            ), HOURS_NDIGITS)
-            if avg_component_overtime
-            else "",
-            title=f"{component_estimate}*{avg_component_overtime}",
-        ))
 
     return columns
 
@@ -115,7 +106,8 @@ def generate_component_columns(
 def generate_sprints_table(
     df: DataFrame,
     sprints: list,
-    show_sprint_limit_column: False,
+    show_sprint_limit_column: bool = False,
+    show_project_budget_column: bool = False,
     **table_options: str,
 ):
     rows = []
@@ -138,20 +130,37 @@ def generate_sprints_table(
     header.append(TH("Release"))
     header.append(TH("Tasks", **{"class": "subheader hours"}))
 
-    if show_sprint_limit_column:
-        header.append(TH("Limit", **{"class": "subheader limit"}))
+    if show_project_budget_column:
+        header.append(TH(
+            Abbr("BAC", **{"title": "Budget At Completion"}),
+            **{"class": "subheader hours budget"}
+        ))
 
-    header.append(TH("Estimated", **{"class": "subheader hours"}))
-    header.append(TH("Spent", **{"class": "subheader hours"}))
-    header.append(TH("Overtime", **{"class": "subheader hours"}))
-    header.append(TH("Projection", **{"class": "subheader hours"}))
+    if show_sprint_limit_column:
+        header.append(TH(
+            Abbr("PV", **{"title": "Planned Value"}),
+            **{"class": "subheader hours limit"},
+        ))
+
+    header.append(TH(
+        Abbr("EV", **{"title": "Estimated Value"}),
+        **{"class": "subheader hours"},
+    ))
+    header.append(TH(
+        Abbr("AC", **{"title": "Actual Cost"}),
+        **{"class": "subheader hours"},
+    ))
+    header.append(TH(
+        Abbr("CPI", **{"title": "Cost Performance Index"}),
+        **{"class": "subheader hours"}
+    ))
 
     rows.append(header)
 
     # scrollable header
     scrollable_header = TR(**{"class": "h25"})
     for component in components:
-        scrollable_header.append(TH(component.name, **{"colspan": 5}))
+        scrollable_header.append(TH(component.name, **{"colspan": 4}))
 
     scrollable_rows.append(scrollable_header)
 
@@ -160,10 +169,18 @@ def generate_sprints_table(
     kwargs = {"class": "subheader hours"}
     for _ in components:
         scrollable_subheader.append(TH("Tasks", **kwargs))
-        scrollable_subheader.append(TH("Estimated", **kwargs))
-        scrollable_subheader.append(TH("Spent", **kwargs))
-        scrollable_subheader.append(TH("Overtime", **kwargs))
-        scrollable_subheader.append(TH("Projection", **kwargs))
+        scrollable_subheader.append(TH(
+            Abbr("EV", **{"title": "Estimated Value"}),
+            **kwargs,
+        ))
+        scrollable_subheader.append(TH(
+            Abbr("AC", **{"title": "Actual Cost"}),
+            **kwargs,
+        ))
+        scrollable_subheader.append(TH(
+            Abbr("CPI", **{"title": "Cost Performance Index"}),
+            **kwargs,
+        ))
 
     scrollable_header.append(scrollable_subheader)
 
@@ -178,7 +195,7 @@ def generate_sprints_table(
         avg_overtime = None
 
         if spent and estimate:
-            overtime = spent / estimate
+            overtime = estimate / spent
 
         if overtimes:
             avg_overtime = calculate_avg_overtime(overtimes)
@@ -206,6 +223,11 @@ def generate_sprints_table(
             DATA_ROW_SPRINT_COLUMN_NAME: TASKS,
         }))
 
+        if show_project_budget_column:
+            row.append(NumTD("", **{
+                DATA_ROW_SPRINT_COLUMN_NAME: BUDGET,
+            }))
+
         if show_sprint_limit_column:
             row.append(NumTD("", **{
                 DATA_ROW_SPRINT_COLUMN_NAME: LIMIT,
@@ -229,17 +251,6 @@ def generate_sprints_table(
             if overtime is not None and sprint.state == CLOSED
             else "",
             **{DATA_ROW_SPRINT_COLUMN_NAME: OVERTIME},
-        ))
-
-        # estimate prediction
-        row.append(NumTD(
-            round(predict_estimate(
-                estimate,
-                avg_overtime,
-            ), HOURS_NDIGITS)
-            if avg_overtime
-            else "",
-            title=f"{estimate}*{avg_overtime}",
         ))
 
         # add component columns filled in with values
@@ -270,7 +281,7 @@ def generate_sprints_table(
                     continue
 
                 component_overtimes_map[component.id].append(
-                    (component_spent / component_estimate),
+                    (component_estimate / component_spent),
                 )
 
         rows.append(row)
@@ -286,6 +297,9 @@ def generate_sprints_table(
     row.append(TD("Summary", colspan=3))
     row.append(NumTD(df.id.count()))
 
+    if show_project_budget_column:
+        row.append(NumTD(""))
+
     if show_sprint_limit_column:
         row.append(NumTD(""))
 
@@ -300,13 +314,6 @@ def generate_sprints_table(
     }))
     row.append(NumTD(
         round(avg_overtime, OVERTIME_NDIGITS) or "",
-    ))
-    row.append(NumTD(
-        round(predict_estimate(
-            estimate,
-            avg_overtime,
-        ), HOURS_NDIGITS) or "",
-        title=f"{estimate}*{avg_overtime}",
     ))
 
     rows.append(row)
@@ -330,13 +337,15 @@ def generate_sprints_table(
     row.append(TD("Selected", colspan=3))
     row.append(NumTD("", **{DATA_COLUMN_NAME: TASKS}))
 
+    if show_project_budget_column:
+        row.append(NumTD("", **{DATA_COLUMN_NAME: BUDGET}))
+
     if show_sprint_limit_column:
         row.append(NumTD("", **{DATA_COLUMN_NAME: LIMIT}))
 
     row.append(NumTD("", **{DATA_COLUMN_NAME: ESTIMATED}))
     row.append(NumTD("", **{DATA_COLUMN_NAME: SPENT}))
     row.append(NumTD("", **{DATA_COLUMN_NAME: OVERTIME}))
-    row.append(NumTD("", **{DATA_COLUMN_NAME: PROJECTION}))
 
     rows.append(row)
 
@@ -350,7 +359,6 @@ def generate_sprints_table(
         scrollable_selected_row.append(TD("&nbsp;", **{data_attr: ESTIMATED}))
         scrollable_selected_row.append(TD("&nbsp;", **{data_attr: SPENT}))
         scrollable_selected_row.append(TD("&nbsp;", **{data_attr: OVERTIME}))
-        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: PROJECTION}))
 
     scrollable_rows.append(scrollable_selected_row)
 

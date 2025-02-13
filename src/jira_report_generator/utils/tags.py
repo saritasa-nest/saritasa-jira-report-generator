@@ -126,3 +126,7 @@ class Section(Div):
 
 class H2(Tag):
     tag = "h2"
+
+
+class Abbr(Tag):
+    tag = "abbr"
