@@ -162,11 +162,15 @@ def filter_unclassified_issues(
         *Status.VERIFIED.value,
         *Status.COMPLETED.value,
     )
+
     issues_dataframe = issues_dataframe[
         issues_dataframe["components"].apply(
             lambda x: len(x) == 0,
         )
     ]
+
+    if (issues_dataframe.empty):
+        return issues_dataframe
 
     issues_dataframe = issues_dataframe[
         issues_dataframe["type"].apply(
@@ -176,6 +180,9 @@ def filter_unclassified_issues(
             ]
         )
     ]
+
+    if (issues_dataframe.empty):
+        return issues_dataframe
 
     return issues_dataframe[issues_dataframe["status"].apply(
         lambda x: x.name not in to_skip_versions,
