@@ -113,7 +113,7 @@ def generate_issues_table(
                     "href": item.link,
                     "title": item.key,
                 }),
-                **{"class": "link nowrap"},
+                **{"class": "key nowrap"},
             ),
         )
 

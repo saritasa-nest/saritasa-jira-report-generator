@@ -70,6 +70,8 @@ td > input {
   font-weight: normal;
 }
 
+.table-content table.component th.summary,
+.table-content table.backlog th.summary
 .table-content table.component td.summary,
 .table-content table.backlog td.summary {
     text-overflow: ellipsis;
@@ -78,9 +80,9 @@ td > input {
     white-space: nowrap;
 }
 
-.table-content table.component th.link,
+.table-content table.component th.key,
 .table-content table.component th.status,
-.table-content table.component td.link,
+.table-content table.component td.key,
 .table-content table.component td.status {
   text-overflow: ellipsis;
   overflow: hidden;
@@ -89,8 +91,8 @@ td > input {
   white-space: nowrap;
 }
 
-.table-content table.component td.assignee,
-.table-content table.component td.type,
+.table-content table.component th.assignee,
+.table-content table.component th.type,
 .table-content table.component td.assignee,
 .table-content table.component td.type {
   text-overflow: ellipsis;
