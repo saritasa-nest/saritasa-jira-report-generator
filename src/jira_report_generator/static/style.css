@@ -71,7 +71,7 @@ td > input {
 }
 
 .table-content table.component th.summary,
-.table-content table.backlog th.summary
+.table-content table.backlog th.summary,
 .table-content table.component td.summary,
 .table-content table.backlog td.summary {
     text-overflow: ellipsis;
