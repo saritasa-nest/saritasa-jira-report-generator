@@ -1,4 +1,3 @@
-import argparse
 import collections
 import functools
 import itertools
@@ -46,21 +45,6 @@ from .utils.data import (
 from .utils.tabs import wrap_with_tabs
 from .utils.tags import H2, Div, Section
 
-parser = argparse.ArgumentParser()
-parser.add_argument("key", type=str, help="JIRA project key")
-parser.add_argument(
-    "-o",
-    "--output",
-    type=str,
-    help="output filename",
-)
-parser.add_argument(
-    "-v",
-    "--verbose",
-    help="show log",
-    action='store_true',
-)
-
 env = Environment(
     loader=FileSystemLoader(
         os.path.join(os.path.dirname(__file__), "static"),
@@ -75,20 +59,25 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
-def get_paginated_issues_for_sprint(
+def get_issues_by_sprint(
     project_key: str,
     jira_client: JIRA,
+    from_date: str,
+    to_date: str,
     sprint: jira.resources.Sprint,
     fields: list = JIRA_FETCH_FIELDS,
 ) -> list[dict[str, typing.Any]]:
     """Get list of issues for project sprint."""
-    jql_str = (
-        f"project={project_key} "
-        f"AND sprint={sprint.id} "
-        f"ORDER BY created DESC"
-    )
+    jql_str = f"project={project_key} AND sprint={sprint.id}"
+
+    if from_date:
+        jql_str = f"{jql_str} AND createdDate>={from_date}"
+
+    if to_date:
+        jql_str = f"{jql_str} AND createdDate<={to_date}"
+
     issues = jira_client.search_issues(
-        jql_str,
+        jql_str=f"{jql_str} ORDER BY created DESC",
         startAt=0,
         maxResults=False,
         fields=fields,
@@ -102,6 +91,8 @@ def get_paginated_issues_for_sprint(
 def get_board_issues_data(
     jira_client: JIRA,
     project_key: str,
+    from_date: str,
+    to_date: str,
     board: jira.resources.Board,
 ) -> dict[str, list | dict]:
     """Get issues for board with info about sprints."""
@@ -127,9 +118,11 @@ def get_board_issues_data(
 
     with ThreadPoolExecutor(max_workers=MAX_THREADS_COUNT) as executor:
         issues_for_sprint_func = functools.partial(
-            get_paginated_issues_for_sprint,
+            get_issues_by_sprint,
             project_key,
             jira_client,
+            from_date,
+            to_date,
         )
         issues_result_lists = executor.map(issues_for_sprint_func, sprints)
         issues_data = itertools.chain(*issues_result_lists)
@@ -152,6 +145,8 @@ def get_board_issues_data(
 def get_extra_data(
     jira_client: JIRA,
     project_key: str,
+    from_date: str = None,
+    to_date: str = None,
 ) -> dict[str, list | dict]:
     """Get boards and issues data."""
     logger.info(f"Connect to Jira ({project_key})")
@@ -165,6 +160,8 @@ def get_extra_data(
             get_board_issues_data,
             jira_client,
             project_key,
+            from_date,
+            to_date,
         )
         results = list(executor.map(board_issues_data_func, boards))
     return {
@@ -175,12 +172,25 @@ def get_extra_data(
     }
 
 
-def get_data(jira_client: JIRA, project_key: str) -> dict[str, list]:
+def get_data(
+        jira_client: JIRA,
+        project_key: str,
+        from_date: str = None,
+        to_date: str = None,
+) -> dict[str, list]:
     """Get all project issues and versions."""
     logger.info(f"Connect to Jira ({project_key})")
 
+    jql_str = f"project={project_key}"
+
+    if from_date:
+        jql_str = f"{jql_str} and createdDate>={from_date}"
+
+    if to_date:
+        jql_str = f"{jql_str} and createdDate<={to_date}"
+
     issues = jira_client.search_issues(
-        f"project={project_key} ORDER BY created DESC",
+        jql_str=f"{jql_str} ORDER BY created DESC",
         startAt=0,
         maxResults=False,
         fields=JIRA_FETCH_FIELDS,
@@ -212,27 +222,32 @@ def construct_tables(
     VERSIONS_TAB_ID = 1
     EMPTY_TAB_CONTENT = "No data."
 
+    tables = []
+
+    if issues_dataframe.empty:
+        return tables
+
     versioned_df = get_versioned_issues(issues_dataframe)
     unversioned_df = prepare_unversioned_table_data(issues_dataframe)
     sprinted_df = get_sprinted_issues(issues_dataframe)
     unclassified_df = filter_unclassified_issues(issues_dataframe)
     backlog_df = prepare_backlog_table_data(issues_dataframe)
-    tables = []
     not_finished_statuses = prepare_not_finished_statuses_data(
         versioned_df,
     )
 
     # project table
-    logger.info("Generate Project table")
-    tables.append(Section(
-        H2("Project"),
-        generate_project_table(
-            versioned_df,
-            unversioned_df,
-            backlog_df,
-            **{"class": "project"},
-        ),
-    ))
+    if not versioned_df.empty:
+        logger.info("Generate Project table")
+        tables.append(Section(
+            H2("Project"),
+            generate_project_table(
+                versioned_df,
+                unversioned_df,
+                backlog_df,
+                **{"class": "project"},
+            ),
+        ))
 
     # statuses and assignees table
     statuses_and_assignees_table_df = filter_data_by_statuses(
@@ -422,10 +437,13 @@ def get_tables(
     jira_server_url: str,
     show_sprint_limit_column: bool = True,
     show_project_budget_column: bool = True,
+    from_date: str = None,
+    to_date: str = None,
 ) -> list[Section | Div]:
     """Get tables."""
-    data = get_data(jira_client, jira_project_key)
-    extra_data = get_extra_data(jira_client, jira_project_key)
+    arguments = jira_client, jira_project_key, from_date, to_date
+    data = get_data(*arguments)
+    extra_data = get_extra_data(*arguments)
 
     logger.info("Prepare Pandas dataframe")
     dataframe = get_dataframe(

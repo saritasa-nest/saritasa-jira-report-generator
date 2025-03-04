@@ -71,6 +71,7 @@ def get_dataframe(
 
 
 def get_versioned_issues(df: DataFrame) -> DataFrame:
+    """Get versioned issues."""
     return df[df["versions"].apply(
         lambda x: any([not getattr(v, "archived", False) for v in x]),
     )].sort_values(
@@ -79,6 +80,7 @@ def get_versioned_issues(df: DataFrame) -> DataFrame:
 
 
 def get_sprinted_issues(df: DataFrame) -> DataFrame:
+    """Get sprinted issues."""
     return df[df["sprint_id"].notna()].sort_values(
         by=["sprint_date", "id"],
     )
@@ -108,10 +110,10 @@ def prepare_components_data(issues_dataframe: DataFrame):
     )), key=lambda x: x.id)
 
 
-def prepare_not_finished_statuses_data(issues_dataframe: DataFrame):
+def prepare_not_finished_statuses_data(df: DataFrame):
     """Prepare statuses data for usage."""
     # collect used statuses
-    statuses = issues_dataframe.status.explode().unique().tolist()
+    statuses = df.status.explode().unique().tolist()
 
     # not finished statuses
     return list(filter(lambda x: x.name in (
@@ -120,15 +122,16 @@ def prepare_not_finished_statuses_data(issues_dataframe: DataFrame):
     ), statuses))
 
 
-def filter_data_by_statuses(
-        issues_df: DataFrame,
-        statuses: list,
-) -> DataFrame:
+def filter_data_by_statuses(df: DataFrame, statuses: list) -> DataFrame:
     """Prepare data filtered by statuses."""
-    components = prepare_components_data(issues_df)
+
+    if df.empty:
+        return df
+
+    components = prepare_components_data(df)
 
     # only with components
-    issues_with_components_df = issues_df[issues_df["components"].apply(
+    issues_with_components_df = df[df["components"].apply(
         lambda x: len(x) > 0 and set(x).issubset(components),
     )]
 
@@ -138,7 +141,9 @@ def filter_data_by_statuses(
 
     # filter by statuses
     return issues_with_components_df[
-        issues_with_components_df["status"].apply(lambda x: x in statuses)
+        issues_with_components_df["status"].apply(
+            lambda x: x in statuses
+        )
     ]
 
 
@@ -152,9 +157,7 @@ def prepare_issues_table_data(
     )]
 
 
-def filter_unclassified_issues(
-    issues_dataframe: DataFrame,
-) -> DataFrame:
+def filter_unclassified_issues(df: DataFrame) -> DataFrame:
     """Returns unclassified issues."""
     to_skip_versions = (
         *Status.BACKLOG.value,
@@ -163,88 +166,79 @@ def filter_unclassified_issues(
         *Status.COMPLETED.value,
     )
 
-    issues_dataframe = issues_dataframe[
-        issues_dataframe["components"].apply(
-            lambda x: len(x) == 0,
-        )
-    ]
+    df = df[df["components"].apply(
+        lambda x: len(x) == 0,
+    )]
 
-    if (issues_dataframe.empty):
-        return issues_dataframe
+    if (df.empty):
+        return df
 
-    issues_dataframe = issues_dataframe[
-        issues_dataframe["type"].apply(
-            lambda x: x.name not in [
-                Type.EPIC.value,
-                Type.STORY.value,
-            ]
-        )
-    ]
+    df = df[df["type"].apply(
+        lambda x: x.name not in [
+            Type.EPIC.value,
+            Type.STORY.value,
+        ]
+    )]
 
-    if (issues_dataframe.empty):
-        return issues_dataframe
+    if (df.empty):
+        return df
 
-    return issues_dataframe[issues_dataframe["status"].apply(
+    return df[df["status"].apply(
         lambda x: x.name not in to_skip_versions,
     )]
 
 
-def prepare_backlog_table_data(issues_dataframe: DataFrame) -> DataFrame:
+def prepare_backlog_table_data(df: DataFrame) -> DataFrame:
     """Prepare initial data for backlog table rendering."""
-    return issues_dataframe[
-        issues_dataframe["status"].apply(
-            lambda x: x.name in Status.BACKLOG.value,
-        )
-    ].sort_values("id")
+    return df[df["status"].apply(
+        lambda x: x.name in Status.BACKLOG.value,
+    )].sort_values("id")
 
 
-def prepare_unversioned_table_data(issues_dataframe: DataFrame) -> DataFrame:
+def prepare_unversioned_table_data(df: DataFrame) -> DataFrame:
     """Prepare initial data for unversioned issues table rendering."""
     to_skip_versions = (
         *Status.BACKLOG.value,
     )
-    issues_dataframe = issues_dataframe[
-        issues_dataframe["status"].apply(
-            lambda x: x.name not in to_skip_versions,
-        )
-    ]
+    df = df[df["status"].apply(lambda x: x.name not in to_skip_versions)]
+    df = df[df["type"].apply(
+        lambda x: x.name not in [
+            Type.EPIC.value,
+            Type.STORY.value,
+        ]
+    )]
 
-    issues_dataframe = issues_dataframe[
-        issues_dataframe["type"].apply(
-            lambda x: x.name not in [
-                Type.EPIC.value,
-                Type.STORY.value,
-            ]
-        )
-    ]
-
-    return issues_dataframe[
-        issues_dataframe["versions"].apply(lambda x: len(x) == 0)
-    ].sort_values("id")
+    return df[df["versions"].apply(lambda x: len(x) == 0)].sort_values("id")
 
 
-def get_epics(issues_dataframe: DataFrame) -> DataFrame:
+def get_epics(df: DataFrame) -> DataFrame:
     """Returns a dataframe of issues type Epic"""
-    return issues_dataframe[
-        issues_dataframe["type"].apply(
-            lambda x: x.name == Type.EPIC.value,
-        )
-    ]
+
+    if df.empty:
+        return df
+
+    return df[df["type"].apply(
+        lambda x: x.name == Type.EPIC.value,
+    )]
 
 
-def get_stories(issues_dataframe: DataFrame) -> DataFrame:
+def get_stories(df: DataFrame) -> DataFrame:
     """Returns a dataframe of issues type Story"""
-    return issues_dataframe[
-        issues_dataframe["type"].apply(
-            lambda x: x.name == Type.STORY.value,
-        )
-    ]
+
+    if df.empty:
+        return df
+
+    return df[df["type"].apply(
+        lambda x: x.name == Type.STORY.value,
+    )]
 
 
-def filter_by_board(issues_dataframe: DataFrame, board: Board) -> DataFrame:
+def filter_by_board(df: DataFrame, board: Board) -> DataFrame:
     """Filter issues by board"""
-    return issues_dataframe[
-        issues_dataframe["board_id"].apply(
-            lambda x: x == getattr(board, "id", None),
-        )
-    ]
+
+    if df.empty:
+        return df
+
+    return df[df["board_id"].apply(
+        lambda x: x == getattr(board, "id", None),
+    )]

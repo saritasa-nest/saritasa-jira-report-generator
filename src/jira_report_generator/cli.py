@@ -28,7 +28,19 @@ parser.add_argument(
     "-v",
     "--verbose",
     help="show log",
-    action='store_true',
+    action="store_true",
+)
+parser.add_argument(
+    "--from-date",
+    type=str,
+    default=None,
+    help="from date",
+)
+parser.add_argument(
+    "--to-date",
+    type=str,
+    default=None,
+    help="to date",
 )
 
 env = Environment(
@@ -81,6 +93,8 @@ def main():
             jira_client,
             cli_args.key,
             SERVER_URL,
+            from_date=cli_args.from_date,
+            to_date=cli_args.to_date,
         ),
         cli_args.output,
         cli_args.key,
