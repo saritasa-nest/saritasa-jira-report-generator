@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import logging
 import os
 import sys
@@ -32,13 +33,13 @@ parser.add_argument(
 )
 parser.add_argument(
     "--from-date",
-    type=str,
+    type=datetime.date.fromisoformat,
     default=None,
     help="from date",
 )
 parser.add_argument(
     "--to-date",
-    type=str,
+    type=datetime.date.fromisoformat,
     default=None,
     help="to date",
 )

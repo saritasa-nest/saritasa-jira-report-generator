@@ -35,7 +35,7 @@ def get_dataframe(
             in item.fields.fixVersions
         ]
         extra = extra_data.get(item.id, {})
-        board = extra.get("board", None)
+        boards = extra.get("boards", None)
         sprint = extra.get("sprint", None)
 
         item_permalink = get_issue_permalink(
@@ -63,7 +63,7 @@ def get_dataframe(
             "parent": getattr(item.fields, "parent", None),
             "release_date": release_date[0] if release_date else None,
             "sprint_date": getattr(sprint, "endDate", "") if sprint else None,
-            "board_id": board.id if board else None,
+            "boards_ids": [board.id for board in boards] if boards else [],
             "sprint_id": sprint.id if sprint else None,
         })
 
@@ -235,10 +235,11 @@ def get_stories(df: DataFrame) -> DataFrame:
 
 def filter_by_board(df: DataFrame, board: Board) -> DataFrame:
     """Filter issues by board"""
+    board_id = getattr(board, "id", None)
 
-    if df.empty:
+    if df.empty or not board_id:
         return df
 
-    return df[df["board_id"].apply(
-        lambda x: x == getattr(board, "id", None),
+    return df[df["boards_ids"].apply(
+        lambda x: board_id in x,
     )]

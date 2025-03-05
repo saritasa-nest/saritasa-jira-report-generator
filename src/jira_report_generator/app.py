@@ -104,6 +104,15 @@ def get_board_issues_data(
         logger.debug(e)
         sprints = []
 
+    if from_date:
+        sprints = [
+            sprint
+            for sprint
+            in sprints
+            if sprint.startDate
+            and datetime.fromisoformat(sprint.startDate).date() >= from_date
+        ]
+
     sprints.sort(
         key=lambda x: getattr(
             x,
@@ -152,6 +161,7 @@ def get_extra_data(
     logger.info(f"Connect to Jira ({project_key})")
 
     boards = jira_client.boards(projectKeyOrID=project_key)
+    issues = {}
 
     logger.info(f"Collected {len(boards)} board(s)")
 
@@ -164,11 +174,20 @@ def get_extra_data(
             to_date,
         )
         results = list(executor.map(board_issues_data_func, boards))
+
+    for result in results:
+        for issue_id, data in result["issues"].items():
+            if issue_id in issues:
+                issues[issue_id]["boards"].append(data["board"])
+                continue
+            issues[issue_id] = {
+                "boards": [data["board"]],
+                "sprint": data["sprint"],
+            }
+
     return {
         "boards": [result["board"] for result in results],
-        "issues": dict(
-            collections.ChainMap(*[result["issues"] for result in results]),
-        ),
+        "issues": issues,
     }
 
 
@@ -203,6 +222,18 @@ def get_data(
         version for version in jira_client.project_versions(project_key)
         if not version.archived
     ]
+
+    if from_date:
+        versions = [
+            version
+            for version
+            in versions
+            if getattr(version, "startDate", None)
+            and datetime.fromisoformat(
+                getattr(version, "startDate", None)
+            ).date() >= from_date
+        ]
+
     versions.sort(key=lambda x: getattr(x, "startDate", ""))
 
     return {
