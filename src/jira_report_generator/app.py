@@ -219,7 +219,9 @@ def get_data(
 
     # get not archived release versions
     versions = [
-        version for version in jira_client.project_versions(project_key)
+        version
+        for version
+        in jira_client.project_versions(project_key)
         if not version.archived
     ]
 
@@ -234,7 +236,7 @@ def get_data(
             ).date() >= from_date
         ]
 
-    versions.sort(key=lambda x: getattr(x, "startDate", ""))
+    versions.sort(key=lambda x: getattr(x, "releaseDate", ""))
 
     return {
         "versions": versions,
