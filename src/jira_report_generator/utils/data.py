@@ -70,10 +70,16 @@ def get_dataframe(
     return DataFrame(result)
 
 
-def get_versioned_issues(df: DataFrame) -> DataFrame:
+def get_versioned_issues(
+        df: DataFrame,
+        versions: list,
+) -> DataFrame:
     """Get versioned issues."""
+    version_ids = [v.id for v in versions]
+
     return df[df["versions"].apply(
-        lambda x: any([not getattr(v, "archived", False) for v in x]),
+        lambda x: any([not getattr(v, "archived", False) for v in x])
+            and any([v.id in version_ids for v in x]),
     )].sort_values(
         by=["release_date", "id"],
     )

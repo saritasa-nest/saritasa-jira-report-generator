@@ -42,6 +42,7 @@ from .utils.data import (
     prepare_not_finished_statuses_data,
     prepare_unversioned_table_data,
 )
+from .utils.formatters import get_version_permalink
 from .utils.tabs import wrap_with_tabs
 from .utils.tags import H2, Div, Section
 
@@ -105,13 +106,23 @@ def get_board_issues_data(
         sprints = []
 
     if from_date:
+        get_date = datetime.fromisoformat
         sprints = [
             sprint
             for sprint
             in sprints
             if sprint.startDate
-            and datetime.fromisoformat(sprint.startDate).date() >= from_date
+            and get_date(sprint.startDate).date() >= from_date
         ]
+
+        if to_date:
+            sprints = [
+                sprint
+                for sprint
+                in sprints
+                if sprint.endDate
+                and get_date(sprint.endDate).date() <= to_date
+            ]
 
     sprints.sort(
         key=lambda x: getattr(
@@ -236,6 +247,28 @@ def get_data(
             ).date() >= from_date
         ]
 
+        if to_date:
+            versions = [
+                version
+                for version
+                in versions
+                if getattr(version, "releaseDate", None)
+                and datetime.fromisoformat(
+                    getattr(version, "releaseDate", None)
+                ).date() <= to_date
+            ]
+
+    for version in versions:
+        setattr(
+            version,
+            "permalink",
+            get_version_permalink(
+                jira_client.server_url,
+                project_key,
+                version.id,
+            )
+        )
+
     versions.sort(key=lambda x: getattr(x, "releaseDate", ""))
 
     return {
@@ -260,7 +293,7 @@ def construct_tables(
     if issues_dataframe.empty:
         return tables
 
-    versioned_df = get_versioned_issues(issues_dataframe)
+    versioned_df = get_versioned_issues(issues_dataframe, versions)
     unversioned_df = prepare_unversioned_table_data(issues_dataframe)
     sprinted_df = get_sprinted_issues(issues_dataframe)
     unclassified_df = filter_unclassified_issues(issues_dataframe)

@@ -21,3 +21,16 @@ def get_issue_permalink(
 ) -> str:
     """Returns URL for browse issue details."""
     return urljoin(jira_server_url, f"browse/{issue_key}")
+
+
+def get_version_permalink(
+        jira_server_url: str,
+        project_key: str,
+        version_id: int,
+) -> str:
+    """Returns URL for browse version details."""
+    return urljoin(
+        jira_server_url,
+        f"projects/{project_key}/versions/"
+        f"{version_id}/tab/release-report-all-issues",
+    )

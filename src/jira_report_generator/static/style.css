@@ -10,6 +10,10 @@ abbr {
   cursor: help;
 }
 
+a, a:visited, a:active {
+  color: blue;
+}
+
 .table-content * {
   font-size: 12px !important;
 }
@@ -304,4 +308,7 @@ td.name {
 .versions td.name {
   width: 200px;
   max-width: 200px;
+}
+.versions td.name a.released {
+  color: green;
 }

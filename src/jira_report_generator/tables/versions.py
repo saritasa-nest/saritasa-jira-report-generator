@@ -4,7 +4,7 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
-from ..utils.tags import TD, TH, TR, Div, Input, NumTD, Table
+from ..utils.tags import TD, TH, TR, A, Div, Input, NumTD, Table
 
 HOURS_NDIGITS = 1
 OVERTIME_NDIGITS = 2
@@ -183,10 +183,16 @@ def generate_versions_table(
             **{"class": "center p05"},
         ))
 
-        row.append(TD(version.name, **{
-            "class": f"name {'released' if version.released else ''}",
-            "title": version.name,
-        }))
+        row.append(TD(
+            A(version.name, **{
+                "href": getattr(version, "permalink", ""),
+                "title": version.name,
+                "class": "released" if version.released else "",
+            }),
+            **{
+                "class": "name",
+            },
+        ))
         row.append(TD(getattr(version, "startDate", ""), **{
             "class": "date",
         }))
