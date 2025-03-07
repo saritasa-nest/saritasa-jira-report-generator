@@ -165,6 +165,7 @@ def get_board_issues_data(
 def get_extra_data(
     jira_client: JIRA,
     project_key: str,
+    jira_server_url: str,
     from_date: str = None,
     to_date: str = None,
 ) -> dict[str, list | dict]:
@@ -205,6 +206,7 @@ def get_extra_data(
 def get_data(
         jira_client: JIRA,
         project_key: str,
+        jira_server_url: str,
         from_date: str = None,
         to_date: str = None,
 ) -> dict[str, list]:
@@ -263,7 +265,7 @@ def get_data(
             version,
             "permalink",
             get_version_permalink(
-                jira_client.server_url,
+                jira_server_url,
                 project_key,
                 version.id,
             )
@@ -507,7 +509,13 @@ def get_tables(
     to_date: str = None,
 ) -> list[Section | Div]:
     """Get tables."""
-    arguments = jira_client, jira_project_key, from_date, to_date
+    arguments = (
+        jira_client,
+        jira_project_key,
+        jira_server_url,
+        from_date,
+        to_date,
+    )
     data = get_data(*arguments)
     extra_data = get_extra_data(*arguments)
 
