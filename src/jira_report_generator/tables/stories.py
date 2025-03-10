@@ -28,13 +28,13 @@ def generate_stories_table(
 
     header.append(TH("Story"))
     header.append(TH("Jira ID"))
-    header.append(TH("Status", **{"class": "status"}))
+    header.append(TH("Status"))
     header.append(TH("Tasks"))
     header.append(TH("Testing"))
     header.append(TH("Completed"))
-    header.append(TH("Estimated", **{"class": "hours"}))
-    header.append(TH("Spent", **{"class": "hours"}))
-    header.append(TH("Left", **{"class": "hours"}))
+    header.append(TH("Estimated"))
+    header.append(TH("Spent"))
+    header.append(TH("Left"))
 
     rows.append(header)
 
@@ -53,9 +53,9 @@ def generate_stories_table(
         spent = round(story_tasks.spent.sum(), 1)
         left = round(estimate - spent, 1)
 
-        row.append(TD(story.summary))
-        row.append(TD(A(story.key, href=story.link)))
-        row.append(TD(story.status, **{"class": "status nowrap"}))
+        row.append(TD(story.summary, **{"class": "summary"}))
+        row.append(TD(A(story.key, href=story.link), **{"class": "key"}))
+        row.append(TD(story.status, **{"class": "status"}))
         row.append(NumTD(story_tasks.id.count()))
         row.append(NumTD(
             story_qa_tasks.id.count()

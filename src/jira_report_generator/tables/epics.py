@@ -28,13 +28,13 @@ def generate_epics_table(
 
     header.append(TH("Epic"))
     header.append(TH("Jira ID"))
-    header.append(TH("Status", **{"class": "status"}))
+    header.append(TH("Status"))
     header.append(TH("Tasks"))
     header.append(TH("Testing"))
     header.append(TH("Completed"))
-    header.append(TH("Estimated", **{"class": "hours"}))
-    header.append(TH("Spent", **{"class": "hours"}))
-    header.append(TH("Left", **{"class": "hours"}))
+    header.append(TH("Estimated"))
+    header.append(TH("Spent"))
+    header.append(TH("Left"))
 
     rows.append(header)
 
@@ -53,9 +53,9 @@ def generate_epics_table(
         spent = round(epic_tasks.spent.sum(), 1)
         left = round(estimate - spent, 1)
 
-        row.append(TD(epic.summary))
-        row.append(TD(A(epic.key, href=epic.link)))
-        row.append(TD(epic.status, **{"class": "status nowrap"}))
+        row.append(TD(epic.summary, **{"class": "summary"}))
+        row.append(TD(A(epic.key, href=epic.link), **{"class": "key"}))
+        row.append(TD(epic.status, **{"class": "status"}))
         row.append(NumTD(epic_tasks.id.count()))
         row.append(NumTD(
             epic_qa_tasks.id.count()

@@ -74,20 +74,54 @@ td > input {
   font-weight: normal;
 }
 
+/* component */
 .table-content table.component th.summary,
+.table-content table.component td.summary {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  max-width: 318px;
+  width: 318px;
+  white-space: nowrap;
+}
+
+/* epics */
+.table-content table.epics th.summary,
+.table-content table.epics td.summary,
+/* stories */
+.table-content table.stories th.summary,
+.table-content table.stories td.summary,
+/* backlog */
 .table-content table.backlog th.summary,
-.table-content table.component td.summary,
 .table-content table.backlog td.summary {
     text-overflow: ellipsis;
     overflow: hidden;
-    max-width: 25em;
+    max-width: 331px;
+    width: 331px;
     white-space: nowrap;
 }
 
+/* component */
 .table-content table.component th.key,
-.table-content table.component th.status,
 .table-content table.component td.key,
-.table-content table.component td.status {
+.table-content table.component th.status,
+.table-content table.component td.status,
+/* epics */
+.table-content table.epics th.key,
+.table-content table.epics td.key,
+.table-content table.epics th.status,
+.table-content table.epics td.status,
+/* stories */
+.table-content table.stories th.key,
+.table-content table.stories td.key,
+.table-content table.stories th.status,
+.table-content table.stories td.status,
+/* backlog */
+.table-content table.backlog th.key,
+.table-content table.backlog td.key,
+.table-content table.backlog th.status,
+.table-content table.backlog td.status,
+.table-content table.backlog th.components,
+.table-content table.backlog td.components {
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 140px;
@@ -95,10 +129,16 @@ td > input {
   white-space: nowrap;
 }
 
+/* component */
 .table-content table.component th.assignee,
-.table-content table.component th.type,
 .table-content table.component td.assignee,
-.table-content table.component td.type {
+.table-content table.component th.type,
+.table-content table.component td.type,
+/* backlog */
+.table-content table.backlog th.assignee,
+.table-content table.backlog td.assignee,
+.table-content table.backlog th.type,
+.table-content table.backlog td.type {
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 70px;
@@ -293,8 +333,7 @@ th.numeric {
   margin-left: 740px;
 }
 
-table.project,
-table.backlog {
+table.project {
   width: 752px;
 }
 

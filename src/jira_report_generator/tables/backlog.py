@@ -9,29 +9,26 @@ def generate_backlog_table(df: DataFrame, **table_options: str):
 
     # table header
     header = TR()
-    header.append(TH("Summary", **{"class": "summary"}))
-    header.append(TH("Type", **{"class": "type"}))
-    header.append(TH("Jira ID", **{"class": "key"}))
-    header.append(TH("Status", **{"class": "status"}))
-    header.append(TH("Assignee", **{"class": "assignee"}))
+    header.append(TH("Summary"))
+    header.append(TH("Type"))
+    header.append(TH("Jira ID"))
+    header.append(TH("Status"))
+    header.append(TH("Assignee"))
     header.append(TH("Components"))
-    header.append(TH("Spent", **{"class": "hours"}))
+    header.append(TH("Spent"))
 
     rows.append(header)
 
     # table body
     for _, item in df.iterrows():
         tr = TR()
-        status_attrs = {"class": "status nowrap"}
+        status_attrs = {"class": "status"}
 
         # summary
-        tr.append(TD(
-            item.summary,
-            **{
-                "class": "summary",
-                "title": item.summary,
-            },
-        ))
+        tr.append(TD(item.summary, **{
+            "class": "summary",
+            "title": item.summary,
+        }))
 
         # issue type
         tr.append(TD(item.type, **{"class": "type"}))
@@ -40,7 +37,7 @@ def generate_backlog_table(df: DataFrame, **table_options: str):
         tr.append(
             TD(
                 A(item.key, **{"href": item.link}),
-                **{"class": "nowrap"},
+                **{"class": "key"},
             ),
         )
 
@@ -50,11 +47,14 @@ def generate_backlog_table(df: DataFrame, **table_options: str):
         # assignee
         tr.append(TD(
             format_name(getattr(item.assignee, "displayName", "")),
-            **{"class": "nowrap"},
+            **{"class": "assignee"},
         ))
 
         # components
-        tr.append(TD(", ".join([c.name for c in item.components])))
+        tr.append(TD(
+            ", ".join([c.name for c in item.components]),
+            **{"class": "components"},
+        ))
 
         # spent
         tr.append(NumTD(round(item.spent, 1)))
