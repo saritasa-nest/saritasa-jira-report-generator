@@ -9,20 +9,19 @@ def generate_unclassified_table(df: DataFrame, **table_options: str):
 
     # table header
     header = TR()
-    header.append(TH("Summary", **{"class": "summary"}))
-    header.append(TH("Type", **{"class": "type"}))
-    header.append(TH("Jira ID", **{"class": "key"}))
-    header.append(TH("Status", **{"class": "status"}))
-    header.append(TH("Assignee", **{"class": "assignee"}))
-    header.append(TH("Spent", **{"class": "hours"}))
+    header.append(TH("Summary"))
+    header.append(TH("Type"))
+    header.append(TH("Jira ID"))
+    header.append(TH("Status"))
+    header.append(TH("Assignee"))
+    header.append(TH("Components"))
+    header.append(TH("Spent"))
 
     rows.append(header)
 
     # table body
     for _, item in df.iterrows():
         tr = TR()
-        status_attrs = {"class": "status nowrap"}
-
         # summary
         tr.append(TD(item.summary, **{"class": "summary"}))
 
@@ -30,20 +29,21 @@ def generate_unclassified_table(df: DataFrame, **table_options: str):
         tr.append(TD(item.type, **{"class": "type"}))
 
         # link to the issue
-        tr.append(
-            TD(
-                A(item.key, **{"href": item.link}),
-                **{"class": "nowrap"},
-            ),
-        )
+        tr.append(TD(A(item.key, href=item.link), **{"class": "key"}))
 
         # status
-        tr.append(TD(item.status.name, **status_attrs))
+        tr.append(TD(item.status.name, **{"class": "status"}))
 
         # assignee
         tr.append(TD(
             format_name(getattr(item.assignee, "displayName", "")),
-            **{"class": "nowrap"},
+            **{"class": "assignee"},
+        ))
+
+        # components
+        tr.append(TD(
+            ", ".join([c.name for c in item.components]),
+            **{"class": "components"},
         ))
 
         # spent
@@ -54,7 +54,7 @@ def generate_unclassified_table(df: DataFrame, **table_options: str):
     # footer
     row = TR(**{"class": "summary"})
 
-    row.append(TD("", colspan=5))
+    row.append(TD("", colspan=6))
     row.append(NumTD(round(df.spent.sum(), 1)))
 
     rows.append(row)

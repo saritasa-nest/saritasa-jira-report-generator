@@ -22,7 +22,6 @@ def generate_backlog_table(df: DataFrame, **table_options: str):
     # table body
     for _, item in df.iterrows():
         tr = TR()
-        status_attrs = {"class": "status"}
 
         # summary
         tr.append(TD(item.summary, **{
@@ -42,7 +41,7 @@ def generate_backlog_table(df: DataFrame, **table_options: str):
         )
 
         # status
-        tr.append(TD(item.status.name, **status_attrs))
+        tr.append(TD(item.status.name, **{"class": "status"}))
 
         # assignee
         tr.append(TD(
