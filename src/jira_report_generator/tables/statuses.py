@@ -47,10 +47,10 @@ def generate_statuses_table(
     # header
     header = TR(**{"class": "h50"})
     header.append(TH("Status"))
-    header.append(TH("Count", **{"class": "hours"}))
-    header.append(TH("Estimated", **{"class": "hours"}))
-    header.append(TH("Spent", **{"class": "hours"}))
-    header.append(TH("Left", **{"class": "hours"}))
+    header.append(TH("Count"))
+    header.append(TH("Estimated", **{"class": "numeric"}))
+    header.append(TH("Spent"))
+    header.append(TH("Left"))
 
     rows.append(header)
 
@@ -63,7 +63,7 @@ def generate_statuses_table(
 
     # scrollable subheader
     scrollable_subheader = TR(**{"class": "h25"})
-    kwargs = {"class": "subheader hours"}
+    kwargs = {"class": "subheader numeric"}
     for _component in components:
         scrollable_subheader.append(TH("Count", **kwargs))
         scrollable_subheader.append(TH("Estimated", **kwargs))

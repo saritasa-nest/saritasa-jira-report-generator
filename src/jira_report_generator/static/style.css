@@ -298,9 +298,18 @@ th > span.collapse.up:after {
 td.date,
 td.numeric,
 th.numeric {
-  text-align: right;
   width: 70px;
   min-width: 70px;
+  max-width: 70px;
+}
+td.date,
+td.numeric {
+  text-align: right;
+}
+th.numeric {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .combined {

@@ -132,11 +132,11 @@ def generate_versions_table(
     header.append(TH("Version"))
     header.append(TH("Start"))
     header.append(TH("Release"))
-    header.append(TH("Tasks", **{"class": "subheader hours"}))
-    header.append(TH("Estimated", **{"class": "subheader hours"}))
-    header.append(TH("Spent", **{"class": "subheader hours"}))
-    header.append(TH("Overtime", **{"class": "subheader hours"}))
-    header.append(TH("Projection", **{"class": "subheader hours"}))
+    header.append(TH("Tasks"))
+    header.append(TH("Estimated", **{"class": "numeric"}))
+    header.append(TH("Spent"))
+    header.append(TH("Overtime", **{"class": "numeric"}))
+    header.append(TH("Projection", **{"class": "numeric"}))
 
     rows.append(header)
 
@@ -149,13 +149,13 @@ def generate_versions_table(
 
     # scrollable subheader
     scrollable_subheader = TR(**{"class": "h25"})
-    kwargs = {"class": "subheader hours"}
+    subheader_kwargs = {"class": "subheader numeric"}
     for _ in components:
-        scrollable_subheader.append(TH("Tasks", **kwargs))
-        scrollable_subheader.append(TH("Estimated", **kwargs))
-        scrollable_subheader.append(TH("Spent", **kwargs))
-        scrollable_subheader.append(TH("Overtime", **kwargs))
-        scrollable_subheader.append(TH("Projection", **kwargs))
+        scrollable_subheader.append(TH("Tasks", **subheader_kwargs))
+        scrollable_subheader.append(TH("Estimated", **subheader_kwargs))
+        scrollable_subheader.append(TH("Spent", **subheader_kwargs))
+        scrollable_subheader.append(TH("Overtime", **subheader_kwargs))
+        scrollable_subheader.append(TH("Projection", **subheader_kwargs))
 
     scrollable_header.append(scrollable_subheader)
 

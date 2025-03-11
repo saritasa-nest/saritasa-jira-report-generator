@@ -31,8 +31,8 @@ def generate_epics_table(
     header.append(TH("Status"))
     header.append(TH("Tasks"))
     header.append(TH("Testing"))
-    header.append(TH("Completed"))
-    header.append(TH("Estimated"))
+    header.append(TH("Completed", **{"class": "numeric"}))
+    header.append(TH("Estimated", **{"class": "numeric"}))
     header.append(TH("Spent"))
     header.append(TH("Left"))
 

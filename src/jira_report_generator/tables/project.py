@@ -15,11 +15,11 @@ def generate_project_table(
 
     # table header
     header = TR()
-    header.append(TH("", **{"class": "summary"}))
-    header.append(TH("Count", **{"class": "hours"}))
-    header.append(TH("Estimated", **{"class": "hours"}))
-    header.append(TH("Spent", **{"class": "hours"}))
-    header.append(TH("Left", **{"class": "hours"}))
+    header.append(TH(""))
+    header.append(TH("Count"))
+    header.append(TH("Estimated", **{"class": "numeric"}))
+    header.append(TH("Spent"))
+    header.append(TH("Left"))
 
     rows.append(header)
 

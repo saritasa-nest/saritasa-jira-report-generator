@@ -128,31 +128,29 @@ def generate_sprints_table(
     header.append(TH("Sprint"))
     header.append(TH("Start"))
     header.append(TH("Release"))
-    header.append(TH("Tasks", **{"class": "subheader hours"}))
+    header.append(TH("Tasks"))
 
     if show_project_budget_column:
         header.append(TH(
             Abbr("BAC", **{"title": "Budget At Completion"}),
-            **{"class": "subheader hours budget"}
+            **{"class": "budget"}
         ))
 
     if show_sprint_limit_column:
         header.append(TH(
             Abbr("PV", **{"title": "Planned Value"}),
-            **{"class": "subheader hours limit"},
+            **{"class": "limit"},
         ))
 
     header.append(TH(
         Abbr("EV", **{"title": "Estimated Value"}),
-        **{"class": "subheader hours"},
+        **{"class": "numeric"},
     ))
     header.append(TH(
         Abbr("AC", **{"title": "Actual Cost"}),
-        **{"class": "subheader hours"},
     ))
     header.append(TH(
         Abbr("CPI", **{"title": "Cost Performance Index"}),
-        **{"class": "subheader hours"}
     ))
 
     rows.append(header)
