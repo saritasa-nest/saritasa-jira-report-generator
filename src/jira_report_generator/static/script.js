@@ -687,6 +687,32 @@ function applyTabsSettings(projectId) {
   }
 }
 
+function applyTableDisplayingSettings(tableName) {
+  var tables = document.querySelectorAll(`table.${tableName}`);
+  var header = document.querySelector(`#${tableName}`);
+
+  if (tables.length == 0 | header == undefined) {
+    return;
+  }
+
+  var table = tables[0];
+
+  if (table.classList.contains("hidden")) {
+    var a = document.createElement("a");
+
+    a.append("show");
+    a.classList.add("table-displaying-control");
+    a.setAttribute("href", "javascript:;");
+
+    a.addEventListener("click", function(e) {
+      a.innerText = a.innerText == "show" ? "hide" : "show";
+      table.classList.toggle("hidden");
+    });
+
+    header.after(a);
+  }
+}
+
 /**
  * Initializes all action parts.
  */
@@ -708,6 +734,10 @@ function init_reports(projectId) {
   applyVersionComponentTableSettings();
   applySprintComponentTableSettings();
   applyTabsSettings(projectId);
+  applyTableDisplayingSettings("epics");
+  applyTableDisplayingSettings("stories");
+  applyTableDisplayingSettings("unclassified");
+  applyTableDisplayingSettings("backlog");
 }
 
 export { init_reports };

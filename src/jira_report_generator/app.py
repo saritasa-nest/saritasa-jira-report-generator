@@ -453,11 +453,14 @@ def construct_tables(
     if not epics_dataframe.empty:
         logger.info("Generate Epics table")
         tables.append(Section(
-            H2("Epics"),
+            H2("Epics", **{
+                "id": "epics",
+                "class": "table-title",
+            }),
             generate_epics_table(
                 issues_dataframe,
                 epics_dataframe,
-                **{"class": "epics"},
+                **{"class": "epics hidden"},
             ),
         ))
 
@@ -466,11 +469,14 @@ def construct_tables(
     if not stories_dataframe.empty:
         logger.info("Generate Stories table")
         tables.append(Section(
-            H2("Stories"),
+            H2("Stories", **{
+                "id": "stories",
+                "class": "table-title",
+            }),
             generate_stories_table(
                 issues_dataframe,
                 stories_dataframe,
-                **{"class": "stories"},
+                **{"class": "stories hidden"},
             ),
         ))
 
@@ -478,10 +484,13 @@ def construct_tables(
     if not unclassified_df.empty:
         logger.info("Generate Unclassified table")
         tables.append(Section(
-            H2("Unclassified"),
+            H2("Unclassified", **{
+                "id": "unclassified",
+                "class": "table-title",
+            }),
             generate_unclassified_table(
                 unclassified_df,
-                **{"class": "backlog"},
+                **{"class": "unclassified hidden"},
             )
         ))
 
@@ -489,10 +498,13 @@ def construct_tables(
     if not backlog_df.empty:
         logger.info("Generate Backlog table")
         tables.append(Section(
-            H2("Backlog"),
+            H2("Backlog", **{
+                "id": "backlog",
+                "class": "table-title",
+            }),
             generate_backlog_table(
                 backlog_df,
-                **{"class": "backlog"},
+                **{"class": "backlog hidden"},
             ),
         ))
 

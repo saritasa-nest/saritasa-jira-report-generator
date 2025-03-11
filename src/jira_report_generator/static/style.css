@@ -92,7 +92,10 @@ td > input {
 .table-content table.stories td.summary,
 /* backlog */
 .table-content table.backlog th.summary,
-.table-content table.backlog td.summary {
+.table-content table.backlog td.summary,
+/* unclassified */
+.table-content table.unclassified th.summary,
+.table-content table.unclassified td.summary {
     text-overflow: ellipsis;
     overflow: hidden;
     max-width: 331px;
@@ -121,7 +124,14 @@ td > input {
 .table-content table.backlog th.status,
 .table-content table.backlog td.status,
 .table-content table.backlog th.components,
-.table-content table.backlog td.components {
+.table-content table.backlog td.components,
+/* unclassified */
+.table-content table.unclassified th.key,
+.table-content table.unclassified td.key,
+.table-content table.unclassified th.status,
+.table-content table.unclassified td.status,
+.table-content table.unclassified th.components,
+.table-content table.unclassified td.components {
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 140px;
@@ -138,7 +148,12 @@ td > input {
 .table-content table.backlog th.assignee,
 .table-content table.backlog td.assignee,
 .table-content table.backlog th.type,
-.table-content table.backlog td.type {
+.table-content table.backlog td.type,
+/* unclassified */
+.table-content table.unclassified th.assignee,
+.table-content table.unclassified td.assignee,
+.table-content table.unclassified th.type,
+.table-content table.unclassified td.type {
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 70px;
@@ -359,4 +374,17 @@ td.name {
 }
 .versions td.name a.released {
   color: green;
+}
+
+.hidden {
+  display: none;
+}
+
+.table-title {
+  display: inline-block;
+  margin-top: .5em;
+}
+.table-displaying-control {
+  margin-left: 10px;
+  text-decoration: none;
 }
