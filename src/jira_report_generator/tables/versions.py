@@ -168,6 +168,8 @@ def generate_versions_table(
         spent = round(version_tasks.spent.sum(), HOURS_NDIGITS)
         overtime = None
         avg_overtime = None
+        start_date = getattr(version, "startDate", "")
+        release_date = getattr(version, "releaseDate", "")
 
         if spent and estimate:
             overtime = spent / estimate
@@ -193,11 +195,13 @@ def generate_versions_table(
                 "class": "name",
             },
         ))
-        row.append(TD(getattr(version, "startDate", ""), **{
+        row.append(TD(start_date, **{
             "class": "date",
+            "title": start_date,
         }))
-        row.append(TD(getattr(version, "releaseDate", ""), **{
+        row.append(TD(release_date, **{
             "class": "date",
+            "title": release_date,
         }))
         row.append(NumTD(version_tasks.id.count(), **{
             DATA_ROW_VERSION_COLUMN_NAME: TASKS,

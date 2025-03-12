@@ -191,6 +191,8 @@ def generate_sprints_table(
         spent = round(sprint_tasks.spent.sum(), HOURS_NDIGITS)
         overtime = None
         avg_overtime = None
+        start_date = getattr(sprint, "startDate", "")
+        end_date = getattr(sprint, "endDate", "")
 
         if spent and estimate:
             overtime = estimate / spent
@@ -211,11 +213,13 @@ def generate_sprints_table(
             "title": sprint.name,
         }))
 
-        row.append(TD(getattr(sprint, "startDate", "")[:10], **{
+        row.append(TD(start_date[:10], **{
             "class": "date",
+            "title": start_date,
         }))
-        row.append(TD(getattr(sprint, "endDate", "")[:10], **{
+        row.append(TD(end_date[:10], **{
             "class": "date",
+            "title": end_date,
         }))
         row.append(NumTD(sprint_tasks.id.count(), **{
             DATA_ROW_SPRINT_COLUMN_NAME: TASKS,
