@@ -322,7 +322,7 @@ td.numeric {
   text-align: right;
 }
 td.date {
-  font-size: 11px !important;
+  font-size: 10px !important;
 }
 th.numeric {
   white-space: nowrap;
