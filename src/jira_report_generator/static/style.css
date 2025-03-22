@@ -321,6 +321,9 @@ td.date,
 td.numeric {
   text-align: right;
 }
+td.date {
+  font-size: 10px !important;
+}
 th.numeric {
   white-space: nowrap;
   text-overflow: ellipsis;
