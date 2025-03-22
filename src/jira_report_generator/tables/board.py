@@ -1,7 +1,7 @@
 from pandas import DataFrame
 
 from ..constants import Status
-from ..utils.formatters import format_name
+from ..utils.formatters import format_name, get_short_date
 from ..utils.tags import TD, TH, TR, A, Div, NumTD, Table
 
 
@@ -27,7 +27,10 @@ def generate_board_table(
     # scrollable header
     scrollable_header = TR(**{"class": "h50"})
     for sprint in sprints:
-        endDate = getattr(sprint, "endDate", "")[:10]
+        endDate = get_short_date(
+            getattr(sprint, "endDate", ""),
+            input_format="%Y-%m-%dT%H:%M:%S.%fZ",
+        )
 
         scrollable_header.append(TH(
             f"<span class=\"name\">{sprint.name}</span>"

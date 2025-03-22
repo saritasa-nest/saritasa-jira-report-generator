@@ -4,6 +4,7 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
+from ..utils.formatters import get_full_date, get_short_date
 from ..utils.tags import TD, TH, TR, A, Div, Input, NumTD, Table
 
 HOURS_NDIGITS = 1
@@ -170,6 +171,10 @@ def generate_versions_table(
         avg_overtime = None
         start_date = getattr(version, "startDate", "")
         release_date = getattr(version, "releaseDate", "")
+        short_start_date = get_short_date(start_date)
+        short_release_date = get_short_date(release_date)
+        full_start_date = get_full_date(start_date)
+        full_release_date = get_full_date(release_date)
 
         if spent and estimate:
             overtime = spent / estimate
@@ -195,13 +200,13 @@ def generate_versions_table(
                 "class": "name",
             },
         ))
-        row.append(TD(start_date, **{
+        row.append(TD(short_start_date, **{
             "class": "date",
-            "title": start_date,
+            "title": full_start_date,
         }))
-        row.append(TD(release_date, **{
+        row.append(TD(short_release_date, **{
             "class": "date",
-            "title": release_date,
+            "title": full_release_date,
         }))
         row.append(NumTD(version_tasks.id.count(), **{
             DATA_ROW_VERSION_COLUMN_NAME: TASKS,

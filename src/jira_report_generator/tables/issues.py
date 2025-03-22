@@ -1,7 +1,7 @@
 from pandas import DataFrame
 
 from ..constants import Status
-from ..utils.formatters import format_name
+from ..utils.formatters import format_name, get_short_date
 from ..utils.tags import TD, TH, TR, A, Div, NumTD, Table
 
 
@@ -27,7 +27,7 @@ def generate_issues_table(
     # scrollable header
     scrollable_header = TR(**{"class": "h50"})
     for version in versions:
-        releaseDate = getattr(version, "releaseDate", "")
+        releaseDate = get_short_date(getattr(version, "releaseDate", ""))
 
         scrollable_header.append(TH(
             f"<span class=\"name\">{version.name}</span>"

@@ -4,6 +4,7 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
+from ..utils.formatters import get_short_date
 from ..utils.tags import TD, TH, TR, Abbr, Div, Input, NumTD, Table
 
 HOURS_NDIGITS = 1
@@ -193,6 +194,8 @@ def generate_sprints_table(
         avg_overtime = None
         start_date = getattr(sprint, "startDate", "")
         end_date = getattr(sprint, "endDate", "")
+        short_start_date = get_short_date(start_date, "%Y-%m-%dT%H:%M:%S.%fZ")
+        short_end_date = get_short_date(end_date, "%Y-%m-%dT%H:%M:%S.%fZ")
 
         if spent and estimate:
             overtime = estimate / spent
@@ -213,11 +216,11 @@ def generate_sprints_table(
             "title": sprint.name,
         }))
 
-        row.append(TD(start_date[:10], **{
+        row.append(TD(short_start_date, **{
             "class": "date",
             "title": start_date,
         }))
-        row.append(TD(end_date[:10], **{
+        row.append(TD(short_end_date, **{
             "class": "date",
             "title": end_date,
         }))

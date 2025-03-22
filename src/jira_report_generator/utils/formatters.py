@@ -1,3 +1,5 @@
+from contextlib import suppress
+from datetime import datetime
 from urllib.parse import urljoin
 
 
@@ -34,3 +36,25 @@ def get_version_permalink(
         f"projects/{project_key}/versions/"
         f"{version_id}/tab/release-report-all-issues",
     )
+
+
+def get_short_date(variable, input_format="%Y-%m-%d") -> str:
+    """Returns date in short format like 12/31/2025."""
+    result = ""
+
+    with suppress(Exception):
+        date_obj = datetime.strptime(variable, input_format)
+        result = date_obj.strftime("%-m/%-d/%Y")
+
+    return result
+
+
+def get_full_date(variable, input_format="%Y-%m-%d") -> str:
+    """Returns date in full format like December 31, 2025."""
+    result = ""
+
+    with suppress(Exception):
+        date_obj = datetime.strptime(variable, input_format)
+        result = date_obj.strftime("%B %-d, %Y")
+
+    return result
