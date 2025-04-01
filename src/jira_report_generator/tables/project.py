@@ -7,6 +7,7 @@ HOURS_NDIGITS = 1
 
 def generate_project_table(
         versioned_df: DataFrame,
+        internal_df: DataFrame,
         unversioned_df: DataFrame,
         backlog_df: DataFrame,
         **table_options: str,
@@ -37,6 +38,21 @@ def generate_project_table(
     versioned_row.append(NumTD(round(versioned_left, HOURS_NDIGITS)))
 
     rows.append(versioned_row)
+
+    # internal row
+    internal_row = TR()
+    internal_count = internal_df.id.count()
+    internal_estimate = internal_df.estimate.sum()
+    internal_spent = internal_df.spent.sum()
+    internal_left = internal_estimate - internal_spent
+
+    internal_row.append(TD("Internal"))
+    internal_row.append(NumTD(internal_count))
+    internal_row.append(NumTD(round(internal_estimate, HOURS_NDIGITS)))
+    internal_row.append(NumTD(round(internal_spent, HOURS_NDIGITS)))
+    internal_row.append(NumTD(round(internal_left, HOURS_NDIGITS)))
+
+    rows.append(internal_row)
 
     # unversioned row
     unversioned_row = TR()
@@ -69,10 +85,30 @@ def generate_project_table(
     rows.append(backlog_row)
 
     # table footer
-    count_sum = versioned_count + unversioned_count + backlog_count
-    estimate_sum = versioned_estimate + unversioned_estimate + backlog_estimate
-    spent_sum = versioned_spent + unversioned_spent + backlog_spent
-    left_sum = versioned_left + unversioned_left + backlog_left
+    count_sum = (
+        versioned_count
+        + unversioned_count
+        + backlog_count
+        + internal_count
+    )
+    estimate_sum = (
+        versioned_estimate
+        + unversioned_estimate
+        + backlog_estimate
+        + internal_estimate
+    )
+    spent_sum = (
+        versioned_spent
+        + unversioned_spent
+        + backlog_spent
+        + internal_spent
+    )
+    left_sum = (
+        versioned_left
+        + unversioned_left
+        + backlog_left
+        + internal_left
+    )
 
     row = TR(**{"class": "summary"})
     row.append(TD("Summary"))

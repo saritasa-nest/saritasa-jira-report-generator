@@ -736,6 +736,7 @@ function init_reports(projectId) {
   applyTabsSettings(projectId);
   applyTableDisplayingSettings("epics");
   applyTableDisplayingSettings("stories");
+  applyTableDisplayingSettings("internal");
   applyTableDisplayingSettings("unclassified");
   applyTableDisplayingSettings("backlog");
 }

@@ -95,7 +95,11 @@ td > input {
 .table-content table.backlog td.summary,
 /* unclassified */
 .table-content table.unclassified th.summary,
-.table-content table.unclassified td.summary {
+.table-content table.unclassified td.summary,
+/* internal */
+.table-content table.internal th.summary,
+.table-content table.internal td.summary
+{
     text-overflow: ellipsis;
     overflow: hidden;
     max-width: 331px;
@@ -131,7 +135,14 @@ td > input {
 .table-content table.unclassified th.status,
 .table-content table.unclassified td.status,
 .table-content table.unclassified th.components,
-.table-content table.unclassified td.components {
+.table-content table.unclassified td.components,
+/* internal */
+.table-content table.internal th.key,
+.table-content table.internal td.key,
+.table-content table.internal th.status,
+.table-content table.internal td.status,
+.table-content table.internal th.components,
+.table-content table.internal td.components {
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 140px;
@@ -153,7 +164,12 @@ td > input {
 .table-content table.unclassified th.assignee,
 .table-content table.unclassified td.assignee,
 .table-content table.unclassified th.type,
-.table-content table.unclassified td.type {
+.table-content table.unclassified td.type,
+/* internal */
+.table-content table.internal th.assignee,
+.table-content table.internal td.assignee,
+.table-content table.internal th.type,
+.table-content table.internal td.type {
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 70px;
@@ -388,6 +404,6 @@ td.name {
   margin-top: .5em;
 }
 .table-displaying-control {
-  margin-left: 10px;
+  margin-left: 6px;
   text-decoration: none;
 }

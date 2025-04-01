@@ -170,6 +170,7 @@ def filter_unclassified_issues(df: DataFrame) -> DataFrame:
         *Status.CANCELLED.value,
         *Status.VERIFIED.value,
         *Status.COMPLETED.value,
+        *Status.INTERNAL.value,
     )
 
     df = df[df["components"].apply(
@@ -192,6 +193,13 @@ def filter_unclassified_issues(df: DataFrame) -> DataFrame:
     return df[df["status"].apply(
         lambda x: x.name not in to_skip_versions,
     )]
+
+
+def filter_internal_issues(df: DataFrame) -> DataFrame:
+    """Returns issues with status Internal."""
+    return df[df["status"].apply(
+        lambda x: x.name in Status.INTERNAL.value,
+    )].sort_values("id")
 
 
 def prepare_backlog_table_data(df: DataFrame) -> DataFrame:

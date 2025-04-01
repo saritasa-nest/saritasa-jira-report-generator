@@ -51,6 +51,9 @@ class Status(Enum):
     CANCELLED = (
         "Cancelled",
     )
+    INTERNAL = (
+        "Internal",
+    )
 
 
 class Type(Enum):

@@ -19,17 +19,18 @@ from .tables.assignees import generate_assignees_table
 from .tables.backlog import generate_backlog_table
 from .tables.board import generate_board_table
 from .tables.epics import generate_epics_table
+from .tables.internal import generate_internal_table
 from .tables.issues import generate_issues_table
 from .tables.project import generate_project_table
 from .tables.sprints import generate_sprints_table
 from .tables.statuses import generate_statuses_table
 from .tables.stories import generate_stories_table
 from .tables.unclassified import generate_unclassified_table
-from .tables.unversioned import generate_unversioned_table
 from .tables.versions import generate_versions_table
 from .utils.data import (
     filter_by_board,
     filter_data_by_statuses,
+    filter_internal_issues,
     filter_unclassified_issues,
     get_dataframe,
     get_epics,
@@ -299,6 +300,7 @@ def construct_tables(
     unversioned_df = prepare_unversioned_table_data(issues_dataframe)
     sprinted_df = get_sprinted_issues(issues_dataframe)
     unclassified_df = filter_unclassified_issues(issues_dataframe)
+    internal_df = filter_internal_issues(issues_dataframe)
     backlog_df = prepare_backlog_table_data(issues_dataframe)
     not_finished_statuses = prepare_not_finished_statuses_data(
         versioned_df,
@@ -311,6 +313,7 @@ def construct_tables(
             H2("Project"),
             generate_project_table(
                 versioned_df,
+                internal_df,
                 unversioned_df,
                 backlog_df,
                 **{"class": "project"},
@@ -478,6 +481,20 @@ def construct_tables(
                 stories_dataframe,
                 **{"class": "stories hidden"},
             ),
+        ))
+
+    # internal tasks
+    if not internal_df.empty:
+        logger.info("Generate Internal table")
+        tables.append(Section(
+            H2("Internal", **{
+                "id": "internal",
+                "class": "table-title",
+            }),
+            generate_internal_table(
+                internal_df,
+                **{"class": "internal hidden"},
+            )
         ))
 
     # issues without components
