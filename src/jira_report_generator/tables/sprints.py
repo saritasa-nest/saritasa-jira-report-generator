@@ -4,16 +4,18 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
+from ..constants import Status
+from ..utils.data import filter_data_by_statuses
 from ..utils.formatters import get_short_date
 from ..utils.tags import TD, TH, TR, Abbr, Div, Input, NumTD, Table
 
 HOURS_NDIGITS = 1
-OVERTIME_NDIGITS = 2
+CPI_NDIGITS = 2
 
 TASKS = "tasks"
 ESTIMATED = "estimated"
 SPENT = "spent"
-OVERTIME = "overtime"
+CPI = "cpi"
 PROJECTION = "projection"
 LIMIT = "limit"
 BUDGET = "budget"
@@ -23,28 +25,56 @@ DATA_ROW_SPRINT_COLUMN_NAME = "data-row-sprint-column-name"
 DATA_COLUMN_NAME = "data-column-name"
 
 CLOSED = "closed"
+ACTIVE = "active"
 
 
-def calculate_avg_overtime(overtimes: List[float]) -> float:
+def calculate_avg_cpi(cpis: List[float]) -> float:
 
     try:
-        result = sum(overtimes) / len(overtimes)
+        result = sum(cpis) / len(cpis)
     except ZeroDivisionError:
         result = 0.0
 
     return result
 
 
-def predict_estimate(estimate: float, overtime: float) -> float:
-    return estimate * overtime
+def filter_completed(df: DataFrame) -> DataFrame:
+    """Returns completed tasks."""
+
+    if df.empty:
+        return df
+
+    statuses = (
+        *Status.VERIFIED.value,
+        *Status.COMPLETED.value,
+        *Status.TM_PM_VERIFY.value,
+    )
+
+    return df[df["status"].apply(
+        lambda x: x.name in statuses
+    )]
+
+
+def filter_affected(df: DataFrame) -> DataFrame:
+    """Returns affected tasks -- with logged time."""
+
+    if df.empty:
+        return df
+
+    return df[df["spent"] > 0]
+
+
+def predict_estimate(estimate: float, cpi: float) -> float:
+    return estimate * cpi
 
 
 def generate_component_columns(
         df: DataFrame,
         components: list,
-        component_overtimes_map: dict = None,
-        display_overtime: bool = False,
+        components_cpi_map: dict = None,
+        display_cpi: bool = False,
         summary: bool = False,
+        is_active_sprint: bool = False,
 ) -> List[TD]:
     columns = []
 
@@ -52,7 +82,6 @@ def generate_component_columns(
         component_tasks = df[df["components"].apply(
             lambda x: component in x,
         )]
-        avg_component_overtime = None
 
         # generate empty columns
         if component_tasks.empty:
@@ -62,6 +91,8 @@ def generate_component_columns(
             columns.append(TD("&nbsp;"))
             continue
 
+        completed_component_tasks = filter_completed(component_tasks)
+        affected_component_tasks = filter_affected(component_tasks)
         component_estimate = round(
             component_tasks.estimate.sum(),
             HOURS_NDIGITS,
@@ -70,22 +101,11 @@ def generate_component_columns(
             component_tasks.spent.sum(),
             HOURS_NDIGITS,
         )
-        component_overtime = None
+        component_cpi = None
 
-        # calculate overtime only for non-summary rows
-        if component_spent and component_estimate and not summary:
-            component_overtime = component_estimate / component_spent
-
-        # calculate component avg overtime
-        if component_overtimes_map:
-            avg_component_overtime = calculate_avg_overtime(
-                component_overtimes_map[component.id],
-            )
-
-        if summary and avg_component_overtime:
-            component_overtime = avg_component_overtime
-
-        columns.append(NumTD(component_tasks.id.count()))
+        columns.append(NumTD(component_tasks.id.count(), **{
+            "title": f"{completed_component_tasks.id.count()} completed",
+        }))
         columns.append(NumTD(component_estimate))
         columns.append(NumTD(component_spent, **{
             "class": (
@@ -95,10 +115,26 @@ def generate_component_columns(
                 else ""
             ),
         }))
+
+        # re-calculate cpi if sprint is active
+        if is_active_sprint:
+            component_estimate = round(
+                affected_component_tasks.estimate.sum(),
+                HOURS_NDIGITS,
+            )
+            component_spent = round(
+                affected_component_tasks.spent.sum(),
+                HOURS_NDIGITS,
+            )
+
+        # calculate cpi only for non-summary rows
+        if component_spent and component_estimate and not summary:
+            component_cpi = component_estimate / component_spent
+
         columns.append(NumTD(
-            round(component_overtime, OVERTIME_NDIGITS)
-            if component_overtime and (display_overtime or summary)
-            else "",
+            round(component_cpi, CPI_NDIGITS)
+            if component_cpi and (display_cpi or summary) else "",
+            **{"title": f"{component_estimate}/{component_spent}"},
         ))
 
     return columns
@@ -120,8 +156,8 @@ def generate_sprints_table(
         ),
         key=lambda x: getattr(x, "name", ""),
     )
-    overtimes = []
-    component_overtimes_map = defaultdict(list)
+    cpis = []
+    components_cpi_map = defaultdict(list)
 
     # table header
     header = TR(**{"class": "h50"})
@@ -188,20 +224,22 @@ def generate_sprints_table(
         row = TR(**{DATA_ROW_SPRINT_ID: sprint.id})
         scrollable_row = TR()
         sprint_tasks = df[df["sprint_id"] == sprint.id]
+        completed_sprint_tasks = filter_completed(sprint_tasks)
+        affected_sprint_tasks = filter_affected(sprint_tasks)
         estimate = round(sprint_tasks.estimate.sum(), HOURS_NDIGITS)
         spent = round(sprint_tasks.spent.sum(), HOURS_NDIGITS)
-        overtime = None
-        avg_overtime = None
+        sprint_cpi = None
+        avg_cpi = None
         start_date = getattr(sprint, "startDate", "")
         end_date = getattr(sprint, "endDate", "")
         short_start_date = get_short_date(start_date, "%Y-%m-%dT%H:%M:%S.%fZ")
         short_end_date = get_short_date(end_date, "%Y-%m-%dT%H:%M:%S.%fZ")
 
         if spent and estimate:
-            overtime = estimate / spent
+            sprint_cpi = estimate / spent
 
-        if overtimes:
-            avg_overtime = calculate_avg_overtime(overtimes)
+        if cpis:
+            avg_cpi = calculate_avg_cpi(cpis)
 
         row.append(TD(
             Input(**{
@@ -226,6 +264,7 @@ def generate_sprints_table(
         }))
         row.append(NumTD(sprint_tasks.id.count(), **{
             DATA_ROW_SPRINT_COLUMN_NAME: TASKS,
+            "title": f"{completed_sprint_tasks.id.count()} completed",
         }))
 
         if show_project_budget_column:
@@ -250,53 +289,53 @@ def generate_sprints_table(
             DATA_ROW_SPRINT_COLUMN_NAME: SPENT,
         }))
 
-        # overtime
+        # CPI
+        if sprint.state == ACTIVE:
+            estimate = round(
+                affected_sprint_tasks.estimate.sum(),
+                HOURS_NDIGITS,
+            )
+            spent = round(
+                affected_sprint_tasks.spent.sum(),
+                HOURS_NDIGITS,
+            )
+            if spent and estimate:
+                sprint_cpi = estimate / spent
+
         row.append(NumTD(
-            round(overtime, OVERTIME_NDIGITS)
-            if overtime is not None and sprint.state == CLOSED
-            else "",
-            **{DATA_ROW_SPRINT_COLUMN_NAME: OVERTIME},
+            round(sprint_cpi, CPI_NDIGITS)
+            if sprint_cpi is not None else "",
+            **{
+                DATA_ROW_SPRINT_COLUMN_NAME: CPI,
+                "title": f"{estimate}/{spent}",
+            },
         ))
 
         # add component columns filled in with values
         for col in generate_component_columns(
                 sprint_tasks,
                 components,
-                component_overtimes_map,
-                display_overtime=(sprint.state == CLOSED),
+                components_cpi_map,
+                display_cpi=True,
                 summary=False,
+                is_active_sprint=(sprint.state == ACTIVE),
         ):
             scrollable_row.append(col)
 
-        # add overtime prediction
-        if sprint.state == CLOSED and overtime:
-            overtimes.append(overtime)
-
-            # generate and store component overtimes map
-            for component in components:
-                component_tasks = sprint_tasks[
-                    sprint_tasks["components"].apply(
-                        lambda x: component in x,
-                    )
-                ]
-                component_estimate = component_tasks.estimate.sum()
-                component_spent = component_tasks.spent.sum()
-
-                if not component_estimate and not component_spent:
-                    continue
-
-                component_overtimes_map[component.id].append(
-                    (component_estimate / component_spent),
-                )
-
         rows.append(row)
         scrollable_rows.append(scrollable_row)
+
+        # component CPI
+        if not sprint_cpi:
+            continue
+
+        cpis.append(sprint_cpi)
 
     # footer
     row = TR(**{"class": "summary"})
     estimate = round(df.estimate.sum(), HOURS_NDIGITS)
     spent = round(df.spent.sum(), HOURS_NDIGITS)
-    avg_overtime = calculate_avg_overtime(overtimes)
+    avg_cpi = calculate_avg_cpi(cpis)
 
     row.append(TD(""))
     row.append(TD("Summary", colspan=3))
@@ -318,7 +357,7 @@ def generate_sprints_table(
         ),
     }))
     row.append(NumTD(
-        round(avg_overtime, OVERTIME_NDIGITS) or "",
+        round(avg_cpi, CPI_NDIGITS) or "",
     ))
 
     rows.append(row)
@@ -327,8 +366,8 @@ def generate_sprints_table(
         generate_component_columns(
             df,
             components,
-            component_overtimes_map,
-            display_overtime=False,
+            components_cpi_map,
+            display_cpi=False,
             summary=True,
         ),
         **{"class": "summary"},
@@ -350,7 +389,7 @@ def generate_sprints_table(
 
     row.append(NumTD("", **{DATA_COLUMN_NAME: ESTIMATED}))
     row.append(NumTD("", **{DATA_COLUMN_NAME: SPENT}))
-    row.append(NumTD("", **{DATA_COLUMN_NAME: OVERTIME}))
+    row.append(NumTD("", **{DATA_COLUMN_NAME: CPI}))
 
     rows.append(row)
 
@@ -363,7 +402,7 @@ def generate_sprints_table(
         scrollable_selected_row.append(TD("&nbsp;", **{data_attr: TASKS}))
         scrollable_selected_row.append(TD("&nbsp;", **{data_attr: ESTIMATED}))
         scrollable_selected_row.append(TD("&nbsp;", **{data_attr: SPENT}))
-        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: OVERTIME}))
+        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: CPI}))
 
     scrollable_rows.append(scrollable_selected_row)
 
