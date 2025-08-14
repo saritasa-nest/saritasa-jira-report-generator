@@ -24,8 +24,8 @@ class Status(Enum):
         "In Review",
     )
     IN_QA = (
-        "In QA",
         "Ready for QA",
+        "In QA",
         "QA Passed",
     )
     COMPLETED = (

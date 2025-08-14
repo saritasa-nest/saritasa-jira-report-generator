@@ -3,12 +3,14 @@ import datetime
 import logging
 import os
 import sys
+from collections import Counter
 
 from decouple import config
 from jinja2 import Environment, FileSystemLoader
 from jira import JIRA
 
-from .app import get_tables
+from .app import get_issue_status_changelog, get_tables
+from .constants import Status
 from .utils.data import render_template
 from .utils.tags import Table
 
@@ -77,6 +79,27 @@ def write_tables(tables: list[Table], filename: str, key: str):
         ))
 
 
+def print_issue_status_stat(jira_client: JIRA, issue_id: str):
+    """Print list of status transitions with counter."""
+    transitions = get_issue_status_changelog(jira_client, issue_id)
+    data = Counter([f"{t["from"]} -> {t["to"]}" for t in transitions])
+
+    for transition in sorted(data.items(), key=lambda x: x[1], reverse=True):
+        print(transition[0], f"({transition[1]})")
+
+
+def print_issue_status_changes(jira_client: JIRA, issue_id: str):
+    """Print list of status transitions."""
+    transitions = get_issue_status_changelog(jira_client, issue_id)
+
+    for transition in transitions[::-1]:
+        print(
+            f"{transition["created"]} "
+            f"{transition["from"]} -> {transition["to"]} "
+            f"({transition["author"]})"
+        )
+
+
 def main():
     cli_args = parser.parse_args()
     jira_client = JIRA(
@@ -88,6 +111,12 @@ def main():
 
     if cli_args.verbose:
         logger.setLevel(logging.INFO)
+
+    if "-" in cli_args.key:
+        print_issue_status_changes(jira_client, cli_args.key)
+        print("---")
+        print_issue_status_stat(jira_client, cli_args.key)
+        return
 
     write_tables(
         get_tables(

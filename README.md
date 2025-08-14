@@ -31,6 +31,8 @@ pip install jira-report-generator
 
 ### CLI
 
+#### Report
+
 ```bash
 jira-report-generator JIRA_PROJECT_KEY
 ```
@@ -64,6 +66,35 @@ Add `-v` or `--verbose` flag if you want to see some logs:
 
 Find `FILENAME` file and get fun.
 
+#### Task statuse transitions
+
+```bash
+jira-report-generator JIRA_TASK_ID
+```
+
+output is:
+
+```log
+2025-03-25T07:16:39.981-0500 Backlog -> Ready for Development (Denis)
+2025-04-23T02:32:04.603-0500 Ready for Development -> In Progress (Khan)
+2025-04-23T02:32:08.009-0500 In Progress -> Code Review (Khan)
+2025-04-23T02:32:09.677-0500 Code Review -> In QA (Khan)
+2025-05-06T03:35:52.911-0500 In QA -> Ready for Development (Qu)
+2025-05-09T05:18:01.321-0500 Ready for Development -> In Progress (Khan)
+2025-05-16T05:33:18.047-0500 In Progress -> Code Review (Khan)
+2025-05-16T05:33:20.245-0500 Code Review -> In QA (Khan)
+2025-05-20T23:56:59.423-0500 In QA -> Client Review (Qu)
+2025-07-02T04:08:47.373-0500 Client Review -> Verified (Denis)
+---
+Code Review -> In QA (2)
+In Progress -> Code Review (2)
+Ready for Development -> In Progress (2)
+Client Review -> Verified (1)
+In QA -> Client Review (1)
+In QA -> Ready for Development (1)
+Backlog -> Ready for Development (1)
+```
+
 ### Code
 
 ```python
@@ -71,4 +102,19 @@ from jira_report_generator import get_tables
 
 tables = get_tables(JIRA_PROJECT_KEY)  # list of <Table: > objects
 rendered_tables_html = map(str, tables)  # str reprs -- <table>
+```
+
+```python
+from jira_report_generator import get_issue_status_changelog
+
+transitions = get_issue_status_changelog(JIRA_TASK_ID)
+
+>>> [
+>>>     {
+>>>         "from": "Backlog",
+>>>         "to": "Ready for Development",
+>>>         "author": "Denis",
+>>>         "created": "2025-07-02T04:08:47.373-0500",
+>>>     }
+>>> ]
 ```

@@ -562,3 +562,23 @@ def get_tables(
         show_sprint_limit_column=show_sprint_limit_column,
         show_project_budget_column=show_project_budget_column,
     )
+
+
+def get_issue_status_changelog(
+        jira_client: JIRA,
+        issue_id: str,
+) -> list[dict[str, str]]:
+    issue = jira_client.issue(issue_id, expand="changelog")
+    transitions = []
+
+    for history in issue.changelog.histories:
+        for item in history.items:
+            if item.field == "status":
+                transitions.append({
+                    "from": item.fromString,
+                    "to": item.toString,
+                    "author": history.author,
+                    "created": history.created,
+                })
+
+    return transitions
