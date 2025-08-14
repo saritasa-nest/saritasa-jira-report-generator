@@ -109,12 +109,12 @@ from jira_report_generator import get_issue_status_changelog
 
 transitions = get_issue_status_changelog(JIRA_TASK_ID)
 
->>> [
->>>     {
->>>         "from": "Backlog",
->>>         "to": "Ready for Development",
->>>         "author": "Denis",
->>>         "created": "2025-07-02T04:08:47.373-0500",
->>>     }
->>> ]
+# [
+#     {
+#         "from": "Backlog",
+#         "to": "Ready for Development",
+#         "author": "Denis",
+#         "created": "2025-07-02T04:08:47.373-0500",
+#     }
+# ]
 ```
