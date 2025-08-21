@@ -4,8 +4,8 @@
     <title>{{ title }}</title>
     <style>{% include "style.css" %}</style>
     <script type="module">
-    {% include "script.js" %}
-    window.initReports = init_reports;
+    {% include "tables.js" %}
+    window.initTables = initTables;
     </script>
   </head>
   <body>
@@ -16,7 +16,7 @@
     </div>
     <script>
       document.addEventListener('DOMContentLoaded', function() {
-        initReports();
+        initTables();
       });
     </script>
   </body>

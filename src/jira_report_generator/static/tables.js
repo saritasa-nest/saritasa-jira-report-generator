@@ -14,7 +14,7 @@ function getSprintSettingsId(tab) {
 /**
  * Adds an ability for highlight rows by clicking.
  */
-function init_highlights() {
+function initHighlights() {
   var assignees = document.querySelectorAll(".assignees > tbody > tr");
   var epics = document.querySelectorAll(".epics > tbody > tr");
   var stories = document.querySelectorAll(".stories > tbody > tr");
@@ -146,7 +146,7 @@ function getSettings(tableName) {
  * Adds an ability to control visibility of component issue rows
  * by clicking on version columns.
  */
-function init_version_columns() {
+function initVersionColumns() {
   var versions = document.querySelectorAll(".issues th.version");
   var settings = getSettings("components");
   const collapsedClassName = "collapsed";
@@ -202,7 +202,7 @@ function init_version_columns() {
  * Adds an ability to control visibility of component issue rows
  * by clicking on version columns.
  */
-function init_sprint_columns() {
+function initSprintColumns() {
   var sprints = document.querySelectorAll(".issues th.sprint");
   var settings = getSettings("components");
   const collapsedClassName = "collapsed";
@@ -546,7 +546,7 @@ function initSelectAllCheckbox(
 /**
  * Initializes checkboxes in Versions table.
  */
-function init_version_selector() {
+function initVersionSelector() {
   const tab = document.querySelector(`[data-tab-content-id="${VERSION_TAB_ID}"]`);
   var checkboxes = tab.querySelectorAll(
     "table.versions input[type=checkbox]"
@@ -583,7 +583,7 @@ function init_version_selector() {
 /**
  * Initializes checkboxes in Sprint table.
  */
-function init_sprint_selector() {
+function initSprintSelector() {
   const tabs = document.getElementsByClassName(TAB_CONTENT_CLASS);
   
   for (const tab of tabs) {
@@ -716,18 +716,18 @@ function applyTableDisplayingSettings(tableName) {
 /**
  * Initializes all action parts.
  */
-function init_reports(projectId) {
+function initTables(projectId) {
   if (!projectId) {
     projectId = "undefined";
   }
 
-  init_highlights();
+  initHighlights();
 
-  init_version_selector();
-  init_version_columns();
+  initVersionSelector();
+  initVersionColumns();
 
-  init_sprint_selector()
-  init_sprint_columns();
+  initSprintSelector()
+  initSprintColumns();
 
   initTabs(projectId);
 
@@ -741,4 +741,4 @@ function init_reports(projectId) {
   applyTableDisplayingSettings("backlog");
 }
 
-export { init_reports };
+export { initTables };
