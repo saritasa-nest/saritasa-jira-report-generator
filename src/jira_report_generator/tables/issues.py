@@ -80,6 +80,7 @@ def generate_issues_table(
                 if item.parent
                 else ""
             ),
+            "data-issue-key": item.key,
         })
         scrollable_tr = TR(**{
             "data-status-id": item.status.id,
