@@ -9,7 +9,7 @@ from decouple import config
 from jinja2 import Environment, FileSystemLoader
 from jira import JIRA
 
-from .app import get_issue_status_changelog, get_tables
+from .app import get_issue_status_changelog, get_issue_worklogs, get_tables
 from .constants import Status
 from .utils.data import render_template
 from .utils.tags import Table
@@ -100,6 +100,18 @@ def print_issue_status_changes(jira_client: JIRA, issue_id: str):
         )
 
 
+def print_issue_worklogs(jira_client: JIRA, issue_id: str):
+    """Print list of issue worklogs."""
+    worklogs = get_issue_worklogs(jira_client, issue_id)
+
+    for worklog in worklogs:
+        print(
+            f"{worklog["created"]} "
+            f"{worklog["author"]} "
+            f"{worklog["spent"]}"
+        )
+
+
 def main():
     cli_args = parser.parse_args()
     jira_client = JIRA(
@@ -116,6 +128,8 @@ def main():
         print_issue_status_changes(jira_client, cli_args.key)
         print("---")
         print_issue_status_stat(jira_client, cli_args.key)
+        print("---")
+        print_issue_worklogs(jira_client, cli_args.key)
         return
 
     write_tables(

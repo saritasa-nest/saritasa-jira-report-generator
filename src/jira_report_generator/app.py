@@ -10,6 +10,7 @@ from datetime import datetime
 from logging import Formatter, StreamHandler
 
 import jira.resources
+from dateutil.parser import isoparse
 from jinja2 import Environment, FileSystemLoader
 from jira import JIRA
 from pandas import DataFrame
@@ -46,6 +47,8 @@ from .utils.data import (
 from .utils.formatters import get_version_permalink
 from .utils.tabs import wrap_with_tabs
 from .utils.tags import H2, Div, Section
+
+DATE_FORMAT = "%Y-%m-%d %H:%M"
 
 env = Environment(
     loader=FileSystemLoader(
@@ -568,6 +571,7 @@ def get_issue_status_changelog(
         jira_client: JIRA,
         issue_id: str,
 ) -> list[dict[str, str]]:
+    """Get issue status changelog."""
     issue = jira_client.issue(issue_id, expand="changelog")
     transitions = []
 
@@ -578,7 +582,21 @@ def get_issue_status_changelog(
                     "from": item.fromString,
                     "to": item.toString,
                     "author": history.author,
-                    "created": history.created,
+                    "created": isoparse(history.created).strftime(DATE_FORMAT),
                 })
 
     return transitions
+
+
+def get_issue_worklogs(
+        jira_client: JIRA,
+        issue_id: str,
+) -> list[dict[str, str]]:
+    """Get issue worklogs."""
+    worklogs = jira_client.worklogs(issue_id)
+
+    return [{
+        "created": isoparse(wl.created).strftime(DATE_FORMAT),
+        "author": wl.author.displayName,
+        "spent": wl.timeSpent,
+    } for wl in worklogs]
