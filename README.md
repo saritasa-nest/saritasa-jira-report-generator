@@ -114,7 +114,21 @@ transitions = get_issue_status_changelog(JIRA_TASK_ID)
 #         "from": "Backlog",
 #         "to": "Ready for Development",
 #         "author": "Denis",
-#         "created": "2025-07-02T04:08:47.373-0500",
+#         "created": "2025-07-02 08:47",
+#     }
+# ]
+```
+
+```python
+from jira_report_generator import get_issue_worklogs
+
+worklogs = get_issue_worklogs(JIRA_TASK_ID)
+
+# [
+#     {
+#         "author": "Denis",
+#         "spent": "1h 30m",
+#         "created": "2025-07-02 08:47",
 #     }
 # ]
 ```
