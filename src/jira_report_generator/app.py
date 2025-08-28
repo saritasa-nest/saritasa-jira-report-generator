@@ -48,7 +48,7 @@ from .utils.formatters import get_version_permalink
 from .utils.tabs import wrap_with_tabs
 from .utils.tags import H2, Div, Section
 
-DATE_FORMAT = "%Y-%m-%d %H:%M"
+DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 env = Environment(
     loader=FileSystemLoader(
