@@ -7,6 +7,7 @@ import sys
 import typing
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from functools import partial
 from logging import Formatter, StreamHandler
 
 import jira.resources
@@ -567,27 +568,6 @@ def get_tables(
     )
 
 
-def get_issue_status_changelog(
-        jira_client: JIRA,
-        issue_id: str,
-) -> list[dict[str, str]]:
-    """Get issue status changelog."""
-    issue = jira_client.issue(issue_id, expand="changelog")
-    transitions = []
-
-    for history in issue.changelog.histories:
-        for item in history.items:
-            if item.field == "status":
-                transitions.append({
-                    "from": item.fromString,
-                    "to": item.toString,
-                    "author": history.author,
-                    "created": isoparse(history.created).strftime(DATE_FORMAT),
-                })
-
-    return transitions
-
-
 def get_issue_worklogs(
         jira_client: JIRA,
         issue_id: str,
@@ -600,3 +580,39 @@ def get_issue_worklogs(
         "author": wl.author.displayName,
         "spent": wl.timeSpent,
     } for wl in worklogs]
+
+
+def get_issue_field_changelog(
+        jira_client: JIRA,
+        issue_id: str,
+        field_name: str,
+) -> list[dict[str, str]]:
+    """Get issue field changelog."""
+    issue = jira_client.issue(issue_id, expand="changelog")
+    transitions = []
+
+    for history in issue.changelog.histories:
+        for item in history.items:
+            if item.field == field_name:
+                transitions.append({
+                    "from": item.fromString,
+                    "to": item.toString,
+                    "author": history.author,
+                    "created": isoparse(
+                        history.created
+                    ).strftime(DATE_FORMAT),
+                })
+
+    return transitions
+
+
+get_issue_status_changelog = partial(
+    get_issue_field_changelog,
+    field_name="status",
+)
+
+
+get_issue_assignee_changelog = partial(
+    get_issue_field_changelog,
+    field_name="assignee",
+)

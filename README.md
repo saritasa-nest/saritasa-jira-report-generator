@@ -105,9 +105,9 @@ rendered_tables_html = map(str, tables)  # str reprs -- <table>
 ```
 
 ```python
-from jira_report_generator import get_issue_status_changelog
+from jira_report_generator.app import get_issue_status_changelog
 
-transitions = get_issue_status_changelog(JIRA_TASK_ID)
+status_changelog = get_issue_status_changelog(JIRA_CLIENT, JIRA_TASK_ID)
 
 # [
 #     {
@@ -120,9 +120,24 @@ transitions = get_issue_status_changelog(JIRA_TASK_ID)
 ```
 
 ```python
-from jira_report_generator import get_issue_worklogs
+from jira_report_generator.app import get_issue_assignee_changelog
 
-worklogs = get_issue_worklogs(JIRA_TASK_ID)
+status_changelog = get_issue_assignee_changelog(JIRA_CLIENT, JIRA_TASK_ID)
+
+# [
+#     {
+#         "from": "Rodrigo",
+#         "to": "Lucia",
+#         "author": "Rodrigo",
+#         "created": "2025-07-02 08:47",
+#     }
+# ]
+```
+
+```python
+from jira_report_generator.app import get_issue_worklogs
+
+worklogs = get_issue_worklogs(JIRA_CLIENT, JIRA_TASK_ID)
 
 # [
 #     {
