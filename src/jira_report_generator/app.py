@@ -29,6 +29,7 @@ from .tables.statuses import generate_statuses_table
 from .tables.stories import generate_stories_table
 from .tables.unclassified import generate_unclassified_table
 from .tables.versions import generate_versions_table
+from .tables.cancelled import generate_cancelled_table
 from .utils.data import (
     filter_by_board,
     filter_data_by_statuses,
@@ -44,6 +45,7 @@ from .utils.data import (
     prepare_issues_table_data,
     prepare_not_finished_statuses_data,
     prepare_unversioned_table_data,
+    prepare_cancelled_table_data,
 )
 from .utils.formatters import get_version_permalink
 from .utils.tabs import wrap_with_tabs
@@ -306,6 +308,7 @@ def construct_tables(
     unclassified_df = filter_unclassified_issues(issues_dataframe)
     internal_df = filter_internal_issues(issues_dataframe)
     backlog_df = prepare_backlog_table_data(issues_dataframe)
+    cancelled_df = prepare_cancelled_table_data(issues_dataframe)
     not_finished_statuses = prepare_not_finished_statuses_data(
         versioned_df,
     )
@@ -526,6 +529,20 @@ def construct_tables(
             generate_backlog_table(
                 backlog_df,
                 **{"class": "backlog hidden"},
+            ),
+        ))
+
+    # backlog table
+    if not cancelled_df.empty:
+        logger.info("Generate Cancelled table")
+        tables.append(Section(
+            H2("Cancelled", **{
+                "id": "cancelled",
+                "class": "table-title",
+            }),
+            generate_cancelled_table(
+                cancelled_df,
+                **{"class": "cancelled hidden"},
             ),
         ))
 

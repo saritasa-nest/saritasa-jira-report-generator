@@ -225,6 +225,13 @@ def prepare_unversioned_table_data(df: DataFrame) -> DataFrame:
     return df[df["versions"].apply(lambda x: len(x) == 0)].sort_values("id")
 
 
+def prepare_cancelled_table_data(df: DataFrame) -> DataFrame:
+    """Prepare data for cancelled issues table rendering."""
+    return df[df["status"].apply(
+        lambda x: x.name in Status.CANCELLED.value,
+    )].sort_values("id")
+
+
 def get_epics(df: DataFrame) -> DataFrame:
     """Returns a dataframe of issues type Epic"""
 

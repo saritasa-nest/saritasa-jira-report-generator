@@ -739,6 +739,7 @@ function initTables(projectId) {
   applyTableDisplayingSettings("internal");
   applyTableDisplayingSettings("unclassified");
   applyTableDisplayingSettings("backlog");
+  applyTableDisplayingSettings("cancelled");
 }
 
 export { initTables };

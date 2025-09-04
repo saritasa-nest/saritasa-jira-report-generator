@@ -93,6 +93,9 @@ td > input {
 /* backlog */
 .table-content table.backlog th.summary,
 .table-content table.backlog td.summary,
+/* cancelled */
+.table-content table.cancelled th.summary,
+.table-content table.cancelled td.summary,
 /* unclassified */
 .table-content table.unclassified th.summary,
 .table-content table.unclassified td.summary,
@@ -129,6 +132,13 @@ td > input {
 .table-content table.backlog td.status,
 .table-content table.backlog th.components,
 .table-content table.backlog td.components,
+/* cancelled */
+.table-content table.cancelled th.key,
+.table-content table.cancelled td.key,
+.table-content table.cancelled th.status,
+.table-content table.cancelled td.status,
+.table-content table.cancelled th.components,
+.table-content table.cancelled td.components,
 /* unclassified */
 .table-content table.unclassified th.key,
 .table-content table.unclassified td.key,
@@ -160,6 +170,11 @@ td > input {
 .table-content table.backlog td.assignee,
 .table-content table.backlog th.type,
 .table-content table.backlog td.type,
+/* backlog */
+.table-content table.cancelled th.assignee,
+.table-content table.cancelled td.assignee,
+.table-content table.cancelled th.type,
+.table-content table.cancelled td.type,
 /* unclassified */
 .table-content table.unclassified th.assignee,
 .table-content table.unclassified td.assignee,
