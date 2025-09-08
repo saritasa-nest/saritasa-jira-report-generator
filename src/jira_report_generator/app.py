@@ -586,41 +586,95 @@ def get_tables(
 
 
 def get_issue_worklogs(
-        jira_client: JIRA,
-        issue_id: str,
+    jira_client: JIRA,
+    issue_id: str,
 ) -> list[dict[str, str]]:
-    """Get issue worklogs."""
-    worklogs = jira_client.worklogs(issue_id)
+    worklogs = []
+    output = []
+    start = 0
+    max_results = 100
 
-    return [{
-        "created": isoparse(wl.created).strftime(DATE_FORMAT),
-        "author": wl.author.displayName,
-        "spent": wl.timeSpent,
-    } for wl in worklogs]
+    while True:
+        chunk = jira_client._get_json(
+            path=f"issue/{issue_id}/worklog",
+            params={
+                "startAt": start,
+                "maxResults": max_results,
+            },
+        )
+        worklogs.extend(chunk.get("worklogs", []))
+
+        if start + max_results >= chunk["total"]:
+            break
+        start += max_results
+
+    for worklog in worklogs:
+        created = worklog.get("created", None)
+        author = worklog.get("author", None)
+
+        output.append({
+            "created": (
+                isoparse(created).strftime(DATE_FORMAT)
+                if created
+                else None
+            ),
+            "author": (
+                author.get("displayName", None)
+                if author
+                else None
+            ),
+            "spent": worklog.get("timeSpent", None),
+        })
+
+    return output
 
 
 def get_issue_field_changelog(
-        jira_client: JIRA,
-        issue_id: str,
-        field_name: str,
+    jira_client: JIRA,
+    issue_id: str,
+    field_name: str,
 ) -> list[dict[str, str]]:
     """Get issue field changelog."""
-    issue = jira_client.issue(issue_id, expand="changelog")
-    transitions = []
+    histories = []
+    output = []
+    start = 0
+    max_results = 100
 
-    for history in issue.changelog.histories:
-        for item in history.items:
-            if item.field == field_name:
-                transitions.append({
-                    "from": item.fromString,
-                    "to": item.toString,
-                    "author": history.author,
-                    "created": isoparse(
-                        history.created
-                    ).strftime(DATE_FORMAT),
+    while True:
+        chunk = jira_client._get_json(
+            path=f"issue/{issue_id}/changelog",
+            params={
+                "startAt": start,
+                "maxResults": max_results,
+            },
+        )
+        histories.extend(chunk.get("values", []))
+
+        if start + max_results >= chunk["total"]:
+            break
+        start += max_results
+
+    for history in histories:
+        for item in history.get("items", []):
+            if item.get("field", None) == field_name:
+                created = history.get("created", None)
+                author = history.get("author", None)
+                output.append({
+                    "from": item.get("fromString", None),
+                    "to": item.get("toString", None),
+                    "author": (
+                        author.get("displayName", None)
+                        if author
+                        else None
+                    ),
+                    "created": (
+                        isoparse(created).strftime(DATE_FORMAT)
+                        if created
+                        else None
+                    ),
                 })
 
-    return transitions
+    return output
 
 
 get_issue_status_changelog = partial(
