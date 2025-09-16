@@ -26,7 +26,7 @@ jedi==0.18.2
     # via ipython
 jinja2==3.1.5
     # via -r requirements.in
-jira==3.8.0
+jira==3.10.5
     # via -r requirements.in
 markupsafe==2.1.2
     # via jinja2
@@ -48,8 +48,6 @@ pexpect==4.8.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-pillow==11.0.0
-    # via jira
 prompt-toolkit==3.0.38
     # via ipython
 ptyprocess==0.7.0

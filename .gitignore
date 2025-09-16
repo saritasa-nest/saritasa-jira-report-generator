@@ -5,6 +5,7 @@ __version__.py
 .output
 .virtualenv
 .vscode
+.idea
 .python-version
 *.egg
 *.egg-info/
