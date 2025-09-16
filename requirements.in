@@ -1,5 +1,5 @@
 ipython
-jira==3.8.0
+jira==3.10.5
 pandas==2.2.3
 python-decouple
 jinja2==3.1.*
