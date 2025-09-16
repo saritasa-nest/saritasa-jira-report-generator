@@ -52,6 +52,8 @@ from .utils.tabs import wrap_with_tabs
 from .utils.tags import H2, Div, Section
 
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+DEFAULT_ASSIGNEE = "Unassigned"
+DEFAULT_AUTHOR = "Noname"
 
 env = Environment(
     loader=FileSystemLoader(
@@ -659,14 +661,15 @@ def get_issue_field_changelog(
             if item.get("field", None) == field_name:
                 created = history.get("created", None)
                 author = history.get("author", None)
+
                 output.append({
-                    "from": item.get("fromString", None),
-                    "to": item.get("toString", None),
+                    "from": item.get("fromString", None) or DEFAULT_ASSIGNEE,
+                    "to": item.get("toString", None) or DEFAULT_ASSIGNEE,
                     "author": (
                         author.get("displayName", None)
                         if author
                         else None
-                    ),
+                    ) or DEFAULT_AUTHOR,
                     "created": (
                         isoparse(created).strftime(DATE_FORMAT)
                         if created
