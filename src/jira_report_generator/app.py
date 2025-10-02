@@ -1,4 +1,3 @@
-import collections
 import functools
 import itertools
 import logging
@@ -6,7 +5,7 @@ import os
 import sys
 import typing
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime
+from datetime import datetime, date
 from functools import partial
 from logging import Formatter, StreamHandler
 
@@ -16,7 +15,7 @@ from jinja2 import Environment, FileSystemLoader
 from jira import JIRA
 from pandas import DataFrame
 
-from .constants import JIRA_FETCH_FIELDS, MAX_THREADS_COUNT
+from .constants import JIRA_FETCH_FIELDS, MAX_THREADS_COUNT, Status
 from .tables.assignees import generate_assignees_table
 from .tables.backlog import generate_backlog_table
 from .tables.board import generate_board_table
@@ -72,19 +71,13 @@ logger.addHandler(handler)
 def get_issues_by_sprint(
     project_key: str,
     jira_client: JIRA,
-    from_date: str,
-    to_date: str,
+    from_date: date,
+    to_date: date,
     sprint: jira.resources.Sprint,
     fields: list = JIRA_FETCH_FIELDS,
 ) -> list[dict[str, typing.Any]]:
     """Get list of issues for project sprint."""
     jql_str = f"project={project_key} AND sprint={sprint.id}"
-
-    if from_date:
-        jql_str = f"{jql_str} AND createdDate>={from_date}"
-
-    if to_date:
-        jql_str = f"{jql_str} AND createdDate<={to_date}"
 
     issues = jira_client.search_issues(
         jql_str=f"{jql_str} ORDER BY created DESC",
@@ -101,8 +94,8 @@ def get_issues_by_sprint(
 def get_board_issues_data(
     jira_client: JIRA,
     project_key: str,
-    from_date: str,
-    to_date: str,
+    from_date: date,
+    to_date: date,
     board: jira.resources.Board,
 ) -> dict[str, list | dict]:
     """Get issues for board with info about sprints."""
@@ -120,8 +113,8 @@ def get_board_issues_data(
             sprint
             for sprint
             in sprints
-            if sprint.startDate
-            and get_date(sprint.startDate).date() >= from_date
+            if not hasattr(sprint, "startDate")
+            or get_date(sprint.startDate).date() >= from_date
         ]
 
         if to_date:
@@ -129,7 +122,7 @@ def get_board_issues_data(
                 sprint
                 for sprint
                 in sprints
-                if sprint.endDate
+                if hasattr(sprint, "endDate")
                 and get_date(sprint.endDate).date() <= to_date
             ]
 
@@ -175,8 +168,8 @@ def get_extra_data(
     jira_client: JIRA,
     project_key: str,
     jira_server_url: str,
-    from_date: str = None,
-    to_date: str = None,
+    from_date: date | None = None,
+    to_date: date | None = None,
 ) -> dict[str, list | dict]:
     """Get boards and issues data."""
     logger.info(f"Connect to Jira ({project_key})")
@@ -213,11 +206,11 @@ def get_extra_data(
 
 
 def get_data(
-        jira_client: JIRA,
-        project_key: str,
-        jira_server_url: str,
-        from_date: str = None,
-        to_date: str = None,
+    jira_client: JIRA,
+    project_key: str,
+    jira_server_url: str,
+    from_date: date | None = None,
+    to_date: date | None = None,
 ) -> dict[str, list]:
     """Get all project issues and versions."""
     logger.info(f"Connect to Jira ({project_key})")
@@ -225,10 +218,24 @@ def get_data(
     jql_str = f"project={project_key}"
 
     if from_date:
-        jql_str = f"{jql_str} and createdDate>={from_date}"
-
-    if to_date:
-        jql_str = f"{jql_str} and createdDate<={to_date}"
+        if to_date:
+            date_range = f'DURING ("{from_date}", "{to_date}")'
+        else:
+            date_range = f'AFTER "{from_date}"'
+        status_filter = ", ".join(
+            [
+                f'"{status}"'
+                for status in itertools.chain(
+                    Status.BACKLOG.value,
+                    Status.CANCELLED.value,
+                    Status.COMPLETED.value,
+                )
+            ],
+        )
+        jql_str = (
+            f'{jql_str} '
+            f'AND (status CHANGED TO "{Status.READY_FOR_DEVELOPMENT.value[0]}" {date_range} OR status IN ({status_filter}))'
+        )
 
     issues = jira_client.search_issues(
         jql_str=f"{jql_str} ORDER BY created DESC",
@@ -557,8 +564,8 @@ def get_tables(
     jira_server_url: str,
     show_sprint_limit_column: bool = True,
     show_project_budget_column: bool = True,
-    from_date: str = None,
-    to_date: str = None,
+    from_date: date | None = None,
+    to_date: date | None = None,
 ) -> list[Section | Div]:
     """Get tables."""
     arguments = (
