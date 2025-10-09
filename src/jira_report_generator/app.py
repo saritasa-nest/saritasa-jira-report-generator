@@ -215,7 +215,7 @@ def get_data(
     """Get all project issues and versions."""
     logger.info(f"Connect to Jira ({project_key})")
 
-    jql_str = f"project={project_key}"
+    jql_str = f"project=\"{project_key}\""
 
     if from_date:
         if to_date:
