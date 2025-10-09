@@ -77,7 +77,7 @@ def get_issues_by_sprint(
     fields: list = JIRA_FETCH_FIELDS,
 ) -> list[dict[str, typing.Any]]:
     """Get list of issues for project sprint."""
-    jql_str = f"project={project_key} AND sprint={sprint.id}"
+    jql_str = f"project=\"{project_key}\" AND sprint={sprint.id}"
 
     issues = jira_client.search_issues(
         jql_str=f"{jql_str} ORDER BY created DESC",
