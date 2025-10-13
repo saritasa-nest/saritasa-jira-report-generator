@@ -80,16 +80,12 @@ def get_versioned_issues(
     return df[df["versions"].apply(
         lambda x: any([not getattr(v, "archived", False) for v in x])
             and any([v.id in version_ids for v in x]),
-    )].sort_values(
-        by=["release_date", "id"],
-    )
+    )]
 
 
 def get_sprinted_issues(df: DataFrame) -> DataFrame:
     """Get sprinted issues."""
-    return df[df["sprint_id"].notna()].sort_values(
-        by=["sprint_date", "id"],
-    )
+    return df[df["sprint_id"].notna()]
 
 
 def render_template(
@@ -199,14 +195,14 @@ def filter_internal_issues(df: DataFrame) -> DataFrame:
     """Returns issues with status Internal."""
     return df[df["status"].apply(
         lambda x: x.name in Status.INTERNAL.value,
-    )].sort_values("id")
+    )]
 
 
 def prepare_backlog_table_data(df: DataFrame) -> DataFrame:
     """Prepare initial data for backlog table rendering."""
     return df[df["status"].apply(
         lambda x: x.name in Status.BACKLOG.value,
-    )].sort_values("id")
+    )]
 
 
 def prepare_unversioned_table_data(df: DataFrame) -> DataFrame:
@@ -222,14 +218,14 @@ def prepare_unversioned_table_data(df: DataFrame) -> DataFrame:
         ]
     )]
 
-    return df[df["versions"].apply(lambda x: len(x) == 0)].sort_values("id")
+    return df[df["versions"].apply(lambda x: len(x) == 0)]
 
 
 def prepare_cancelled_table_data(df: DataFrame) -> DataFrame:
     """Prepare data for cancelled issues table rendering."""
     return df[df["status"].apply(
         lambda x: x.name in Status.CANCELLED.value,
-    )].sort_values("id")
+    )]
 
 
 def get_epics(df: DataFrame) -> DataFrame:

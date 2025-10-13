@@ -80,7 +80,7 @@ def get_issues_by_sprint(
     jql_str = f"project=\"{project_key}\" AND sprint={sprint.id}"
 
     issues = jira_client.search_issues(
-        jql_str=f"{jql_str} ORDER BY created DESC",
+        jql_str=f"{jql_str} ORDER BY key ASC",
         startAt=0,
         maxResults=False,
         fields=fields,
@@ -238,7 +238,7 @@ def get_data(
         )
 
     issues = jira_client.search_issues(
-        jql_str=f"{jql_str} ORDER BY created DESC",
+        jql_str=f"{jql_str} ORDER BY key ASC",
         startAt=0,
         maxResults=False,
         fields=JIRA_FETCH_FIELDS,

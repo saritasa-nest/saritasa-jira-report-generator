@@ -69,140 +69,147 @@ def generate_board_table(
     scrollable_header.append(scrollable_subheader)
 
     # table body
-    for _, item in df.iterrows():
-        sprint_ids = []
-        tr = TR(**{
-            "data-status-id": item.status.id,
-            "data-assignee-id": (
-                item.assignee.accountId
-                if item.assignee
-                else ""
-            ),
-            "data-parent-id": (
-                item.parent.id
-                if item.parent
-                else ""
-            ),
-            "data-issue-key": item.key,
-        })
-        scrollable_tr = TR(**{
-            "data-status-id": item.status.id,
-            "data-assignee-id": (
-                item.assignee.accountId
-                if item.assignee
-                else ""
-            ),
-            "data-parent-id": (
-                item.parent.id
-                if item.parent
-                else ""
-            ),
-        })
-        status_attrs = {"class": "status nowrap"}
-        background = "default"
+    issues_grouped_by_sprints = df.groupby("sprint_id")
+    for sprint in sprints:
+        try:
+            sprint_issues = issues_grouped_by_sprints.get_group(sprint.id)
+        except KeyError:
+            continue
 
-        # summary
-        tr.append(TD(item.summary, **{
-            "class": "summary",
-            "title": item.summary,
-        }))
+        for _, item in sprint_issues.iterrows():
+            sprint_ids = []
+            tr = TR(**{
+                "data-status-id": item.status.id,
+                "data-assignee-id": (
+                    item.assignee.accountId
+                    if item.assignee
+                    else ""
+                ),
+                "data-parent-id": (
+                    item.parent.id
+                    if item.parent
+                    else ""
+                ),
+                "data-issue-key": item.key,
+            })
+            scrollable_tr = TR(**{
+                "data-status-id": item.status.id,
+                "data-assignee-id": (
+                    item.assignee.accountId
+                    if item.assignee
+                    else ""
+                ),
+                "data-parent-id": (
+                    item.parent.id
+                    if item.parent
+                    else ""
+                ),
+            })
+            status_attrs = {"class": "status nowrap"}
+            background = "default"
 
-        # issue type
-        tr.append(TD(item.type, **{"class": "type nowrap"}))
+            # summary
+            tr.append(TD(item.summary, **{
+                "class": "summary",
+                "title": item.summary,
+            }))
 
-        # link to the issue
-        tr.append(
-            TD(
-                A(item.key, **{
-                    "href": item.link,
-                    "title": item.key,
-                }),
-                **{"class": "key nowrap"},
-            ),
-        )
+            # issue type
+            tr.append(TD(item.type, **{"class": "type nowrap"}))
 
-        if item.status.name in (
-                *Status.VERIFIED.value,
-                *Status.IN_REVIEW.value,
-                *Status.COMPLETED.value,
-                *Status.TM_PM_VERIFY.value,
-        ):
-            status_attrs.update({"class": "status nowrap success"})
-            background = "done"
-        elif item.status.name in (
-                *Status.IN_QA.value,
-                *Status.CODE_REVIEW.value,
-        ):
-            status_attrs.update({"class": "status nowrap warning"})
-            background = "in-progress"
+            # link to the issue
+            tr.append(
+                TD(
+                    A(item.key, **{
+                        "href": item.link,
+                        "title": item.key,
+                    }),
+                    **{"class": "key nowrap"},
+                ),
+            )
 
-        # status
-        tr.append(TD(
-            item.status.name, **{
-                **status_attrs,
-                "title": item.status.name,
-            },
-        ))
+            if item.status.name in (
+                    *Status.VERIFIED.value,
+                    *Status.IN_REVIEW.value,
+                    *Status.COMPLETED.value,
+                    *Status.TM_PM_VERIFY.value,
+            ):
+                status_attrs.update({"class": "status nowrap success"})
+                background = "done"
+            elif item.status.name in (
+                    *Status.IN_QA.value,
+                    *Status.CODE_REVIEW.value,
+            ):
+                status_attrs.update({"class": "status nowrap warning"})
+                background = "in-progress"
 
-        # assignee
-        display_name = format_name(getattr(item.assignee, "displayName", ""))
-        tr.append(TD(
-            display_name,
-            **{
-                "class": "assignee nowrap",
-                "title": display_name,
-            },
-        ))
+            # status
+            tr.append(TD(
+                item.status.name, **{
+                    **status_attrs,
+                    "title": item.status.name,
+                },
+            ))
 
-        for sprint in sprints:
-            if (item.sprint_id == sprint.id):
-                sprint_ids.append(str(sprint.id))
+            # assignee
+            display_name = format_name(getattr(item.assignee, "displayName", ""))
+            tr.append(TD(
+                display_name,
+                **{
+                    "class": "assignee nowrap",
+                    "title": display_name,
+                },
+            ))
 
-                attrs = {
-                    "class": f"hours sprint {background}",
-                    "data-sprint-id": str(sprint.id),
-                }
+            for sprint in sprints:
+                if item.sprint_id == sprint.id:
+                    sprint_ids.append(str(sprint.id))
 
-                spent_attrs = dict(attrs)
-
-                if (item.estimate != 0 and item.spent > item.estimate):
-                    spent_attrs.update({
-                        "class": f"hours sprint danger {background}",
+                    attrs = {
+                        "class": f"hours sprint {background}",
                         "data-sprint-id": str(sprint.id),
-                    })
+                    }
 
-                scrollable_tr.append(
-                    NumTD(
-                        round(item.estimate, 1),
-                        **attrs,
-                    ),
-                )
-                scrollable_tr.append(
-                    NumTD(
-                        round(item.spent, 1),
-                        **spent_attrs,
-                    ),
-                )
-            else:
-                scrollable_tr.append(NumTD("", **{
-                    "class": "hours",
-                    "data-sprint-id": str(sprint.id),
-                }))
-                scrollable_tr.append(NumTD("", **{
-                    "class": "hours",
-                    "data-sprint-id": str(sprint.id),
-                }))
+                    spent_attrs = dict(attrs)
 
-        # add sprint ID to rows
-        sprint_ids_data_attr = {
-            "data-sprint-ids": ",".join(sprint_ids),
-            "data-component-id": component_id,
-        }
-        tr.attrs.update(sprint_ids_data_attr)
-        scrollable_tr.attrs.update(sprint_ids_data_attr)
+                    if item.estimate != 0 and item.spent > item.estimate:
+                        spent_attrs.update({
+                            "class": f"hours sprint danger {background}",
+                            "data-sprint-id": str(sprint.id),
+                        })
 
-        rows.append(tr)
-        scrollable_rows.append(scrollable_tr)
+                    scrollable_tr.append(
+                        NumTD(
+                            round(item.estimate, 1),
+                            **attrs,
+                        ),
+                    )
+                    scrollable_tr.append(
+                        NumTD(
+                            round(item.spent, 1),
+                            **spent_attrs,
+                        ),
+                    )
+                else:
+                    scrollable_tr.append(NumTD("", **{
+                        "class": "hours",
+                        "data-sprint-id": str(sprint.id),
+                    }))
+                    scrollable_tr.append(NumTD("", **{
+                        "class": "hours",
+                        "data-sprint-id": str(sprint.id),
+                    }))
+
+            # add sprint ID to rows
+            sprint_ids_data_attr = {
+                "data-sprint-ids": ",".join(sprint_ids),
+                "data-component-id": component_id,
+            }
+            tr.attrs.update(sprint_ids_data_attr)
+            scrollable_tr.attrs.update(sprint_ids_data_attr)
+
+            rows.append(tr)
+            scrollable_rows.append(scrollable_tr)
 
     return Div(
         Div(

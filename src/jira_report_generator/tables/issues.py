@@ -45,8 +45,10 @@ def generate_issues_table(
 
     # scrollable subheader
     scrollable_subheader = TR(**{"class": "h25"})
+    tasks_by_versions = {}
     for version in versions:
         version_tasks = df[df["versions"].apply(lambda x: version in x)]
+        tasks_by_versions[version] = version_tasks
         estimate = round(version_tasks.estimate.sum(), 1)
         spent = round(version_tasks.spent.sum(), 1)
 
@@ -66,141 +68,142 @@ def generate_issues_table(
     scrollable_header.append(scrollable_subheader)
 
     # table body
-    for _, item in df.iterrows():
-        version_ids = []
-        tr = TR(**{
-            "data-status-id": item.status.id,
-            "data-assignee-id": (
-                item.assignee.accountId
-                if item.assignee
-                else ""
-            ),
-            "data-parent-id": (
-                item.parent.id
-                if item.parent
-                else ""
-            ),
-            "data-issue-key": item.key,
-        })
-        scrollable_tr = TR(**{
-            "data-status-id": item.status.id,
-            "data-assignee-id": (
-                item.assignee.accountId
-                if item.assignee
-                else ""
-            ),
-            "data-parent-id": (
-                item.parent.id
-                if item.parent
-                else ""
-            ),
-        })
-        status_attrs = {"class": "status nowrap"}
-        background = "default"
+    for tasks in tasks_by_versions.values():
+        for _, item in tasks.iterrows():
+            version_ids = []
+            tr = TR(**{
+                "data-status-id": item.status.id,
+                "data-assignee-id": (
+                    item.assignee.accountId
+                    if item.assignee
+                    else ""
+                ),
+                "data-parent-id": (
+                    item.parent.id
+                    if item.parent
+                    else ""
+                ),
+                "data-issue-key": item.key,
+            })
+            scrollable_tr = TR(**{
+                "data-status-id": item.status.id,
+                "data-assignee-id": (
+                    item.assignee.accountId
+                    if item.assignee
+                    else ""
+                ),
+                "data-parent-id": (
+                    item.parent.id
+                    if item.parent
+                    else ""
+                ),
+            })
+            status_attrs = {"class": "status nowrap"}
+            background = "default"
 
-        # summary
-        tr.append(TD(item.summary, **{
-            "class": "summary",
-            "title": item.summary,
-        }))
+            # summary
+            tr.append(TD(item.summary, **{
+                "class": "summary",
+                "title": item.summary,
+            }))
 
-        # issue type
-        tr.append(TD(item.type, **{"class": "type nowrap"}))
+            # issue type
+            tr.append(TD(item.type, **{"class": "type nowrap"}))
 
-        # link to the issue
-        tr.append(
-            TD(
-                A(item.key, **{
-                    "href": item.link,
-                    "title": item.key,
-                }),
-                **{"class": "key nowrap"},
-            ),
-        )
+            # link to the issue
+            tr.append(
+                TD(
+                    A(item.key, **{
+                        "href": item.link,
+                        "title": item.key,
+                    }),
+                    **{"class": "key nowrap"},
+                ),
+            )
 
-        if item.status.name in (
-                *Status.VERIFIED.value,
-                *Status.IN_REVIEW.value,
-                *Status.COMPLETED.value,
-                *Status.TM_PM_VERIFY.value,
-        ):
-            status_attrs.update({"class": "status nowrap success"})
-            background = "done"
-        elif item.status.name in (
-                *Status.IN_QA.value,
-                *Status.CODE_REVIEW.value,
-        ):
-            status_attrs.update({"class": "status nowrap warning"})
-            background = "in-progress"
+            if item.status.name in (
+                    *Status.VERIFIED.value,
+                    *Status.IN_REVIEW.value,
+                    *Status.COMPLETED.value,
+                    *Status.TM_PM_VERIFY.value,
+            ):
+                status_attrs.update({"class": "status nowrap success"})
+                background = "done"
+            elif item.status.name in (
+                    *Status.IN_QA.value,
+                    *Status.CODE_REVIEW.value,
+            ):
+                status_attrs.update({"class": "status nowrap warning"})
+                background = "in-progress"
 
-        # status
-        tr.append(TD(
-            item.status.name, **{
-                **status_attrs,
-                "title": item.status.name,
-            },
-        ))
+            # status
+            tr.append(TD(
+                item.status.name, **{
+                    **status_attrs,
+                    "title": item.status.name,
+                },
+            ))
 
-        # assignee
-        display_name = format_name(getattr(item.assignee, "displayName", ""))
-        tr.append(TD(
-            display_name,
-            **{
-                "class": "assignee nowrap",
-                "title": display_name,
-            },
-        ))
+            # assignee
+            display_name = format_name(getattr(item.assignee, "displayName", ""))
+            tr.append(TD(
+                display_name,
+                **{
+                    "class": "assignee nowrap",
+                    "title": display_name,
+                },
+            ))
 
-        for version in versions:
-            if (item.versions and version in item.versions):
-                divisor = len(item.versions)
-                version_ids.append(str(version.id))
+            for version in versions:
+                if item.versions and version in item.versions:
+                    divisor = len(item.versions)
+                    version_ids.append(str(version.id))
 
-                attrs = {
-                    "class": f"hours version {background}",
-                    "data-version-id": str(version.id),
-                }
-
-                spent_attrs = dict(attrs)
-
-                if (item.estimate != 0 and item.spent > item.estimate):
-                    spent_attrs.update({
-                        "class": f"hours version danger {background}",
+                    attrs = {
+                        "class": f"hours version {background}",
                         "data-version-id": str(version.id),
-                    })
+                    }
 
-                scrollable_tr.append(
-                    NumTD(
-                        round(item.estimate / divisor, 1),
-                        **attrs,
-                    ),
-                )
-                scrollable_tr.append(
-                    NumTD(
-                        round(item.spent / divisor, 1),
-                        **spent_attrs,
-                    ),
-                )
-            else:
-                scrollable_tr.append(NumTD("&nbsp;", **{
-                    "class": "hours",
-                    "data-version-id": str(version.id),
-                }))
-                scrollable_tr.append(NumTD("&nbsp;", **{
-                    "class": "hours",
-                    "data-version-id": str(version.id),
-                }))
+                    spent_attrs = dict(attrs)
 
-        # add version ID to rows
-        version_ids_data_attr = {
-            "data-version-ids": ",".join(version_ids),
-            "data-component-id": component_id,
-        }
-        tr.attrs.update(version_ids_data_attr)
-        scrollable_tr.attrs.update(version_ids_data_attr)
+                    if item.estimate != 0 and item.spent > item.estimate:
+                        spent_attrs.update({
+                            "class": f"hours version danger {background}",
+                            "data-version-id": str(version.id),
+                        })
 
-        rows.append(tr)
-        scrollable_rows.append(scrollable_tr)
+                    scrollable_tr.append(
+                        NumTD(
+                            round(item.estimate / divisor, 1),
+                            **attrs,
+                        ),
+                    )
+                    scrollable_tr.append(
+                        NumTD(
+                            round(item.spent / divisor, 1),
+                            **spent_attrs,
+                        ),
+                    )
+                else:
+                    scrollable_tr.append(NumTD("&nbsp;", **{
+                        "class": "hours",
+                        "data-version-id": str(version.id),
+                    }))
+                    scrollable_tr.append(NumTD("&nbsp;", **{
+                        "class": "hours",
+                        "data-version-id": str(version.id),
+                    }))
+
+            # add version ID to rows
+            version_ids_data_attr = {
+                "data-version-ids": ",".join(version_ids),
+                "data-component-id": component_id,
+            }
+            tr.attrs.update(version_ids_data_attr)
+            scrollable_tr.attrs.update(version_ids_data_attr)
+
+            rows.append(tr)
+            scrollable_rows.append(scrollable_tr)
 
     return Div(
         Div(
