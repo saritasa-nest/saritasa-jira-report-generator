@@ -1,3 +1,5 @@
+import datetime
+
 from pandas import DataFrame
 
 from ..constants import Status
@@ -47,7 +49,14 @@ def generate_issues_table(
     scrollable_subheader = TR(**{"class": "h25"})
     tasks_by_versions = {}
     for version in versions:
-        version_tasks = df[df["versions"].apply(lambda x: version in x)]
+        version_tasks = df[
+            df["versions"].apply(
+                lambda x: _is_task_latest_version(
+                    version=version,
+                    task_versions=x,
+                )
+            )
+        ]
         tasks_by_versions[version] = version_tasks
         estimate = round(version_tasks.estimate.sum(), 1)
         spent = round(version_tasks.spent.sum(), 1)
@@ -68,9 +77,8 @@ def generate_issues_table(
     scrollable_header.append(scrollable_subheader)
 
     # table body
-    for tasks in tasks_by_versions.values():
+    for version, tasks in tasks_by_versions.items():
         for _, item in tasks.iterrows():
-            version_ids = []
             tr = TR(**{
                 "data-status-id": item.status.id,
                 "data-assignee-id": (
@@ -154,11 +162,11 @@ def generate_issues_table(
                 },
             ))
 
-            for version in versions:
-                if item.versions and version in item.versions:
-                    divisor = len(item.versions)
-                    version_ids.append(str(version.id))
-
+            version_ids = []
+            for inner_version in versions:
+                if item.versions and inner_version in item.versions:
+                    version_ids.append(str(inner_version.id))
+                if inner_version == version:
                     attrs = {
                         "class": f"hours version {background}",
                         "data-version-id": str(version.id),
@@ -174,13 +182,13 @@ def generate_issues_table(
 
                     scrollable_tr.append(
                         NumTD(
-                            round(item.estimate / divisor, 1),
+                            round(item.estimate, 1),
                             **attrs,
                         ),
                     )
                     scrollable_tr.append(
                         NumTD(
-                            round(item.spent / divisor, 1),
+                            round(item.spent, 1),
                             **spent_attrs,
                         ),
                     )
@@ -216,3 +224,17 @@ def generate_issues_table(
         ),
         **{"class": "combined issues"},
     )
+
+
+def _is_task_latest_version(
+    version,
+    task_versions,
+):
+    return version == sorted(
+        task_versions,
+        key=lambda v: (
+            datetime.date.fromisoformat(v.releaseDate) if hasattr(v, "releaseDate") else datetime.date.min,
+            datetime.date.fromisoformat(v.startDate) if hasattr(v, "startDate") else datetime.date.min,
+            v.id,
+        ),
+    )[-1]
