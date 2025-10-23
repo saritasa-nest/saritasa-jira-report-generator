@@ -162,14 +162,12 @@ def generate_issues_table(
                 },
             ))
 
-            version_ids = []
+            version_ids = [version.id]
             for inner_version in versions:
-                if item.versions and inner_version in item.versions:
-                    version_ids.append(str(inner_version.id))
                 if inner_version == version:
                     attrs = {
                         "class": f"hours version {background}",
-                        "data-version-id": str(version.id),
+                        "data-version-id": str(inner_version.id),
                     }
 
                     spent_attrs = dict(attrs)
@@ -177,7 +175,7 @@ def generate_issues_table(
                     if item.estimate != 0 and item.spent > item.estimate:
                         spent_attrs.update({
                             "class": f"hours version danger {background}",
-                            "data-version-id": str(version.id),
+                            "data-version-id": str(inner_version.id),
                         })
 
                     scrollable_tr.append(
@@ -195,11 +193,11 @@ def generate_issues_table(
                 else:
                     scrollable_tr.append(NumTD("&nbsp;", **{
                         "class": "hours",
-                        "data-version-id": str(version.id),
+                        "data-version-id": str(inner_version.id),
                     }))
                     scrollable_tr.append(NumTD("&nbsp;", **{
                         "class": "hours",
-                        "data-version-id": str(version.id),
+                        "data-version-id": str(inner_version.id),
                     }))
 
             # add version ID to rows
