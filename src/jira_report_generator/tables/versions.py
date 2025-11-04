@@ -4,6 +4,7 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
+from ..utils.data import is_task_latest_version
 from ..utils.formatters import get_full_date, get_short_date
 from ..utils.tags import TD, TH, TR, A, Div, Input, NumTD, Table
 
@@ -164,7 +165,13 @@ def generate_versions_table(
     for version in versions:
         row = TR(**{DATA_ROW_VERSION_ID: version.id})
         scrollable_row = TR()
-        version_tasks = df[df["versions"].apply(lambda x: version in x)]
+        version_tasks = df[df["versions"].apply(
+            lambda task_versions,
+            current_version=version: is_task_latest_version(
+                version=current_version,
+                task_versions=task_versions,
+            )
+        )]
         estimate = round(version_tasks.estimate.sum(), HOURS_NDIGITS)
         spent = round(version_tasks.spent.sum(), HOURS_NDIGITS)
         overtime = None

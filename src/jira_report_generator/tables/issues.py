@@ -1,8 +1,7 @@
-import datetime
-
 from pandas import DataFrame
 
 from ..constants import Status
+from ..utils.data import is_task_latest_version
 from ..utils.formatters import format_name, get_short_date
 from ..utils.tags import TD, TH, TR, A, Div, NumTD, Table
 
@@ -51,9 +50,10 @@ def generate_issues_table(
     for version in versions:
         version_tasks = df[
             df["versions"].apply(
-                lambda x: _is_task_latest_version(
-                    version=version,
-                    task_versions=x,
+                lambda task_versions,
+                current_version=version: is_task_latest_version(
+                    version=current_version,
+                    task_versions=task_versions,
                 )
             )
         ]
@@ -222,17 +222,3 @@ def generate_issues_table(
         ),
         **{"class": "combined issues"},
     )
-
-
-def _is_task_latest_version(
-    version,
-    task_versions,
-):
-    return version == sorted(
-        task_versions,
-        key=lambda v: (
-            datetime.date.fromisoformat(v.releaseDate) if hasattr(v, "releaseDate") else datetime.date.min,
-            datetime.date.fromisoformat(v.startDate) if hasattr(v, "startDate") else datetime.date.min,
-            v.id,
-        ),
-    )[-1]

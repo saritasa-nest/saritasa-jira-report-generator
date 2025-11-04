@@ -1,3 +1,4 @@
+import datetime
 from typing import Any
 
 from jinja2 import Template
@@ -260,3 +261,18 @@ def filter_by_board(df: DataFrame, board: Board) -> DataFrame:
     return df[df["boards_ids"].apply(
         lambda x: board_id in x,
     )]
+
+
+def is_task_latest_version(
+    version,
+    task_versions,
+):
+    """Check if the version is considered latest version of a task."""
+    return version == sorted(
+        task_versions,
+        key=lambda v: (
+            datetime.date.fromisoformat(v.releaseDate) if hasattr(v, "releaseDate") else datetime.date.min,
+            datetime.date.fromisoformat(v.startDate) if hasattr(v, "startDate") else datetime.date.min,
+            v.id,
+        ),
+    )[-1]
