@@ -33,7 +33,7 @@ def calculate_avg_overtime(overtimes: List[float]) -> float:
 
 
 def predict_estimate(estimate: float, overtime: float) -> float:
-    return estimate * overtime
+    return (estimate or 1) * overtime
 
 
 def generate_component_columns(
@@ -277,7 +277,7 @@ def generate_versions_table(
                     continue
 
                 component_overtimes_map[component.id].append(
-                    (component_spent / component_estimate),
+                    (component_spent or 1) / (component_estimate or 1),
                 )
 
         rows.append(row)

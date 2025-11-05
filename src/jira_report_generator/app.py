@@ -234,7 +234,8 @@ def get_data(
         )
         jql_str = (
             f'{jql_str} '
-            f'AND (status CHANGED TO "{Status.READY_FOR_DEVELOPMENT.value[0]}" {date_range} OR status IN ({status_filter}))'
+            f'AND (status CHANGED TO "{Status.READY_FOR_DEVELOPMENT.value[0]}"'
+            f' {date_range} OR status IN ({status_filter}))'
         )
 
     issues = jira_client.search_issues(

@@ -271,8 +271,12 @@ def is_task_latest_version(
     return version == sorted(
         task_versions,
         key=lambda v: (
-            datetime.date.fromisoformat(v.releaseDate) if hasattr(v, "releaseDate") else datetime.date.min,
-            datetime.date.fromisoformat(v.startDate) if hasattr(v, "startDate") else datetime.date.min,
+            datetime.date.fromisoformat(v.releaseDate)
+                if hasattr(v, "releaseDate")
+                else datetime.date.min,
+            datetime.date.fromisoformat(v.startDate)
+                if hasattr(v, "startDate")
+                else datetime.date.min,
             v.id,
         ),
     )[-1]

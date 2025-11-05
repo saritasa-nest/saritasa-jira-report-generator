@@ -153,7 +153,9 @@ def generate_issues_table(
             ))
 
             # assignee
-            display_name = format_name(getattr(item.assignee, "displayName", ""))
+            display_name = format_name(
+                getattr(item.assignee, "displayName", ""),
+            )
             tr.append(TD(
                 display_name,
                 **{
@@ -172,7 +174,7 @@ def generate_issues_table(
 
                     spent_attrs = dict(attrs)
 
-                    if item.estimate != 0 and item.spent > item.estimate:
+                    if item.spent > item.estimate:
                         spent_attrs.update({
                             "class": f"hours version danger {background}",
                             "data-version-id": str(inner_version.id),
