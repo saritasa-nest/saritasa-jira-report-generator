@@ -170,26 +170,13 @@ def filter_unclassified_issues(df: DataFrame) -> DataFrame:
         *Status.INTERNAL.value,
     )
 
-    df = df[df["components"].apply(
-        lambda x: len(x) == 0,
-    )]
-
-    if (df.empty):
-        return df
-
-    df = df[df["type"].apply(
-        lambda x: x.name not in [
-            Type.EPIC.value,
-            Type.STORY.value,
-        ]
-    )]
-
-    if (df.empty):
-        return df
-
-    return df[df["status"].apply(
-        lambda x: x.name not in to_skip_versions,
-    )]
+    return df[
+        df["components"].apply(lambda x: len(x) == 0)
+        & df["type"].apply(
+            lambda x: x.name not in [Type.EPIC.value, Type.STORY.value]
+        )
+        & df["status"].apply(lambda x: x.name not in to_skip_versions)
+    ]
 
 
 def filter_internal_issues(df: DataFrame) -> DataFrame:
@@ -201,9 +188,11 @@ def filter_internal_issues(df: DataFrame) -> DataFrame:
 
 def prepare_backlog_table_data(df: DataFrame) -> DataFrame:
     """Prepare initial data for backlog table rendering."""
-    return df[df["status"].apply(
-        lambda x: x.name in Status.BACKLOG.value,
-    )]
+    return df[
+        df["status"].apply(lambda x: x.name in Status.BACKLOG.value)
+        & df["sprint_id"].isna()
+        & df["versions"].apply(lambda x: len(x) == 0)
+    ]
 
 
 def prepare_unversioned_table_data(df: DataFrame) -> DataFrame:
