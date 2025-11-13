@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jira_report_generator"
-version = "1.17.8"
+version = "1.17.9"
 authors = [
   { name="Denis Maitak", email="denis.maitak@saritasa.com" },
   { name="Khoi Cao", email="khoi.cao@saritasa.com" },

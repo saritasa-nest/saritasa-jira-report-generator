@@ -252,20 +252,9 @@ def filter_by_board(df: DataFrame, board: Board) -> DataFrame:
     )]
 
 
-def is_task_latest_version(
+def is_task_version(
     version,
     task_versions,
-):
-    """Check if the version is considered latest version of a task."""
-    return version == sorted(
-        task_versions,
-        key=lambda v: (
-            datetime.date.fromisoformat(v.releaseDate)
-                if hasattr(v, "releaseDate")
-                else datetime.date.min,
-            datetime.date.fromisoformat(v.startDate)
-                if hasattr(v, "startDate")
-                else datetime.date.min,
-            v.id,
-        ),
-    )[-1]
+) -> bool:
+    """Check if a task belongs to the specified version."""
+    return version in task_versions

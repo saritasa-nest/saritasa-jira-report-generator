@@ -410,6 +410,10 @@ td.name {
   color: green;
 }
 
+.multi-version {
+  color: orange;
+}
+
 .hidden {
   display: none;
 }
