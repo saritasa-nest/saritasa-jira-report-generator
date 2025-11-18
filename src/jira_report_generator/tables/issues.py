@@ -172,12 +172,10 @@ def generate_issues_table(
                     }
 
                     spent_attrs = dict(attrs)
+                    spent_attrs["class"] += " logged"
 
                     if item.spent > item.estimate:
-                        spent_attrs.update({
-                            "class": f"hours version danger {background}",
-                            "data-version-id": str(inner_version.id),
-                        })
+                        spent_attrs["class"] += " danger"
 
                     scrollable_tr.append(
                         NumTD(

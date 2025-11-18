@@ -173,12 +173,10 @@ def generate_board_table(
                     }
 
                     spent_attrs = dict(attrs)
+                    spent_attrs["class"] += " logged"
 
                     if item.spent > item.estimate:
-                        spent_attrs.update({
-                            "class": f"hours sprint danger {background}",
-                            "data-sprint-id": str(sprint.id),
-                        })
+                        spent_attrs["class"] += " danger"
 
                     scrollable_tr.append(
                         NumTD(
