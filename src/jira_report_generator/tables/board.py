@@ -104,6 +104,7 @@ def generate_board_table(
                     if item.parent
                     else ""
                 ),
+                "data-issue-key": item.key,
             })
             status_attrs = {"class": "status nowrap"}
             background = "default"

@@ -104,13 +104,17 @@ def generate_issues_table(
                     if item.parent
                     else ""
                 ),
+                "data-issue-key": item.key,
             })
             status_attrs = {"class": "status nowrap"}
             background = "default"
 
             # summary
             tr.append(TD(item.summary, **{
-                "class": f"summary{" multi-version" if len(item.versions) > 1 else ""}",
+                "class": (
+                    "summary"
+                    " multi-version" if len(item.versions) > 1 else ""
+                ),
                 "title": item.summary,
             }))
 
