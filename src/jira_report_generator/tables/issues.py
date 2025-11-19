@@ -110,13 +110,15 @@ def generate_issues_table(
             background = "default"
 
             # summary
-            tr.append(TD(item.summary, **{
-                "class": (
-                    "summary"
-                    " multi-version" if len(item.versions) > 1 else ""
-                ),
+            summary_attrs = {
+                "class": "summary",
                 "title": item.summary,
-            }))
+            }
+
+            if len(item.versions) > 1:
+                summary_attrs["class"] += " multi-version"
+
+            tr.append(TD(item.summary, **summary_attrs))
 
             # issue type
             tr.append(TD(item.type, **{"class": "type nowrap"}))
