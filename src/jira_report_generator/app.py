@@ -127,12 +127,10 @@ def get_board_issues_data(
             ]
 
     sprints.sort(
-        key=lambda x: getattr(
-            x,
-            "startDate",
-            # required for correct ordering of future sprints
-            # without start date
-            str(datetime.now().isoformat()),
+        key=lambda sprint: (
+            not hasattr(sprint, "startDate"),
+            getattr(sprint, "startDate", ""),
+            sprint.id,
         ),
     )
 
