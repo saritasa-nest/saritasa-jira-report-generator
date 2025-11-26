@@ -13,6 +13,7 @@ import jira.resources
 from dateutil.parser import isoparse
 from jinja2 import Environment, FileSystemLoader
 from jira import JIRA
+from jira.resources import Sprint
 from pandas import DataFrame
 
 from .constants import JIRA_FETCH_FIELDS, MAX_THREADS_COUNT, Status
@@ -209,39 +210,10 @@ def get_data(
     jira_server_url: str,
     from_date: date | None = None,
     to_date: date | None = None,
+    sprints: list[Sprint] | None = None,
 ) -> dict[str, list]:
     """Get all project issues and versions."""
     logger.info(f"Connect to Jira ({project_key})")
-
-    jql_str = f"project=\"{project_key}\""
-
-    if from_date:
-        if to_date:
-            date_range = f'DURING ("{from_date}", "{to_date}")'
-        else:
-            date_range = f'AFTER "{from_date}"'
-        status_filter = ", ".join(
-            [
-                f'"{status}"'
-                for status in itertools.chain(
-                    Status.BACKLOG.value,
-                    Status.CANCELLED.value,
-                    Status.COMPLETED.value,
-                )
-            ],
-        )
-        jql_str = (
-            f'{jql_str} '
-            f'AND (status CHANGED TO "{Status.READY_FOR_DEVELOPMENT.value[0]}"'
-            f' {date_range} OR status IN ({status_filter}))'
-        )
-
-    issues = jira_client.search_issues(
-        jql_str=f"{jql_str} ORDER BY key ASC",
-        startAt=0,
-        maxResults=False,
-        fields=JIRA_FETCH_FIELDS,
-    )
 
     logger.info("Get versions")
 
@@ -287,6 +259,46 @@ def get_data(
         )
 
     versions.sort(key=lambda x: getattr(x, "releaseDate", ""))
+
+    jql_str = f"project=\"{project_key}\""
+
+    if from_date:
+        if to_date:
+            date_range = f'DURING ("{from_date}", "{to_date}")'
+        else:
+            date_range = f'AFTER "{from_date}"'
+        status_filter = f'status IN ({", ".join(
+            [
+                f'"{status}"'
+                for status in itertools.chain(
+                    Status.BACKLOG.value,
+                    Status.CANCELLED.value,
+                    Status.COMPLETED.value,
+                )
+            ],
+        )})'
+        sprint_filter = (
+            f'sprint IN ({", ".join([str(sprint.id) for sprint in sprints])})'
+            if sprints else ""
+        )
+        version_filter = (
+            f'version IN ({", ".join([str(version.id) for version in versions])})'
+            if versions else ""
+        )
+
+        jql_str = (
+            f'{jql_str} '
+            f'AND (status CHANGED TO "{Status.READY_FOR_DEVELOPMENT.value[0]}"'
+            f' {date_range} OR {status_filter} {f"OR {sprint_filter}" if sprint_filter else ""} {f"OR {version_filter}" if version_filter else ""}'
+            f')'
+        )
+
+    issues = jira_client.search_issues(
+        jql_str=f"{jql_str} ORDER BY key ASC",
+        startAt=0,
+        maxResults=False,
+        fields=JIRA_FETCH_FIELDS,
+    )
 
     return {
         "versions": versions,
@@ -574,8 +586,17 @@ def get_tables(
         from_date,
         to_date,
     )
-    data = get_data(*arguments)
     extra_data = get_extra_data(*arguments)
+    data = get_data(
+        jira_client=jira_client,
+        project_key=jira_project_key,
+        from_date=from_date,
+        to_date=to_date,
+        jira_server_url=jira_server_url,
+        sprints=list(itertools.chain.from_iterable(
+            board_data["sprints"] for board_data in extra_data["boards"]
+        )),
+    )
 
     logger.info("Prepare Pandas dataframe")
     dataframe = get_dataframe(
