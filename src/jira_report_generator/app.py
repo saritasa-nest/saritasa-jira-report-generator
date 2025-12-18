@@ -5,7 +5,7 @@ import os
 import sys
 import typing
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, date
+from datetime import date, datetime
 from functools import partial
 from logging import Formatter, StreamHandler
 
@@ -20,6 +20,7 @@ from .constants import JIRA_FETCH_FIELDS, MAX_THREADS_COUNT, Status
 from .tables.assignees import generate_assignees_table
 from .tables.backlog import generate_backlog_table
 from .tables.board import generate_board_table
+from .tables.cancelled import generate_cancelled_table
 from .tables.epics import generate_epics_table
 from .tables.internal import generate_internal_table
 from .tables.issues import generate_issues_table
@@ -29,9 +30,9 @@ from .tables.statuses import generate_statuses_table
 from .tables.stories import generate_stories_table
 from .tables.unclassified import generate_unclassified_table
 from .tables.versions import generate_versions_table
-from .tables.cancelled import generate_cancelled_table
 from .utils.data import (
     filter_by_board,
+    filter_cancelled_issues,
     filter_data_by_statuses,
     filter_internal_issues,
     filter_unclassified_issues,
@@ -41,11 +42,11 @@ from .utils.data import (
     get_stories,
     get_versioned_issues,
     prepare_backlog_table_data,
+    prepare_cancelled_table_data,
     prepare_components_data,
     prepare_issues_table_data,
     prepare_not_finished_statuses_data,
     prepare_unversioned_table_data,
-    prepare_cancelled_table_data,
 )
 from .utils.formatters import get_version_permalink
 from .utils.tabs import wrap_with_tabs
@@ -407,12 +408,28 @@ def construct_tables(
             version_sections.append(Section(
                 H2(component),
                 generate_issues_table(
-                    prepare_issues_table_data(versioned_df, component),
+                    prepare_issues_table_data(
+                        versioned_df,
+                        component,
+                        include_cancelled=False,
+                    ),
                     versions,
                     component_id=component.id,
                     **{"class": "component"},
                 ),
             ))
+
+        version_sections.append(Section(
+            H2("Cancelled"),
+            generate_issues_table(
+                filter_cancelled_issues(
+                    versioned_df,
+                ),
+                versions,
+                component_id="cancelled",
+                **{"class": "component"},
+            ),
+        ))
 
         tabs_content.append((
             "".join(map(str, version_sections)),
@@ -447,6 +464,7 @@ def construct_tables(
                 component_issues_df = prepare_issues_table_data(
                     board_issues_df,
                     component,
+                    include_cancelled=False,
                 )
 
                 if component_issues_df.empty:
@@ -461,6 +479,19 @@ def construct_tables(
                         **{"class": "component"},
                     ),
                 ))
+
+            board_sections.append(Section(
+                H2("Cancelled"),
+                generate_issues_table(
+                    filter_cancelled_issues(
+                        versioned_df,
+                    ),
+                    versions,
+                    component_id="cancelled",
+                    **{"class": "component"},
+                ),
+            ))
+
             tabs_content.append((
                 "".join(map(str, board_sections)),
                 board["board"].id,

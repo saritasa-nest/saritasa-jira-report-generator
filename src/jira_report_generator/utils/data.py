@@ -153,11 +153,31 @@ def filter_data_by_statuses(df: DataFrame, statuses: list) -> DataFrame:
 def prepare_issues_table_data(
     issues_dataframe: DataFrame,
     component: Any,
+    include_cancelled: bool = False,
 ) -> DataFrame:
     """Prepare initial data for issues table rendering."""
+
+    if not include_cancelled:
+        issues_dataframe = issues_dataframe[
+            issues_dataframe["status"].apply(
+                lambda x: x.name not in Status.CANCELLED.value,
+            )
+        ]
+
     return issues_dataframe[issues_dataframe["components"].apply(
         lambda x: component in x,
     )]
+
+
+def filter_cancelled_issues(
+    issues_dataframe: DataFrame,
+) -> DataFrame:
+    """Returns only cancelled issues."""
+    return issues_dataframe[
+        issues_dataframe["status"].apply(
+            lambda x: x.name in Status.CANCELLED.value,
+        )
+    ]
 
 
 def filter_unclassified_issues(df: DataFrame) -> DataFrame:
