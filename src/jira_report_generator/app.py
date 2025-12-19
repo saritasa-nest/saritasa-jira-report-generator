@@ -490,7 +490,7 @@ def construct_tables(
                 }),
                 generate_board_table(
                     filter_cancelled_issues(
-                        versioned_df,
+                        board_issues_df,
                     ),
                     board["sprints"],
                     component_id="cancelled",
