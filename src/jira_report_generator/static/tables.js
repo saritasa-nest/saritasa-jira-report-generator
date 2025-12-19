@@ -695,22 +695,23 @@ function applyTableDisplayingSettings(tableName) {
     return;
   }
 
-  var table = tables[0];
+  // var table = tables[0];
 
-  if (table.classList.contains("hidden")) {
-    var a = document.createElement("a");
+  var a = document.createElement("a");
 
-    a.append("show");
-    a.classList.add("table-displaying-control");
-    a.setAttribute("href", "javascript:;");
+  a.append("show");
+  a.classList.add("table-displaying-control");
+  a.setAttribute("href", "javascript:;");
+  header.after(a);
 
-    a.addEventListener("click", function(e) {
-      a.innerText = a.innerText == "show" ? "hide" : "show";
-      table.classList.toggle("hidden");
-    });
-
-    header.after(a);
-  }
+  tables.forEach(function(table) {
+    if (table.classList.contains("hidden")) {
+      a.addEventListener("click", function(e) {
+        a.innerText = a.innerText == "show" ? "hide" : "show";
+        table.classList.toggle("hidden");
+      });
+    }
+  })
 }
 
 /**
@@ -740,6 +741,8 @@ function initTables(projectId) {
   applyTableDisplayingSettings("unclassified");
   applyTableDisplayingSettings("backlog");
   applyTableDisplayingSettings("cancelled");
+  applyTableDisplayingSettings("component-cancelled");
+  applyTableDisplayingSettings("board-component-cancelled");
 }
 
 export { initTables };

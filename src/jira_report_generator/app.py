@@ -420,14 +420,17 @@ def construct_tables(
             ))
 
         version_sections.append(Section(
-            H2("Cancelled"),
+            H2("Cancelled", **{
+                "id": "component-cancelled",
+                "class": "table-title",
+            }),
             generate_issues_table(
                 filter_cancelled_issues(
                     versioned_df,
                 ),
                 versions,
-                component_id="cancelled",
-                **{"class": "component"},
+                component_id="component-cancelled",
+                **{"class": "component component-cancelled hidden"},
             ),
         ))
 
@@ -481,14 +484,17 @@ def construct_tables(
                 ))
 
             board_sections.append(Section(
-                H2("Cancelled"),
-                generate_issues_table(
+                H2("Cancelled", **{
+                    "id": "board-component-cancelled",
+                    "class": "table-title",
+                }),
+                generate_board_table(
                     filter_cancelled_issues(
                         versioned_df,
                     ),
-                    versions,
+                    board["sprints"],
                     component_id="cancelled",
-                    **{"class": "component"},
+                    **{"class": "component board-component-cancelled hidden"},
                 ),
             ))
 
