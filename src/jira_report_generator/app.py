@@ -419,20 +419,20 @@ def construct_tables(
                 ),
             ))
 
-        version_sections.append(Section(
-            H2("Cancelled", **{
-                "id": "component-cancelled",
-                "class": "table-title",
-            }),
-            generate_issues_table(
-                filter_cancelled_issues(
-                    versioned_df,
+        cancelled_issues_df = filter_cancelled_issues(versioned_df)
+        if not cancelled_issues_df.empty:
+            version_sections.append(Section(
+                H2("Cancelled", **{
+                    "id": "component-cancelled",
+                    "class": "table-title",
+                }),
+                generate_issues_table(
+                    cancelled_issues_df,
+                    versions,
+                    component_id="component-cancelled",
+                    **{"class": "component component-cancelled hidden"},
                 ),
-                versions,
-                component_id="component-cancelled",
-                **{"class": "component component-cancelled hidden"},
-            ),
-        ))
+            ))
 
         tabs_content.append((
             "".join(map(str, version_sections)),
