@@ -56,6 +56,8 @@ def generate_issues_table(
                 )
             )
         ]
+        if not len(version_tasks.columns):
+            version_tasks = df.iloc[0:0]
         tasks_by_versions[version] = version_tasks
         estimate = round(version_tasks.estimate.sum(), 1)
         spent = round(version_tasks.spent.sum(), 1)
