@@ -17,6 +17,27 @@ def format_name(name: str) -> str:
     ])
 
 
+def format_to_qa_count_badge(issue) -> str:
+    """Render QA count badge."""
+    to_qa_count = getattr(issue, "to_qa_count", 0) or 0
+    if to_qa_count >= 2:
+        badge_style = (
+            "line-height: 9px; "
+            "display: inline-block; "
+            "padding: 1px 2px; "
+            "color: white; "
+            "background: darkorange; "
+            "position: absolute; "
+            "right: 1px; "
+            "font-size: 9px !important; "
+            "top: 1px; "
+            "border-radius: 2px;"
+        )
+        return f"<span style=\"{badge_style}\">{to_qa_count}</span>"
+
+    return ""
+
+
 def get_issue_permalink(
         jira_server_url: str,
         issue_key: str,

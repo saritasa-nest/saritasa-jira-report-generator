@@ -1,6 +1,9 @@
 from pandas import DataFrame
 
-from ..utils.formatters import format_name
+from ..utils.formatters import (
+    format_name,
+    format_to_qa_count_badge,
+)
 from ..utils.tags import TD, TH, TR, A, NumTD, Table
 
 
@@ -32,7 +35,10 @@ def generate_unclassified_table(df: DataFrame, **table_options: str):
         tr.append(TD(A(item.key, href=item.link), **{"class": "key"}))
 
         # status
-        tr.append(TD(item.status.name, **{"class": "status"}))
+        tr.append(TD(
+            f"{item.status.name}{format_to_qa_count_badge(item)}",
+            **{"class": "status"},
+        ))
 
         # assignee
         tr.append(TD(

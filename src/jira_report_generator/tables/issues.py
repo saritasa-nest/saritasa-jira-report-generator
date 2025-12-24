@@ -2,7 +2,11 @@ from pandas import DataFrame
 
 from ..constants import Status
 from ..utils.data import is_task_version
-from ..utils.formatters import format_name, get_short_date
+from ..utils.formatters import (
+    format_name,
+    format_to_qa_count_badge,
+    get_short_date,
+)
 from ..utils.tags import TD, TH, TR, A, Div, NumTD, Table
 
 
@@ -151,7 +155,7 @@ def generate_issues_table(
 
             # status
             tr.append(TD(
-                item.status.name, **{
+                f"{item.status.name}{format_to_qa_count_badge(item)}", **{
                     **status_attrs,
                     "title": item.status.name,
                 },

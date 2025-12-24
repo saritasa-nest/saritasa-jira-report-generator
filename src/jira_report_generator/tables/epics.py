@@ -1,6 +1,7 @@
 from pandas import DataFrame
 
 from ..constants import Status
+from ..utils.formatters import format_to_qa_count_badge
 from ..utils.tags import TD, TH, TR, A, NumTD, Table
 
 
@@ -55,7 +56,10 @@ def generate_epics_table(
 
         row.append(TD(epic.summary, **{"class": "summary"}))
         row.append(TD(A(epic.key, href=epic.link), **{"class": "key"}))
-        row.append(TD(epic.status, **{"class": "status"}))
+        row.append(TD(
+            f"{epic.status}{format_to_qa_count_badge(epic)}",
+            **{"class": "status"},
+        ))
         row.append(NumTD(epic_tasks.id.count()))
         row.append(NumTD(
             epic_qa_tasks.id.count()

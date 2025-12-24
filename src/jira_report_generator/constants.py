@@ -1,5 +1,9 @@
 from enum import Enum
 
+from decouple import config
+
+TO_QA_FIELD_ID = config("JIRA_TO_QA_FIELD_ID")
+
 JIRA_FETCH_FIELDS = [
     "status",
     "summary",
@@ -10,6 +14,7 @@ JIRA_FETCH_FIELDS = [
     "fixVersions",
     "issuetype",
     "parent",
+    TO_QA_FIELD_ID,
 ]
 
 MAX_THREADS_COUNT = 4

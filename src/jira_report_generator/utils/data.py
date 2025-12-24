@@ -1,4 +1,3 @@
-import datetime
 from typing import Any
 
 from jinja2 import Template
@@ -6,7 +5,7 @@ from jira import Issue
 from jira.resources import Board
 from pandas import DataFrame
 
-from ..constants import Status, Type
+from ..constants import Status, TO_QA_FIELD_ID, Type
 from .formatters import get_issue_permalink
 from .tags import Table
 
@@ -66,6 +65,9 @@ def get_dataframe(
             "sprint_date": getattr(sprint, "endDate", "") if sprint else None,
             "boards_ids": [board.id for board in boards] if boards else [],
             "sprint_id": sprint.id if sprint else None,
+            "to_qa_count": int(
+                float(getattr(item.fields, TO_QA_FIELD_ID) or 0),
+            ),
         })
 
     return DataFrame(result)

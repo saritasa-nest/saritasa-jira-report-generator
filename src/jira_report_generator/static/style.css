@@ -110,6 +110,10 @@ td > input {
     white-space: nowrap;
 }
 
+.table-content table td.status {
+  position: relative;
+}
+
 /* component */
 .table-content table.component th.key,
 .table-content table.component td.key,
