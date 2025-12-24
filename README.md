@@ -10,7 +10,7 @@ Need to create `.env` file with variables:
 SERVER_URL=""
 EMAIL=""
 API_TOKEN=""
-JIRA_TO_QA_FIELD_ID=""
+JIRA_TO_QA_COUNTER_FIELD_ID=""
 ```
 
 API token: https://id.atlassian.com/manage-profile/security/api-tokens

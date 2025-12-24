@@ -5,7 +5,7 @@ from jira import Issue
 from jira.resources import Board
 from pandas import DataFrame
 
-from ..constants import Status, TO_QA_FIELD_ID, Type
+from ..constants import Status, TO_QA_COUNTER_FIELD_ID, Type
 from .formatters import get_issue_permalink
 from .tags import Table
 
@@ -66,8 +66,8 @@ def get_dataframe(
             "boards_ids": [board.id for board in boards] if boards else [],
             "sprint_id": sprint.id if sprint else None,
             "to_qa_count": int(
-                float(getattr(item.fields, TO_QA_FIELD_ID) or 0),
-            ),
+                float(getattr(item.fields, TO_QA_COUNTER_FIELD_ID) or 0),
+            ) if TO_QA_COUNTER_FIELD_ID else 0,
         })
 
     return DataFrame(result)
