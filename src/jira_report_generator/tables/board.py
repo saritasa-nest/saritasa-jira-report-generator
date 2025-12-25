@@ -3,7 +3,7 @@ from pandas import DataFrame
 from ..constants import Status
 from ..utils.formatters import (
     format_name,
-    format_to_qa_count_badge,
+    format_status_badges,
     get_short_date,
 )
 from ..utils.tags import TD, TH, TR, A, Div, NumTD, Table
@@ -150,7 +150,7 @@ def generate_board_table(
 
             # status
             tr.append(TD(
-                f"{item.status.name}{format_to_qa_count_badge(item)}", **{
+                f"{item.status.name}{format_status_badges(item)}", **{
                     **status_attrs,
                     "title": item.status.name,
                 },

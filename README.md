@@ -11,6 +11,7 @@ SERVER_URL=""
 EMAIL=""
 API_TOKEN=""
 JIRA_TO_QA_COUNTER_FIELD_ID=""
+JIRA_LAST_STATUS_CHANGE_TIME_FIELD_ID=""
 ```
 
 API token: https://id.atlassian.com/manage-profile/security/api-tokens

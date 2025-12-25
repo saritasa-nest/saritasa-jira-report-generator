@@ -1,7 +1,7 @@
 from pandas import DataFrame
 
 from ..constants import Status
-from ..utils.formatters import format_to_qa_count_badge
+from ..utils.formatters import format_status_badges
 from ..utils.tags import TD, TH, TR, A, NumTD, Table
 
 
@@ -57,7 +57,7 @@ def generate_stories_table(
         row.append(TD(story.summary, **{"class": "summary"}))
         row.append(TD(A(story.key, href=story.link), **{"class": "key"}))
         row.append(TD(
-            f"{story.status}{format_to_qa_count_badge(story)}",
+            f"{story.status}{format_status_badges(story)}",
             **{"class": "status"},
         ))
         row.append(NumTD(story_tasks.id.count()))

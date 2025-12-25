@@ -3,6 +3,10 @@ from enum import Enum
 from decouple import config
 
 TO_QA_COUNTER_FIELD_ID = config("JIRA_TO_QA_COUNTER_FIELD_ID", default="")
+LAST_STATUS_CHANGE_TIME_FIELD_ID = config(
+    "JIRA_LAST_STATUS_CHANGE_TIME_FIELD_ID",
+    default="",
+)
 
 JIRA_FETCH_FIELDS = [
     "status",
@@ -15,6 +19,7 @@ JIRA_FETCH_FIELDS = [
     "issuetype",
     "parent",
     TO_QA_COUNTER_FIELD_ID,
+    LAST_STATUS_CHANGE_TIME_FIELD_ID,
 ]
 
 MAX_THREADS_COUNT = 4

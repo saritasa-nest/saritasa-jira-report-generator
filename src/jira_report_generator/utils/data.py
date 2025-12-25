@@ -1,11 +1,18 @@
+import datetime
 from typing import Any
 
 from jinja2 import Template
 from jira import Issue
 from jira.resources import Board
 from pandas import DataFrame
+from dateutil.parser import isoparse
 
-from ..constants import Status, TO_QA_COUNTER_FIELD_ID, Type
+from ..constants import (
+    LAST_STATUS_CHANGE_TIME_FIELD_ID,
+    Status,
+    TO_QA_COUNTER_FIELD_ID,
+    Type,
+)
 from .formatters import get_issue_permalink
 from .tags import Table
 
@@ -68,6 +75,7 @@ def get_dataframe(
             "to_qa_count": int(
                 float(getattr(item.fields, TO_QA_COUNTER_FIELD_ID) or 0),
             ) if TO_QA_COUNTER_FIELD_ID else 0,
+            "last_status_change_time": get_issue_last_status_change_time(item),
         })
 
     return DataFrame(result)
@@ -280,3 +288,39 @@ def is_task_version(
 ) -> bool:
     """Check if a task belongs to the specified version."""
     return version in task_versions
+
+
+def get_issue_last_status_change_time(issue) -> datetime.datetime | None:
+    """Return an issue's last status change time."""
+    if not LAST_STATUS_CHANGE_TIME_FIELD_ID:
+        return None
+    last_status_change_raw = getattr(
+        issue.fields,
+        LAST_STATUS_CHANGE_TIME_FIELD_ID,
+        None,
+    )
+    if not last_status_change_raw:
+        return None
+
+    last_status_change_time = None
+    try:
+        if isinstance(last_status_change_raw, str):
+            last_status_change_time = isoparse(
+                last_status_change_raw,
+            )
+        elif isinstance(
+                last_status_change_raw,
+                datetime.datetime,
+        ):
+            last_status_change_time = last_status_change_raw
+        if (
+                last_status_change_time
+                and last_status_change_time.tzinfo is None
+        ):
+            return (
+                last_status_change_time.replace(
+                    tzinfo=datetime.timezone.utc,
+                )
+            )
+    except Exception:
+        return None
