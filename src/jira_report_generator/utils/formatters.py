@@ -26,7 +26,7 @@ def format_to_qa_count_badge(
 ) -> str:
     """Render QA count badge."""
     to_qa_count = getattr(issue, "to_qa_count", 0) or 0
-    if to_qa_count >= 2:
+    if issue.status.name in Status.IN_QA.value and to_qa_count >= 2:
         return _format_status_badge(
             str(to_qa_count),
             extra_styles={
