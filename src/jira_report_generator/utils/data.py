@@ -309,18 +309,19 @@ def get_issue_last_status_change_time(issue) -> datetime.datetime | None:
                 last_status_change_raw,
             )
         elif isinstance(
-                last_status_change_raw,
-                datetime.datetime,
+            last_status_change_raw,
+            datetime.datetime,
         ):
             last_status_change_time = last_status_change_raw
         if (
-                last_status_change_time
-                and last_status_change_time.tzinfo is None
+            last_status_change_time
+            and last_status_change_time.tzinfo is None
         ):
             return (
                 last_status_change_time.replace(
                     tzinfo=datetime.timezone.utc,
                 )
             )
+        return last_status_change_time
     except Exception:
         return None

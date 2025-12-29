@@ -43,7 +43,7 @@ def format_last_status_change_badge(
 ) -> str:
     """Render last status change duration badge."""
     if issue.status.name not in (
-        Status.CODE_REVIEW.value,
+        *Status.CODE_REVIEW.value,
     ):
         return ""
     last_status_change_time = getattr(
@@ -181,10 +181,10 @@ def format_duration_days_hours(seconds: int) -> str:
     day_part = seconds // 86400
     hour_part = (seconds % 86400) // 3600
 
-    output = ""
+    parts = []
     if day_part > 0:
-        output += f"{day_part}d"
+        parts.append(f"{day_part}d")
     if hour_part > 0:
-        output += f"{hour_part}h"
+        parts.append(f"{hour_part}h")
 
-    return output
+    return " ".join(parts)
