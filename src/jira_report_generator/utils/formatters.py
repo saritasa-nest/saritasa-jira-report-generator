@@ -44,6 +44,7 @@ def format_last_status_change_badge(
     """Render last status change duration badge."""
     if issue.status.name not in (
         *Status.CODE_REVIEW.value,
+        *Status.IN_QA.value,
     ):
         return ""
     last_status_change_time = getattr(
