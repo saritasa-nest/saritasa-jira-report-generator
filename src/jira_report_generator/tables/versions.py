@@ -114,6 +114,7 @@ def generate_component_columns(
 def generate_versions_table(
     df: DataFrame,
     versions: list,
+    version_index_map: dict[int, list[int]] | None = None,
     **table_options: str,
 ):
     rows = []
@@ -162,15 +163,28 @@ def generate_versions_table(
     scrollable_header.append(scrollable_subheader)
 
     # body
+    index_set = set(df.index) if version_index_map is not None else None
     for version in versions:
         row = TR(**{DATA_ROW_VERSION_ID: version.id})
         scrollable_row = TR()
-        version_tasks = df[df["versions"].apply(
-            lambda task_versions, current_version=version: is_task_version(
-                version=current_version,
-                task_versions=task_versions,
+        if version_index_map is not None:
+            indices = [
+                index
+                for index in version_index_map.get(str(version.id), [])
+                if index in index_set
+            ]
+            version_tasks = (
+                df.loc[indices]
+                if indices
+                else df.iloc[0:0]
             )
-        )]
+        else:
+            version_tasks = df[df["versions"].apply(
+                lambda task_versions, current_version=version: is_task_version(
+                    version=current_version,
+                    task_versions=task_versions,
+                )
+            )]
         estimate = round(version_tasks.estimate.sum(), HOURS_NDIGITS)
         spent = round(version_tasks.spent.sum(), HOURS_NDIGITS)
         overtime = None

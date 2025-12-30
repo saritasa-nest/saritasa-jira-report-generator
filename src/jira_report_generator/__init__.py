@@ -8,6 +8,5 @@ from .utils.data import (
     filter_data_by_statuses,
     prepare_backlog_table_data,
     prepare_components_data,
-    prepare_issues_table_data,
     prepare_not_finished_statuses_data,
 )

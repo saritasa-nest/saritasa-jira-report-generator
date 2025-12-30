@@ -1,4 +1,3 @@
-import functools
 import itertools
 import logging
 import os
@@ -31,7 +30,8 @@ from .tables.stories import generate_stories_table
 from .tables.unclassified import generate_unclassified_table
 from .tables.versions import generate_versions_table
 from .utils.data import (
-    filter_by_board,
+    build_index_map,
+    build_value_index_map,
     filter_cancelled_issues,
     filter_data_by_statuses,
     filter_internal_issues,
@@ -44,7 +44,6 @@ from .utils.data import (
     prepare_backlog_table_data,
     prepare_cancelled_table_data,
     prepare_components_data,
-    prepare_issues_table_data,
     prepare_not_finished_statuses_data,
     prepare_unversioned_table_data,
 )
@@ -139,7 +138,7 @@ def get_board_issues_data(
     logger.info(f"Collected {len(sprints)} sprints(s)")
 
     with ThreadPoolExecutor(max_workers=MAX_THREADS_COUNT) as executor:
-        issues_for_sprint_func = functools.partial(
+        issues_for_sprint_func = partial(
             get_issues_by_sprint,
             project_key,
             jira_client,
@@ -180,7 +179,7 @@ def get_extra_data(
     logger.info(f"Collected {len(boards)} board(s)")
 
     with ThreadPoolExecutor(max_workers=MAX_THREADS_COUNT) as executor:
-        board_issues_data_func = functools.partial(
+        board_issues_data_func = partial(
             get_board_issues_data,
             jira_client,
             project_key,
@@ -333,6 +332,12 @@ def construct_tables(
     not_finished_statuses = prepare_not_finished_statuses_data(
         versioned_df,
     )
+    board_index_map = build_index_map(sprinted_df, "boards_ids")
+    version_index_map = build_index_map(issues_dataframe, "version_ids")
+    parent_index_map = build_value_index_map(
+        issues_dataframe,
+        "parent_id",
+    )
 
     # project table
     if not versioned_df.empty:
@@ -398,23 +403,36 @@ def construct_tables(
             generate_versions_table(
                 versioned_df,
                 versions,
+                version_index_map=version_index_map,
                 **{"class": "versions"},
             ),
         ))
 
         # version component tables
         logger.info("Generate Component tables")
+        version_component_index_map = build_index_map(
+            versioned_df,
+            "components",
+        )
         for component in prepare_components_data(versioned_df):
+            component_indices = version_component_index_map.get(component)
+            if not component_indices:
+                continue
+
+            component_issues_df = versioned_df.loc[component_indices]
+            component_issues_df = component_issues_df[
+                ~component_issues_df["status_name"].isin(
+                    Status.CANCELLED.value,
+                )
+            ]
+
             version_sections.append(Section(
                 H2(component),
                 generate_issues_table(
-                    prepare_issues_table_data(
-                        versioned_df,
-                        component,
-                        include_cancelled=False,
-                    ),
+                    component_issues_df,
                     versions,
                     component_id=component.id,
+                    version_index_map=version_index_map,
                     **{"class": "component"},
                 ),
             ))
@@ -430,6 +448,7 @@ def construct_tables(
                     cancelled_issues_df,
                     versions,
                     component_id="component-cancelled",
+                    version_index_map=version_index_map,
                     **{"class": "component component-cancelled hidden"},
                 ),
             ))
@@ -446,7 +465,13 @@ def construct_tables(
 
     # boards tab
     for board in boards:
-        board_issues_df = filter_by_board(sprinted_df, board["board"])
+        board_id = board["board"].id
+        board_indices = board_index_map.get(board_id, [])
+        board_issues_df = (
+            sprinted_df.loc[board_indices]
+            if board_indices
+            else sprinted_df.iloc[0:0]
+        )
         if board["sprints"] and not board_issues_df.empty:
             board_sections = []
             logger.info("Generate Sprints table")
@@ -463,12 +488,23 @@ def construct_tables(
 
             # board component tables
             logger.info("Generate Component tables")
+            board_component_index_map = build_index_map(
+                board_issues_df,
+                "components",
+            )
             for component in prepare_components_data(board_issues_df):
-                component_issues_df = prepare_issues_table_data(
-                    board_issues_df,
-                    component,
-                    include_cancelled=False,
-                )
+                component_indices = board_component_index_map.get(component)
+                if not component_indices:
+                    continue
+
+                component_issues_df = board_issues_df.loc[
+                    component_indices
+                ]
+                component_issues_df = component_issues_df[
+                    ~component_issues_df["status_name"].isin(
+                        Status.CANCELLED.value,
+                    )
+                ]
 
                 if component_issues_df.empty:
                     continue
@@ -527,6 +563,7 @@ def construct_tables(
             generate_epics_table(
                 issues_dataframe,
                 epics_dataframe,
+                parent_index_map=parent_index_map,
                 **{"class": "epics hidden"},
             ),
         ))
@@ -543,6 +580,7 @@ def construct_tables(
             generate_stories_table(
                 issues_dataframe,
                 stories_dataframe,
+                parent_index_map=parent_index_map,
                 **{"class": "stories hidden"},
             ),
         ))
@@ -602,7 +640,6 @@ def construct_tables(
                 **{"class": "cancelled hidden"},
             ),
         ))
-
     return tables
 
 

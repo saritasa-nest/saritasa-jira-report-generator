@@ -3,7 +3,6 @@ from typing import Any
 
 from jinja2 import Template
 from jira import Issue
-from jira.resources import Board
 from pandas import DataFrame
 from dateutil.parser import isoparse
 
@@ -44,6 +43,8 @@ def get_dataframe(
         extra = extra_data.get(item.id, {})
         boards = extra.get("boards", None)
         sprint = extra.get("sprint", None)
+        versions = item.fields.fixVersions or []
+        parent = getattr(item.fields, "parent", None)
 
         item_permalink = get_issue_permalink(
             jira_server_url,
@@ -64,10 +65,10 @@ def get_dataframe(
                 if spent and estimate
                 else 0
             ),
-            "versions": item.fields.fixVersions,
+            "versions": versions,
             "link": item_permalink,
             "type": item.fields.issuetype,
-            "parent": getattr(item.fields, "parent", None),
+            "parent": parent,
             "release_date": release_date[0] if release_date else None,
             "sprint_date": getattr(sprint, "endDate", "") if sprint else None,
             "boards_ids": [board.id for board in boards] if boards else [],
@@ -76,9 +77,54 @@ def get_dataframe(
                 float(getattr(item.fields, TO_QA_COUNTER_FIELD_ID) or 0),
             ) if TO_QA_COUNTER_FIELD_ID else 0,
             "last_status_change_time": get_issue_last_status_change_time(item),
+            "version_ids": [str(version.id) for version in versions],
+            "parent_id": str(parent.id) if parent else None,
         })
 
-    return DataFrame(result)
+    dataframe = DataFrame(result)
+
+    if dataframe.empty:
+        return dataframe
+
+    dataframe["status_name"] = dataframe["status"].apply(
+        lambda x: x.name,
+    )
+    dataframe["type_name"] = dataframe["type"].apply(
+        lambda x: x.name,
+    )
+    dataframe["components_len"] = dataframe["components"].apply(
+        lambda x: len(x) if x else 0,
+    )
+    dataframe["has_versions"] = dataframe["versions"].apply(
+        lambda x: len(x) > 0 if x else False,
+    )
+    dataframe["has_sprint"] = dataframe["sprint_id"].notna()
+
+    return dataframe
+
+
+def status_name_series(df: DataFrame):
+    if "status_name" in df.columns:
+        return df["status_name"]
+    return df["status"].apply(lambda x: x.name)
+
+
+def type_name_series(df: DataFrame):
+    if "type_name" in df.columns:
+        return df["type_name"]
+    return df["type"].apply(lambda x: x.name)
+
+
+def components_len_series(df: DataFrame):
+    if "components_len" in df.columns:
+        return df["components_len"]
+    return df["components"].apply(lambda x: len(x) if x else 0)
+
+
+def has_versions_series(df: DataFrame):
+    if "has_versions" in df.columns:
+        return df["has_versions"]
+    return df["versions"].apply(lambda x: len(x) > 0 if x else False)
 
 
 def get_versioned_issues(
@@ -141,42 +187,37 @@ def filter_data_by_statuses(df: DataFrame, statuses: list) -> DataFrame:
     if df.empty:
         return df
 
-    components = prepare_components_data(df)
+    components_len = components_len_series(df)
 
     # only with components
-    issues_with_components_df = df[df["components"].apply(
-        lambda x: len(x) > 0 and set(x).issubset(components),
-    )]
-
-    # return empty dataframe
-    if not statuses:
-        return DataFrame()
-
-    # filter by statuses
-    return issues_with_components_df[
-        issues_with_components_df["status"].apply(
-            lambda x: x in statuses
+    issues_with_components_df = df[
+        components_len.gt(0)
+        & df["components"].apply(
+            lambda x: all(
+                hasattr(component, "name") for component in x
+            ) if x else False,
         )
     ]
 
+    # return empty dataframe
+    if not statuses:
+        return issues_with_components_df.iloc[0:0]
 
-def prepare_issues_table_data(
-    issues_dataframe: DataFrame,
-    component: Any,
-    include_cancelled: bool = False,
-) -> DataFrame:
-    """Prepare initial data for issues table rendering."""
+    status_names = [
+        status if isinstance(status, str) else getattr(status, "name", None)
+        for status in statuses
+    ]
+    status_names = [status for status in status_names if status]
 
-    if not include_cancelled:
-        issues_dataframe = issues_dataframe[
-            issues_dataframe["status"].apply(
-                lambda x: x.name not in Status.CANCELLED.value,
-            )
+    if status_names:
+        return issues_with_components_df[
+            status_name_series(issues_with_components_df).isin(status_names)
         ]
 
-    return issues_dataframe[issues_dataframe["components"].apply(
-        lambda x: component in x,
-    )]
+    # filter by statuses (fallback for non-nameable status objects)
+    return issues_with_components_df[
+        issues_with_components_df["status"].isin(statuses)
+    ]
 
 
 def filter_cancelled_issues(
@@ -184,9 +225,7 @@ def filter_cancelled_issues(
 ) -> DataFrame:
     """Returns only cancelled issues."""
     return issues_dataframe[
-        issues_dataframe["status"].apply(
-            lambda x: x.name in Status.CANCELLED.value,
-        )
+        status_name_series(issues_dataframe).isin(Status.CANCELLED.value)
     ]
 
 
@@ -201,28 +240,24 @@ def filter_unclassified_issues(df: DataFrame) -> DataFrame:
     )
 
     return df[
-        df["components"].apply(lambda x: len(x) == 0)
-        & df["type"].apply(
-            lambda x: x.name not in [Type.EPIC.value, Type.STORY.value]
-        )
-        & df["status"].apply(lambda x: x.name not in to_skip_versions)
-    ]
+        components_len_series(df).eq(0)
+        & ~type_name_series(df).isin([Type.EPIC.value, Type.STORY.value])
+        & ~status_name_series(df).isin(to_skip_versions)
+        ]
 
 
 def filter_internal_issues(df: DataFrame) -> DataFrame:
     """Returns issues with status Internal."""
-    return df[df["status"].apply(
-        lambda x: x.name in Status.INTERNAL.value,
-    )]
+    return df[status_name_series(df).isin(Status.INTERNAL.value)]
 
 
 def prepare_backlog_table_data(df: DataFrame) -> DataFrame:
     """Prepare initial data for backlog table rendering."""
     return df[
-        df["status"].apply(lambda x: x.name in Status.BACKLOG.value)
+        status_name_series(df).isin(Status.BACKLOG.value)
         & df["sprint_id"].isna()
-        & df["versions"].apply(lambda x: len(x) == 0)
-    ]
+        & ~has_versions_series(df)
+        ]
 
 
 def prepare_unversioned_table_data(df: DataFrame) -> DataFrame:
@@ -230,22 +265,17 @@ def prepare_unversioned_table_data(df: DataFrame) -> DataFrame:
     to_skip_versions = (
         *Status.BACKLOG.value,
     )
-    df = df[df["status"].apply(lambda x: x.name not in to_skip_versions)]
-    df = df[df["type"].apply(
-        lambda x: x.name not in [
-            Type.EPIC.value,
-            Type.STORY.value,
-        ]
+    df = df[~status_name_series(df).isin(to_skip_versions)]
+    df = df[~type_name_series(df).isin(
+        [Type.EPIC.value, Type.STORY.value]
     )]
 
-    return df[df["versions"].apply(lambda x: len(x) == 0)]
+    return df[~has_versions_series(df)]
 
 
 def prepare_cancelled_table_data(df: DataFrame) -> DataFrame:
     """Prepare data for cancelled issues table rendering."""
-    return df[df["status"].apply(
-        lambda x: x.name in Status.CANCELLED.value,
-    )]
+    return df[status_name_series(df).isin(Status.CANCELLED.value)]
 
 
 def get_epics(df: DataFrame) -> DataFrame:
@@ -254,9 +284,7 @@ def get_epics(df: DataFrame) -> DataFrame:
     if df.empty:
         return df
 
-    return df[df["type"].apply(
-        lambda x: x.name == Type.EPIC.value,
-    )]
+    return df[type_name_series(df).eq(Type.EPIC.value)]
 
 
 def get_stories(df: DataFrame) -> DataFrame:
@@ -265,21 +293,47 @@ def get_stories(df: DataFrame) -> DataFrame:
     if df.empty:
         return df
 
-    return df[df["type"].apply(
-        lambda x: x.name == Type.STORY.value,
-    )]
+    return df[type_name_series(df).eq(Type.STORY.value)]
 
 
-def filter_by_board(df: DataFrame, board: Board) -> DataFrame:
-    """Filter issues by board"""
-    board_id = getattr(board, "id", None)
+def build_index_map(
+    df: DataFrame,
+    column: str,
+) -> dict[Any, list[int]]:
+    """Build an index map for exploded list-like columns."""
+    if df.empty or column not in df.columns:
+        return {}
 
-    if df.empty or not board_id:
-        return df
+    exploded = df[column].explode().dropna()
 
-    return df[df["boards_ids"].apply(
-        lambda x: board_id in x,
-    )]
+    if exploded.empty:
+        return {}
+
+    index_map: dict[Any, list[int]] = {}
+    for index, value in exploded.items():
+        index_map.setdefault(value, []).append(index)
+
+    return index_map
+
+
+def build_value_index_map(
+    df: DataFrame,
+    column: str,
+) -> dict[Any, list[int]]:
+    """Build an index map for scalar columns."""
+    if df.empty or column not in df.columns:
+        return {}
+
+    series = df[column].dropna()
+
+    if series.empty:
+        return {}
+
+    index_map: dict[Any, list[int]] = {}
+    for index, value in series.items():
+        index_map.setdefault(value, []).append(index)
+
+    return index_map
 
 
 def is_task_version(

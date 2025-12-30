@@ -1,14 +1,16 @@
 from pandas import DataFrame
 
 from ..constants import Status
+from ..utils.data import status_name_series
 from ..utils.formatters import format_status_badges
 from ..utils.tags import TD, TH, TR, A, NumTD, Table
 
 
 def generate_stories_table(
-        df: DataFrame,
-        stories: DataFrame,
-        **table_options: str,
+    df: DataFrame,
+    stories: DataFrame,
+    parent_index_map: dict[str, list[int]] | None = None,
+    **table_options: str,
 ):
     rows = []
     header = TR()
@@ -16,7 +18,6 @@ def generate_stories_table(
     if stories.empty:
         return Table(rows, **table_options)
 
-    stories_list = list(stories.iterrows())
     completed_statuses = (
         *Status.IN_REVIEW.value,
         *Status.COMPLETED.value,
@@ -39,17 +40,24 @@ def generate_stories_table(
 
     rows.append(header)
 
-    for _, story in stories_list:
+    for _, story in stories.iterrows():
         row = TR(**{"data-story-id": story.id})
-        story_tasks = df[df["parent"].apply(
-            lambda x: x is not None and x.id == story.id,
-        )]
-        story_completed_tasks = story_tasks[story_tasks["status"].apply(
-            lambda x: x.name in completed_statuses,
-        )]
-        story_qa_tasks = story_tasks[story_tasks["status"].apply(
-            lambda x: x.name in qa_statuses,
-        )]
+        if parent_index_map is not None:
+            indices = parent_index_map.get(str(story.id), [])
+            story_tasks = (
+                df.loc[indices]
+                if indices
+                else df.iloc[0:0]
+            )
+        else:
+            story_tasks = df[df["parent"].apply(
+                lambda x: x is not None and x.id == story.id,
+            )]
+
+        status_series = status_name_series(story_tasks)
+        tasks_count = len(story_tasks)
+        completed_count = int(status_series.isin(completed_statuses).sum())
+        qa_count = int(status_series.isin(qa_statuses).sum())
         estimate = round(story_tasks.estimate.sum(), 1)
         spent = round(story_tasks.spent.sum(), 1)
         left = round(estimate - spent, 1)
@@ -60,24 +68,13 @@ def generate_stories_table(
             f"{story.status}{format_status_badges(story)}",
             **{"class": "status"},
         ))
-        row.append(NumTD(story_tasks.id.count()))
-        row.append(NumTD(
-            story_qa_tasks.id.count()
-            if not story_qa_tasks.empty
-            else 0,
-        ))
-        row.append(NumTD(
-            story_completed_tasks.id.count()
-            if not story_completed_tasks.empty
-            else 0,
-        ))
+        row.append(NumTD(tasks_count))
+        row.append(NumTD(qa_count))
+        row.append(NumTD(completed_count))
         row.append(NumTD(estimate))
         row.append(NumTD(spent))
         row.append(NumTD(left if left > 0 else 0))
 
         rows.append(row)
-
-    if not stories_list:
-        rows = []
 
     return Table(rows, **table_options)

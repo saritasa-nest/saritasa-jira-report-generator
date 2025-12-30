@@ -14,6 +14,7 @@ def generate_issues_table(
     df: DataFrame,
     versions: list,
     component_id: str,
+    version_index_map: dict[int, list[int]] | None = None,
     **table_options: str,
 ):
     rows = []
@@ -51,15 +52,28 @@ def generate_issues_table(
     # scrollable subheader
     scrollable_subheader = TR(**{"class": "h25"})
     tasks_by_versions = {}
+    component_index_set = set(df.index)
     for version in versions:
-        version_tasks = df[
-            df["versions"].apply(
-                lambda task_versions, current_version=version: is_task_version(
-                    version=current_version,
-                    task_versions=task_versions,
-                )
+        if version_index_map is not None:
+            indices = [
+                index
+                for index in version_index_map.get(str(version.id), [])
+                if index in component_index_set
+            ]
+            version_tasks = (
+                df.loc[indices]
+                if indices
+                else df.iloc[0:0]
             )
-        ]
+        else:
+            version_tasks = df[
+                df["versions"].apply(
+                    lambda task_versions, current_version=version: is_task_version(
+                        version=current_version,
+                        task_versions=task_versions,
+                    )
+                )
+            ]
         tasks_by_versions[version] = version_tasks
         estimate = round(version_tasks.estimate.sum(), 1)
         spent = round(version_tasks.spent.sum(), 1)

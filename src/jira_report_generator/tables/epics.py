@@ -1,14 +1,16 @@
 from pandas import DataFrame
 
 from ..constants import Status
+from ..utils.data import status_name_series
 from ..utils.formatters import format_status_badges
 from ..utils.tags import TD, TH, TR, A, NumTD, Table
 
 
 def generate_epics_table(
-        df: DataFrame,
-        epics: DataFrame,
-        **table_options: str,
+    df: DataFrame,
+    epics: DataFrame,
+    parent_index_map: dict[str, list[int]] | None = None,
+    **table_options: str,
 ):
     rows = []
     header = TR()
@@ -16,7 +18,6 @@ def generate_epics_table(
     if epics.empty:
         return Table(rows, **table_options)
 
-    epics_list = list(epics.iterrows())
     completed_statuses = (
         *Status.IN_REVIEW.value,
         *Status.COMPLETED.value,
@@ -39,17 +40,24 @@ def generate_epics_table(
 
     rows.append(header)
 
-    for _, epic in epics_list:
+    for _, epic in epics.iterrows():
         row = TR(**{"data-epic-id": epic.id})
-        epic_tasks = df[df["parent"].apply(
-            lambda x: x is not None and x.id == epic.id,
-        )]
-        epic_completed_tasks = epic_tasks[epic_tasks["status"].apply(
-            lambda x: x.name in completed_statuses,
-        )]
-        epic_qa_tasks = epic_tasks[epic_tasks["status"].apply(
-            lambda x: x.name in qa_statuses,
-        )]
+        if parent_index_map is not None:
+            indices = parent_index_map.get(str(epic.id), [])
+            epic_tasks = (
+                df.loc[indices]
+                if indices
+                else df.iloc[0:0]
+            )
+        else:
+            epic_tasks = df[df["parent"].apply(
+                lambda x: x is not None and x.id == epic.id,
+            )]
+
+        status_series = status_name_series(epic_tasks)
+        tasks_count = len(epic_tasks)
+        completed_count = int(status_series.isin(completed_statuses).sum())
+        qa_count = int(status_series.isin(qa_statuses).sum())
         estimate = round(epic_tasks.estimate.sum(), 1)
         spent = round(epic_tasks.spent.sum(), 1)
         left = round(estimate - spent, 1)
@@ -60,24 +68,13 @@ def generate_epics_table(
             f"{epic.status}{format_status_badges(epic)}",
             **{"class": "status"},
         ))
-        row.append(NumTD(epic_tasks.id.count()))
-        row.append(NumTD(
-            epic_qa_tasks.id.count()
-            if not epic_qa_tasks.empty
-            else 0,
-        ))
-        row.append(NumTD(
-            epic_completed_tasks.id.count()
-            if not epic_completed_tasks.empty
-            else 0,
-        ))
+        row.append(NumTD(tasks_count))
+        row.append(NumTD(qa_count))
+        row.append(NumTD(completed_count))
         row.append(NumTD(estimate))
         row.append(NumTD(spent))
         row.append(NumTD(left if left > 0 else 0))
 
         rows.append(row)
-
-    if not epics_list:
-        rows = []
 
     return Table(rows, **table_options)
