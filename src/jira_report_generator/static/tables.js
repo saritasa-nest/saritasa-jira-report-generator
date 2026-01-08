@@ -743,6 +743,8 @@ function initTables(projectId) {
   applyTableDisplayingSettings("cancelled");
   applyTableDisplayingSettings("component-cancelled");
   applyTableDisplayingSettings("board-component-cancelled");
+  applyTableDisplayingSettings("component-unclassified");
+  applyTableDisplayingSettings("board-component-unclassified");
 }
 
 export { initTables };

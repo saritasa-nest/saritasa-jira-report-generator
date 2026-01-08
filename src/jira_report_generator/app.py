@@ -41,6 +41,7 @@ from .utils.data import (
     get_sprinted_issues,
     get_stories,
     get_versioned_issues,
+    has_versions_series,
     prepare_backlog_table_data,
     prepare_cancelled_table_data,
     prepare_components_data,
@@ -325,7 +326,12 @@ def construct_tables(
     versioned_df = get_versioned_issues(issues_dataframe, versions)
     unversioned_df = prepare_unversioned_table_data(issues_dataframe)
     sprinted_df = get_sprinted_issues(issues_dataframe)
-    unclassified_df = filter_unclassified_issues(issues_dataframe)
+    unclassified_df = filter_unclassified_issues(
+        issues_dataframe[
+            issues_dataframe["sprint_id"].isna()
+            & ~has_versions_series(issues_dataframe)
+        ]
+    )
     internal_df = filter_internal_issues(issues_dataframe)
     backlog_df = prepare_backlog_table_data(issues_dataframe)
     cancelled_df = prepare_cancelled_table_data(issues_dataframe)
@@ -345,10 +351,10 @@ def construct_tables(
         tables.append(Section(
             H2("Project"),
             generate_project_table(
-                versioned_df,
-                internal_df,
-                unversioned_df,
-                backlog_df,
+                versioned_df=versioned_df,
+                internal_df=internal_df,
+                unversioned_df=unversioned_df,
+                backlog_df=backlog_df,
                 **{"class": "project"},
             ),
         ))
@@ -453,6 +459,29 @@ def construct_tables(
                 ),
             ))
 
+        version_unclassified_issues = filter_unclassified_issues(versioned_df)
+        if not version_unclassified_issues.empty:
+            version_sections.append(
+                Section(
+                    H2(
+                        "Unclassified",
+                        **{
+                            "id": "component-unclassified",
+                            "class": "table-title",
+                        },
+                    ),
+                    generate_issues_table(
+                        version_unclassified_issues,
+                        versions,
+                        component_id="component-unclassified",
+                        version_index_map=version_index_map,
+                        **{
+                            "class": "component component-unclassified hidden",
+                        },
+                    ),
+                ),
+            )
+
         tabs_content.append((
             "".join(map(str, version_sections)),
             VERSIONS_TAB_ID,
@@ -533,6 +562,30 @@ def construct_tables(
                     **{"class": "component board-component-cancelled hidden"},
                 ),
             ))
+
+            board_unclassified_issues = filter_unclassified_issues(
+                board_issues_df,
+            )
+            if not board_unclassified_issues.empty:
+                board_sections.append(
+                    Section(
+                        H2(
+                            "Unclassified",
+                            **{
+                                "id": "board-component-unclassified",
+                                "class": "table-title",
+                            },
+                        ),
+                        generate_board_table(
+                            board_unclassified_issues,
+                            board["sprints"],
+                            component_id="unclassified",
+                            **{
+                                "class": "component board-component-unclassified hidden",
+                            },
+                        ),
+                    ),
+                )
 
             tabs_content.append((
                 "".join(map(str, board_sections)),
@@ -627,7 +680,7 @@ def construct_tables(
             ),
         ))
 
-    # backlog table
+    # canceled table
     if not cancelled_df.empty:
         logger.info("Generate Cancelled table")
         tables.append(Section(
