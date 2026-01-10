@@ -443,22 +443,6 @@ def construct_tables(
                 ),
             ))
 
-        cancelled_issues_df = filter_cancelled_issues(versioned_df)
-        if not cancelled_issues_df.empty:
-            version_sections.append(Section(
-                H2("Cancelled", **{
-                    "id": "component-cancelled",
-                    "class": "table-title",
-                }),
-                generate_issues_table(
-                    cancelled_issues_df,
-                    versions,
-                    component_id="component-cancelled",
-                    version_index_map=version_index_map,
-                    **{"class": "component component-cancelled hidden"},
-                ),
-            ))
-
         version_unclassified_issues = filter_unclassified_issues(versioned_df)
         if not version_unclassified_issues.empty:
             version_sections.append(
@@ -476,11 +460,27 @@ def construct_tables(
                         component_id="component-unclassified",
                         version_index_map=version_index_map,
                         **{
-                            "class": "component component-unclassified hidden",
+                            "class": "component component-unclassified",
                         },
                     ),
                 ),
             )
+
+        cancelled_issues_df = filter_cancelled_issues(versioned_df)
+        if not cancelled_issues_df.empty:
+            version_sections.append(Section(
+                H2("Cancelled", **{
+                    "id": "component-cancelled",
+                    "class": "table-title",
+                }),
+                generate_issues_table(
+                    cancelled_issues_df,
+                    versions,
+                    component_id="component-cancelled",
+                    version_index_map=version_index_map,
+                    **{"class": "component component-cancelled hidden"},
+                ),
+            ))
 
         tabs_content.append((
             "".join(map(str, version_sections)),
@@ -548,21 +548,6 @@ def construct_tables(
                     ),
                 ))
 
-            board_sections.append(Section(
-                H2("Cancelled", **{
-                    "id": "board-component-cancelled",
-                    "class": "table-title",
-                }),
-                generate_board_table(
-                    filter_cancelled_issues(
-                        board_issues_df,
-                    ),
-                    board["sprints"],
-                    component_id="cancelled",
-                    **{"class": "component board-component-cancelled hidden"},
-                ),
-            ))
-
             board_unclassified_issues = filter_unclassified_issues(
                 board_issues_df,
             )
@@ -581,11 +566,26 @@ def construct_tables(
                             board["sprints"],
                             component_id="unclassified",
                             **{
-                                "class": "component board-component-unclassified hidden",
+                                "class": "component board-component-unclassified",
                             },
                         ),
                     ),
                 )
+
+            board_sections.append(Section(
+                H2("Cancelled", **{
+                    "id": "board-component-cancelled",
+                    "class": "table-title",
+                }),
+                generate_board_table(
+                    filter_cancelled_issues(
+                        board_issues_df,
+                    ),
+                    board["sprints"],
+                    component_id="cancelled",
+                    **{"class": "component board-component-cancelled hidden"},
+                ),
+            ))
 
             tabs_content.append((
                 "".join(map(str, board_sections)),

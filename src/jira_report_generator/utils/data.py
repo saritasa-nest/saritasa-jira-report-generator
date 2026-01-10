@@ -241,7 +241,6 @@ def filter_unclassified_issues(df: DataFrame) -> DataFrame:
 
     return df[
         components_len_series(df).eq(0)
-        & ~type_name_series(df).isin([Type.EPIC.value, Type.STORY.value])
         & ~status_name_series(df).isin(to_skip_versions)
         ]
 
