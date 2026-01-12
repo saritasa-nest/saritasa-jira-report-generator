@@ -6,11 +6,12 @@ HOURS_NDIGITS = 1
 
 
 def generate_project_table(
-        versioned_df: DataFrame,
-        internal_df: DataFrame,
-        unversioned_df: DataFrame,
-        backlog_df: DataFrame,
-        **table_options: str,
+    versioned_df: DataFrame,
+    internal_df: DataFrame,
+    unversioned_df: DataFrame,
+    backlog_df: DataFrame,
+    other_df: DataFrame,
+    **table_options: str,
 ):
     rows = []
 
@@ -24,91 +25,31 @@ def generate_project_table(
 
     rows.append(header)
 
-    # versioned row
-    versioned_row = TR()
-    versioned_count = versioned_df.id.count()
-    versioned_estimate = versioned_df.estimate.sum()
-    versioned_spent = versioned_df.spent.sum()
-    versioned_left = versioned_estimate - versioned_spent
+    count_sum = 0
+    estimate_sum = 0.0
+    spent_sum = 0.0
+    left_sum = 0.0
 
-    versioned_row.append(TD("Versioned"))
-    versioned_row.append(NumTD(versioned_count))
-    versioned_row.append(NumTD(round(versioned_estimate, HOURS_NDIGITS)))
-    versioned_row.append(NumTD(round(versioned_spent, HOURS_NDIGITS)))
-    versioned_row.append(NumTD(round(versioned_left, HOURS_NDIGITS)))
+    for label, category_df in (
+        ("Versioned", versioned_df),
+        ("Internal", internal_df),
+        ("Unversioned", unversioned_df),
+        ("Backlog", backlog_df),
+        ("Other", other_df),
+    ):
+        count, estimate, spent, left = _get_row_stats(category_df)
+        count_sum += count
+        estimate_sum += estimate
+        spent_sum += spent
+        left_sum += left
 
-    rows.append(versioned_row)
-
-    # internal row
-    internal_row = TR()
-    internal_count = internal_df.id.count()
-    internal_estimate = internal_df.estimate.sum()
-    internal_spent = internal_df.spent.sum()
-    internal_left = internal_estimate - internal_spent
-
-    internal_row.append(TD("Internal"))
-    internal_row.append(NumTD(internal_count))
-    internal_row.append(NumTD(round(internal_estimate, HOURS_NDIGITS)))
-    internal_row.append(NumTD(round(internal_spent, HOURS_NDIGITS)))
-    internal_row.append(NumTD(round(internal_left, HOURS_NDIGITS)))
-
-    rows.append(internal_row)
-
-    # unversioned row
-    unversioned_row = TR()
-    unversioned_count = unversioned_df.id.count()
-    unversioned_estimate = unversioned_df.estimate.sum()
-    unversioned_spent = unversioned_df.spent.sum()
-    unversioned_left = unversioned_estimate - unversioned_spent
-
-    unversioned_row.append(TD("Unversioned"))
-    unversioned_row.append(NumTD(unversioned_count))
-    unversioned_row.append(NumTD(round(unversioned_estimate, HOURS_NDIGITS)))
-    unversioned_row.append(NumTD(round(unversioned_spent, HOURS_NDIGITS)))
-    unversioned_row.append(NumTD(round(unversioned_left, HOURS_NDIGITS)))
-
-    rows.append(unversioned_row)
-
-    # backlog row
-    backlog_row = TR()
-    backlog_count = backlog_df.id.count()
-    backlog_estimate = backlog_df.estimate.sum()
-    backlog_spent = backlog_df.spent.sum()
-    backlog_left = backlog_estimate - backlog_spent
-
-    backlog_row.append(TD("Backlog"))
-    backlog_row.append(NumTD(backlog_count))
-    backlog_row.append(NumTD(round(backlog_estimate, HOURS_NDIGITS)))
-    backlog_row.append(NumTD(round(backlog_spent, HOURS_NDIGITS)))
-    backlog_row.append(NumTD(round(backlog_left, HOURS_NDIGITS)))
-
-    rows.append(backlog_row)
-
-    # table footer
-    count_sum = (
-        versioned_count
-        + unversioned_count
-        + backlog_count
-        + internal_count
-    )
-    estimate_sum = (
-        versioned_estimate
-        + unversioned_estimate
-        + backlog_estimate
-        + internal_estimate
-    )
-    spent_sum = (
-        versioned_spent
-        + unversioned_spent
-        + backlog_spent
-        + internal_spent
-    )
-    left_sum = (
-        versioned_left
-        + unversioned_left
-        + backlog_left
-        + internal_left
-    )
+        row = TR()
+        row.append(TD(label))
+        row.append(NumTD(count))
+        row.append(NumTD(round(estimate, HOURS_NDIGITS)))
+        row.append(NumTD(round(spent, HOURS_NDIGITS)))
+        row.append(NumTD(round(left, HOURS_NDIGITS)))
+        rows.append(row)
 
     row = TR(**{"class": "summary"})
     row.append(TD("Summary"))
@@ -120,3 +61,11 @@ def generate_project_table(
     rows.append(row)
 
     return Table(rows, **table_options)
+
+
+def _get_row_stats(df: DataFrame) -> tuple[int, float, float, float]:
+    count = df.id.count()
+    estimate = df.estimate.sum()
+    spent = df.spent.sum()
+    left = estimate - spent
+    return count, estimate, spent, left

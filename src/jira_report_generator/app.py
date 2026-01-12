@@ -335,6 +335,13 @@ def construct_tables(
     internal_df = filter_internal_issues(issues_dataframe)
     backlog_df = prepare_backlog_table_data(issues_dataframe)
     cancelled_df = prepare_cancelled_table_data(issues_dataframe)
+    other_df = issues_dataframe.loc[
+        issues_dataframe.index.difference(
+            versioned_df.index.union(internal_df.index)
+            .union(unversioned_df.index)
+            .union(backlog_df.index)
+        )
+    ]
     not_finished_statuses = prepare_not_finished_statuses_data(
         versioned_df,
     )
@@ -355,6 +362,7 @@ def construct_tables(
                 internal_df=internal_df,
                 unversioned_df=unversioned_df,
                 backlog_df=backlog_df,
+                other_df=other_df,
                 **{"class": "project"},
             ),
         ))
