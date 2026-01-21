@@ -4,11 +4,11 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
+from ..constants import HOURS_N_DECIMAL_PLACES
 from ..utils.data import is_task_version
 from ..utils.formatters import get_full_date, get_short_date
 from ..utils.tags import TD, TH, TR, A, Div, Input, NumTD, Table
 
-HOURS_NDIGITS = 1
 OVERTIME_NDIGITS = 2
 
 TASKS = "tasks"
@@ -62,11 +62,11 @@ def generate_component_columns(
 
         component_estimate = round(
             component_tasks.estimate.sum(),
-            HOURS_NDIGITS,
+            HOURS_N_DECIMAL_PLACES,
         )
         component_spent = round(
             component_tasks.spent.sum(),
-            HOURS_NDIGITS,
+            HOURS_N_DECIMAL_PLACES,
         )
         component_overtime = None
 
@@ -102,7 +102,7 @@ def generate_component_columns(
             round(predict_estimate(
                 component_estimate,
                 avg_component_overtime,
-            ), HOURS_NDIGITS)
+            ), HOURS_N_DECIMAL_PLACES)
             if avg_component_overtime
             else "",
             title=f"{component_estimate}*{avg_component_overtime}",
@@ -185,8 +185,8 @@ def generate_versions_table(
                     task_versions=task_versions,
                 )
             )]
-        estimate = round(version_tasks.estimate.sum(), HOURS_NDIGITS)
-        spent = round(version_tasks.spent.sum(), HOURS_NDIGITS)
+        estimate = round(version_tasks.estimate.sum(), HOURS_N_DECIMAL_PLACES)
+        spent = round(version_tasks.spent.sum(), HOURS_N_DECIMAL_PLACES)
         overtime = None
         avg_overtime = None
         start_date = getattr(version, "startDate", "")
@@ -256,7 +256,7 @@ def generate_versions_table(
             round(predict_estimate(
                 estimate,
                 avg_overtime,
-            ), HOURS_NDIGITS)
+            ), HOURS_N_DECIMAL_PLACES)
             if avg_overtime
             else "",
             title=f"{estimate}*{avg_overtime}",
@@ -298,8 +298,8 @@ def generate_versions_table(
 
     # footer
     row = TR(**{"class": "summary"})
-    estimate = round(df.estimate.sum(), HOURS_NDIGITS)
-    spent = round(df.spent.sum(), HOURS_NDIGITS)
+    estimate = round(df.estimate.sum(), HOURS_N_DECIMAL_PLACES)
+    spent = round(df.spent.sum(), HOURS_N_DECIMAL_PLACES)
     avg_overtime = calculate_avg_overtime(overtimes)
 
     row.append(TD(""))
@@ -321,7 +321,7 @@ def generate_versions_table(
         round(predict_estimate(
             estimate,
             avg_overtime,
-        ), HOURS_NDIGITS) or "",
+        ), HOURS_N_DECIMAL_PLACES) or "",
         title=f"{estimate}*{avg_overtime}",
     ))
 

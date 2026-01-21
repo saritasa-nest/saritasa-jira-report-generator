@@ -1,3 +1,4 @@
+import collections.abc
 import itertools
 import logging
 import os
@@ -24,6 +25,7 @@ from .tables.epics import generate_epics_table
 from .tables.internal import generate_internal_table
 from .tables.issues import generate_issues_table
 from .tables.project import generate_project_table
+from .tables.resource_allocation import generate_resource_allocation_table, ResourceAllocation
 from .tables.sprints import generate_sprints_table
 from .tables.statuses import generate_statuses_table
 from .tables.stories import generate_stories_table
@@ -311,6 +313,7 @@ def construct_tables(
     issues_dataframe: DataFrame,
     versions: list,
     boards: list,
+    resources_allocation: collections.abc.Collection[ResourceAllocation] | None = None,
     show_sprint_limit_column: bool = True,
     show_project_budget_column: bool = True,
 ) -> list[Section | Div]:
@@ -366,6 +369,16 @@ def construct_tables(
                 **{"class": "project"},
             ),
         ))
+
+    # resources allocation table
+    if resources_allocation:
+        logger.info("Generate Resources allocation table")
+        tables.append(
+            Section(
+                H2("Resources allocation"),
+                generate_resource_allocation_table(resources_allocation),
+            ),
+        )
 
     # statuses and assignees table
     statuses_and_assignees_table_df = filter_data_by_statuses(

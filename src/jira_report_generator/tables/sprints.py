@@ -4,12 +4,10 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
-from ..constants import Status
-from ..utils.data import filter_data_by_statuses
+from ..constants import Status, HOURS_N_DECIMAL_PLACES
 from ..utils.formatters import get_short_date
 from ..utils.tags import TD, TH, TR, Abbr, Div, Input, NumTD, Table
 
-HOURS_NDIGITS = 1
 CPI_NDIGITS = 2
 
 TASKS = "tasks"
@@ -95,11 +93,11 @@ def generate_component_columns(
         affected_component_tasks = filter_affected(component_tasks)
         component_estimate = round(
             component_tasks.estimate.sum(),
-            HOURS_NDIGITS,
+            HOURS_N_DECIMAL_PLACES,
         )
         component_spent = round(
             component_tasks.spent.sum(),
-            HOURS_NDIGITS,
+            HOURS_N_DECIMAL_PLACES,
         )
         component_cpi = None
 
@@ -120,11 +118,11 @@ def generate_component_columns(
         if is_active_sprint:
             component_estimate = round(
                 affected_component_tasks.estimate.sum(),
-                HOURS_NDIGITS,
+                HOURS_N_DECIMAL_PLACES,
             )
             component_spent = round(
                 affected_component_tasks.spent.sum(),
-                HOURS_NDIGITS,
+                HOURS_N_DECIMAL_PLACES,
             )
 
         # calculate cpi only for non-summary rows
@@ -226,8 +224,8 @@ def generate_sprints_table(
         sprint_tasks = df[df["sprint_id"] == sprint.id]
         completed_sprint_tasks = filter_completed(sprint_tasks)
         affected_sprint_tasks = filter_affected(sprint_tasks)
-        estimate = round(sprint_tasks.estimate.sum(), HOURS_NDIGITS)
-        spent = round(sprint_tasks.spent.sum(), HOURS_NDIGITS)
+        estimate = round(sprint_tasks.estimate.sum(), HOURS_N_DECIMAL_PLACES)
+        spent = round(sprint_tasks.spent.sum(), HOURS_N_DECIMAL_PLACES)
         sprint_cpi = None
         avg_cpi = None
         start_date = getattr(sprint, "startDate", "")
@@ -293,11 +291,11 @@ def generate_sprints_table(
         if sprint.state == ACTIVE:
             estimate = round(
                 affected_sprint_tasks.estimate.sum(),
-                HOURS_NDIGITS,
+                HOURS_N_DECIMAL_PLACES,
             )
             spent = round(
                 affected_sprint_tasks.spent.sum(),
-                HOURS_NDIGITS,
+                HOURS_N_DECIMAL_PLACES,
             )
             if spent and estimate:
                 sprint_cpi = estimate / spent
@@ -333,8 +331,8 @@ def generate_sprints_table(
 
     # footer
     row = TR(**{"class": "summary"})
-    estimate = round(df.estimate.sum(), HOURS_NDIGITS)
-    spent = round(df.spent.sum(), HOURS_NDIGITS)
+    estimate = round(df.estimate.sum(), HOURS_N_DECIMAL_PLACES)
+    spent = round(df.spent.sum(), HOURS_N_DECIMAL_PLACES)
     avg_cpi = calculate_avg_cpi(cpis)
 
     row.append(TD(""))

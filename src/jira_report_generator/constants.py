@@ -23,6 +23,7 @@ JIRA_FETCH_FIELDS = [
 ]
 
 MAX_THREADS_COUNT = 4
+HOURS_N_DECIMAL_PLACES = 1
 
 
 class Status(Enum):

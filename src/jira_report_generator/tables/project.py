@@ -1,8 +1,7 @@
 from pandas import DataFrame
 
+from ..constants import HOURS_N_DECIMAL_PLACES
 from ..utils.tags import TD, TH, TR, NumTD, Table
-
-HOURS_NDIGITS = 1
 
 
 def generate_project_table(
@@ -46,17 +45,17 @@ def generate_project_table(
         row = TR()
         row.append(TD(label))
         row.append(NumTD(count))
-        row.append(NumTD(round(estimate, HOURS_NDIGITS)))
-        row.append(NumTD(round(spent, HOURS_NDIGITS)))
-        row.append(NumTD(round(left, HOURS_NDIGITS)))
+        row.append(NumTD(round(estimate, HOURS_N_DECIMAL_PLACES)))
+        row.append(NumTD(round(spent, HOURS_N_DECIMAL_PLACES)))
+        row.append(NumTD(round(left, HOURS_N_DECIMAL_PLACES)))
         rows.append(row)
 
     row = TR(**{"class": "summary"})
     row.append(TD("Summary"))
     row.append(NumTD(count_sum))
-    row.append(NumTD(round(estimate_sum, HOURS_NDIGITS)))
-    row.append(NumTD(round(spent_sum, HOURS_NDIGITS)))
-    row.append(NumTD(round(left_sum, HOURS_NDIGITS)))
+    row.append(NumTD(round(estimate_sum, HOURS_N_DECIMAL_PLACES)))
+    row.append(NumTD(round(spent_sum, HOURS_N_DECIMAL_PLACES)))
+    row.append(NumTD(round(left_sum, HOURS_N_DECIMAL_PLACES)))
 
     rows.append(row)
 
