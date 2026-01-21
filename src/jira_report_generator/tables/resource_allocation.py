@@ -3,7 +3,7 @@ import typing
 
 from ..constants import HOURS_N_DECIMAL_PLACES
 from ..utils.colors import get_danger_color_class
-from ..utils.tags import TD, TH, TR, NumTD, Table
+from ..utils.tags import TD, TH, TR, NumTD, Table, Div
 
 
 class ResourceAllocation(typing.Protocol):
@@ -21,7 +21,7 @@ def generate_resource_allocation_table(
     rows = []
 
     # table header
-    header = TR()
+    header = TR(**{"class": "h50"})
     header.append(TH("Name"))
     header.append(TH("Assigned"))
     header.append(TH("Spent"))
@@ -112,4 +112,10 @@ def generate_resource_allocation_table(
 
     rows.append(row)
 
-    return Table(rows, **table_options)
+    return Div(
+        Div(
+            Table(rows, **table_options),
+            **{"class": "combined-left"},
+        ),
+        **{"class": "combined"},
+    )

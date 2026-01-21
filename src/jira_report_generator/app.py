@@ -27,7 +27,6 @@ from .tables.issues import generate_issues_table
 from .tables.project import generate_project_table
 from .tables.resource_allocation import generate_resource_allocation_table, ResourceAllocation
 from .tables.sprints import generate_sprints_table
-from .tables.statuses import generate_statuses_table
 from .tables.stories import generate_stories_table
 from .tables.unclassified import generate_unclassified_table
 from .tables.versions import generate_versions_table
@@ -375,36 +374,25 @@ def construct_tables(
         logger.info("Generate Resources allocation table")
         tables.append(
             Section(
-                H2("Resources allocation"),
+                H2("Resources"),
                 generate_resource_allocation_table(resources_allocation),
             ),
         )
-
-    # statuses and assignees table
-    statuses_and_assignees_table_df = filter_data_by_statuses(
-        versioned_df,
-        not_finished_statuses,
-    )
-    if not statuses_and_assignees_table_df.empty:
-        # statuses table
-        tables.append(Section(
-            H2("Statuses"),
-            generate_statuses_table(
-                statuses_and_assignees_table_df,
-                not_finished_statuses,
-                **{"class": "issues"},
-            ),
-        ))
-
+    else:
         # assignees table
-        tables.append(Section(
-            H2("Assignees"),
-            generate_assignees_table(
-                statuses_and_assignees_table_df,
-                issues_dataframe.assignee.explode().unique().tolist(),
-                **{"class": "assignees"},
-            ),
-        ))
+        assignees_table_df = filter_data_by_statuses(
+            versioned_df,
+            not_finished_statuses,
+        )
+        if not assignees_table_df.empty:
+            tables.append(Section(
+                H2("Assignees"),
+                generate_assignees_table(
+                    assignees_table_df,
+                    issues_dataframe.assignee.explode().unique().tolist(),
+                    **{"class": "assignees"},
+                ),
+            ))
 
     # prepare tabs header
     tabs_header: list[tuple[str, int]] = [
