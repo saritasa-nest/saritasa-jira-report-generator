@@ -177,8 +177,13 @@ def generate_board_table(
                         "data-sprint-id": str(sprint.id),
                     }
 
-                    spent_attrs = dict(attrs)
+                    spent_attrs = attrs.copy()
                     spent_attrs["class"] += " logged"
+                    estimate_attrs = attrs.copy()
+                    if item.development_estimate is not None:
+                        estimate_attrs["title"] = f"dev: {item.development_estimate}"
+                        if item.development_estimate > item.estimate:
+                            estimate_attrs["class"] += " danger"
 
                     if item.spent > item.estimate:
                         spent_attrs["class"] += " danger"
@@ -186,7 +191,7 @@ def generate_board_table(
                     scrollable_tr.append(
                         NumTD(
                             round(item.estimate, 1),
-                            **attrs,
+                            **estimate_attrs,
                         ),
                     )
                     scrollable_tr.append(
