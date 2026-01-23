@@ -48,7 +48,10 @@ def generate_resource_allocation_table(
             resource_allocation.spent_billable_hours,
             HOURS_N_DECIMAL_PLACES,
         )
-        remaining_hours = assigned_hours - spent_hours
+        remaining_hours = round(
+            assigned_hours - spent_hours,
+            HOURS_N_DECIMAL_PLACES,
+        )
         row = TR()
         row.append(TD(resource_allocation.user_name))
         row.append(NumTD(assigned_hours))
