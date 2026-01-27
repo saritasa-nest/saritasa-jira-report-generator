@@ -313,6 +313,7 @@ def construct_tables(
     versions: list,
     boards: list,
     resources_allocation: collections.abc.Collection[ResourceAllocation] | None = None,
+    jira_account_id_from_user_id: dict | None = None,
     show_sprint_limit_column: bool = True,
     show_project_budget_column: bool = True,
 ) -> list[Section | Div]:
@@ -369,21 +370,25 @@ def construct_tables(
             ),
         ))
 
+    assignees_table_df = filter_data_by_statuses(
+        versioned_df,
+        not_finished_statuses,
+    )
     # resources allocation table
     if resources_allocation:
         logger.info("Generate Resources allocation table")
         tables.append(
             Section(
                 H2("Resources"),
-                generate_resource_allocation_table(resources_allocation),
+                generate_resource_allocation_table(
+                    resources_allocation=resources_allocation,
+                    assignees_df=assignees_table_df,
+                    jira_account_id_by_user_id=jira_account_id_from_user_id or {},
+                ),
             ),
         )
     else:
         # assignees table
-        assignees_table_df = filter_data_by_statuses(
-            versioned_df,
-            not_finished_statuses,
-        )
         if not assignees_table_df.empty:
             tables.append(Section(
                 H2("Assignees"),
