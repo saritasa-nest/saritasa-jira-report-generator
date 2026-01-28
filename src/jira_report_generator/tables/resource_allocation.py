@@ -109,7 +109,7 @@ def generate_resource_allocation_table(
         if jira_account_id:
             user_issues = assignees_df[assignees_df["assignee"].apply(
                 lambda x: x.accountId == jira_account_id,
-            )]
+            )] if not assignees_df.empty else assignees_df.iloc[0:0]
             tasks_count = len(user_issues)
             estimated_hours = round(user_issues.estimate.sum(), HOURS_N_DECIMAL_PLACES)
         total_tasks_count += tasks_count
