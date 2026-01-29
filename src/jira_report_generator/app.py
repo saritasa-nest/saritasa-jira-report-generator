@@ -345,9 +345,6 @@ def construct_tables(
             .union(backlog_df.index)
         )
     ]
-    not_finished_statuses = prepare_not_finished_statuses_data(
-        versioned_df,
-    )
     board_index_map = build_index_map(sprinted_df, "boards_ids")
     version_index_map = build_index_map(issues_dataframe, "version_ids")
     parent_index_map = build_value_index_map(
@@ -370,8 +367,29 @@ def construct_tables(
             ),
         ))
 
+    assignees_source_df = issues_dataframe.loc[
+        versioned_df.index.union(sprinted_df.index)
+    ]
+    if "id" in assignees_source_df.columns:
+        assignees_source_df = assignees_source_df.drop_duplicates(
+            subset=["id"],
+            keep="first",
+        )
+    elif "key" in assignees_source_df.columns:
+        assignees_source_df = assignees_source_df.drop_duplicates(
+            subset=["key"],
+            keep="first",
+        )
+    else:
+        assignees_source_df = assignees_source_df[
+            ~assignees_source_df.index.duplicated(keep="first")
+        ]
+
+    not_finished_statuses = prepare_not_finished_statuses_data(
+        assignees_source_df,
+    )
     assignees_table_df = filter_data_by_statuses(
-        versioned_df,
+        assignees_source_df,
         not_finished_statuses,
     )
     # resources allocation table
