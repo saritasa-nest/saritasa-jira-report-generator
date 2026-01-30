@@ -32,6 +32,8 @@ from .tables.unclassified import generate_unclassified_table
 from .tables.versions import generate_versions_table
 from .utils.data import (
     build_index_map,
+    build_component_combo_id,
+    build_component_combo_index_map,
     build_value_index_map,
     filter_cancelled_issues,
     filter_data_by_statuses,
@@ -45,7 +47,6 @@ from .utils.data import (
     has_versions_series,
     prepare_backlog_table_data,
     prepare_cancelled_table_data,
-    prepare_components_data,
     prepare_not_finished_statuses_data,
     prepare_unversioned_table_data,
 )
@@ -448,12 +449,17 @@ def construct_tables(
 
         # version component tables
         logger.info("Generate Component tables")
-        version_component_index_map = build_index_map(
-            versioned_df,
-            "components",
+        version_component_combo_index_map, version_component_combo_title_map = (
+            build_component_combo_index_map(versioned_df)
         )
-        for component in prepare_components_data(versioned_df):
-            component_indices = version_component_index_map.get(component)
+        for component_ids in sorted(
+            version_component_combo_index_map.keys(),
+            key=lambda key: (
+                version_component_combo_title_map.get(key, ""),
+                key,
+            ),
+        ):
+            component_indices = version_component_combo_index_map.get(component_ids)
             if not component_indices:
                 continue
 
@@ -464,12 +470,15 @@ def construct_tables(
                 )
             ]
 
+            if component_issues_df.empty:
+                continue
+
             version_sections.append(Section(
-                H2(component),
+                H2(version_component_combo_title_map[component_ids]),
                 generate_issues_table(
                     component_issues_df,
                     versions,
-                    component_id=component.id,
+                    component_id=build_component_combo_id(component_ids),
                     version_index_map=version_index_map,
                     **{"class": "component"},
                 ),
@@ -549,18 +558,21 @@ def construct_tables(
 
             # board component tables
             logger.info("Generate Component tables")
-            board_component_index_map = build_index_map(
-                board_issues_df,
-                "components",
+            board_component_combo_index_map, board_component_combo_title_map = (
+                build_component_combo_index_map(board_issues_df)
             )
-            for component in prepare_components_data(board_issues_df):
-                component_indices = board_component_index_map.get(component)
+            for component_ids in sorted(
+                board_component_combo_index_map.keys(),
+                key=lambda key: (
+                    board_component_combo_title_map.get(key, ""),
+                    key,
+                ),
+            ):
+                component_indices = board_component_combo_index_map.get(component_ids)
                 if not component_indices:
                     continue
 
-                component_issues_df = board_issues_df.loc[
-                    component_indices
-                ]
+                component_issues_df = board_issues_df.loc[component_indices]
                 component_issues_df = component_issues_df[
                     ~component_issues_df["status_name"].isin(
                         Status.CANCELLED.value,
@@ -571,11 +583,11 @@ def construct_tables(
                     continue
 
                 board_sections.append(Section(
-                    H2(component),
+                    H2(board_component_combo_title_map[component_ids]),
                     generate_board_table(
                         component_issues_df,
                         board["sprints"],
-                        component_id=component.id,
+                        component_id=build_component_combo_id(component_ids),
                         **{"class": "component"},
                     ),
                 ))

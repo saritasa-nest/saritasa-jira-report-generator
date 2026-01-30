@@ -1,3 +1,5 @@
+import html
+
 NUMERIC_FIELD_CLASS_NAME = "numeric"
 
 
@@ -13,7 +15,7 @@ class Tag:
     def __str__(self):
         result = []
         attrs = " ".join([
-            f"{key}=\"{value}\""
+            f"{key}=\"{html.escape(str(value), quote=True)}\""
             for key, value
             in self.attrs.items()
         ])
@@ -112,7 +114,7 @@ class Input(Tag):
 
     def __str__(self):
         attrs = " ".join([
-            f"{key}=\"{value}\""
+            f"{key}=\"{html.escape(str(value), quote=True)}\""
             for key, value
             in self.attrs.items()
         ])

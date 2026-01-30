@@ -1,3 +1,4 @@
+import collections.abc
 import datetime
 from typing import Any
 
@@ -337,6 +338,58 @@ def build_value_index_map(
         index_map.setdefault(value, []).append(index)
 
     return index_map
+
+
+def build_component_combo_index_map(
+    df: DataFrame,
+) -> tuple[dict[tuple[str, ...], list[int]], dict[tuple[str, ...], str]]:
+    """Build an index map by ordered component combinations."""
+    if df.empty or "components" not in df.columns:
+        return {}, {}
+
+    index_map: dict[tuple[str, ...], list[int]] = {}
+    title_map: dict[tuple[str, ...], str] = {}
+
+    for index, components in df["components"].items():
+        if not components or not isinstance(components, collections.abc.Sequence):
+            continue
+
+        concrete_components = [
+            component for component in components if hasattr(component, "name")
+        ]
+        if not concrete_components or len(concrete_components) != len(components):
+            continue
+
+        component_ids = []
+        component_names = []
+        for component in concrete_components:
+            component_id = getattr(component, "id", None)
+            component_name = getattr(component, "name", None)
+            if component_id is None or component_name is None:
+                component_ids = []
+                break
+            component_ids.append(str(component_id))
+            component_names.append(component_name)
+
+        if not component_ids:
+            continue
+        component_ids_tuple = tuple(component_ids)
+
+        index_map.setdefault(component_ids_tuple, []).append(index)
+
+        if component_ids_tuple not in title_map:
+            title_map[component_ids_tuple] = " + ".join(component_names)
+
+    return index_map, title_map
+
+
+def build_component_combo_id(component_ids: tuple[str, ...]) -> str:
+    """Build a stable component combination id for HTML usage."""
+    return (
+        component_ids[0]
+        if len(component_ids) == 1
+        else "-".join(component_ids)
+    )
 
 
 def is_task_version(
