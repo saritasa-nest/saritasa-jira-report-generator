@@ -25,7 +25,12 @@ from .tables.epics import generate_epics_table
 from .tables.internal import generate_internal_table
 from .tables.issues import generate_issues_table
 from .tables.project import generate_project_table
-from .tables.resource_allocation import generate_resource_allocation_table, ResourceAllocation
+from .tables.resource_allocation import (
+    generate_resource_allocation_table,
+    Period,
+    ResourceAllocation,
+    ResourceCapacity,
+)
 from .tables.sprints import generate_sprints_table
 from .tables.stories import generate_stories_table
 from .tables.unclassified import generate_unclassified_table
@@ -313,7 +318,9 @@ def construct_tables(
     issues_dataframe: DataFrame,
     versions: list,
     boards: list,
+    planner_periods: collections.abc.Collection[Period] | None = None,
     resources_allocation: collections.abc.Collection[ResourceAllocation] | None = None,
+    resources_capacity: collections.abc.Collection[ResourceCapacity] = None,
     jira_account_id_from_user_id: dict | None = None,
     show_sprint_limit_column: bool = True,
     show_project_budget_column: bool = True,
@@ -403,6 +410,8 @@ def construct_tables(
                     resources_allocation=resources_allocation,
                     assignees_df=assignees_table_df,
                     jira_account_id_by_user_id=jira_account_id_from_user_id or {},
+                    resources_capacity=resources_capacity,
+                    periods=planner_periods,
                 ),
             ),
         )
