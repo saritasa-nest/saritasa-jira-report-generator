@@ -53,6 +53,9 @@ def get_dataframe(
             item.key,
         )
 
+        if item.key == "RENEWAIRE-1192":
+            import ipdb; ipdb.set_trace()
+
         result.append({
             "id": item.id,
             "key": item.key,
@@ -76,11 +79,11 @@ def get_dataframe(
             "boards_ids": [board.id for board in boards] if boards else [],
             "sprint_id": sprint.id if sprint else None,
             "to_qa_count": int(
-                float(getattr(item.fields, TO_QA_COUNTER_FIELD_ID) or 0),
+                float(getattr(item.fields, TO_QA_COUNTER_FIELD_ID, None) or 0),
             ) if TO_QA_COUNTER_FIELD_ID else 0,
             "last_status_change_time": get_issue_last_status_change_time(item),
             "development_estimate": float(
-                getattr(item.fields, DEVELOPMENT_ESTIMATE_FIELD_ID) or 0
+                getattr(item.fields, DEVELOPMENT_ESTIMATE_FIELD_ID, None) or 0
             ) if DEVELOPMENT_ESTIMATE_FIELD_ID else None,
             "version_ids": [str(version.id) for version in versions],
             "parent_id": str(parent.id) if parent else None,
