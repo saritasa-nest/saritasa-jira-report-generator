@@ -53,9 +53,6 @@ def get_dataframe(
             item.key,
         )
 
-        if item.key == "RENEWAIRE-1192":
-            import ipdb; ipdb.set_trace()
-
         result.append({
             "id": item.id,
             "key": item.key,
