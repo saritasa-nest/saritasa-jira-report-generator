@@ -144,7 +144,7 @@ def generate_resource_allocation_table(
         row.append(NumTD(tasks_count))
         row.append(NumTD(estimated_hours))
         rows.append(row)
-        scrollable_row = TR()
+        scrollable_row = TR(**{"data-user-id": f"{user_id}"})
         for period_idx, allocation_period in enumerate(sorted_periods):
             resource_allocation = allocation_by_week.get(
                 (allocation_period.start_date, allocation_period.end_date),
@@ -186,9 +186,27 @@ def generate_resource_allocation_table(
             summary["total_spent_hours"] += spent_hours
             summary["total_spent_billable_hours"] += spent_billable_hours
 
+            allocation_attrs = {
+                "data-date-range": (
+                    f"{allocation_period.start_date.strftime("%Y-%m-%d")},"
+                    f"{allocation_period.end_date.strftime("%Y-%m-%d")}"
+                ),
+            }
             period_hours_attrs = {"colspan": 2} if not is_first_period(period_idx) else {}
-            scrollable_row.append(NumTD(available_hours, **period_hours_attrs))
-            scrollable_row.append(NumTD(assigned_hours, **period_hours_attrs))
+            scrollable_row.append(
+                NumTD(
+                    available_hours,
+                    **period_hours_attrs,
+                ),
+            )
+            scrollable_row.append(
+                NumTD(
+                    assigned_hours,
+                    **period_hours_attrs,
+                    **allocation_attrs,
+                    **{"class": "assigned-cell"},
+                ),
+            )
             if is_first_period(period_idx):
                 scrollable_row.append(
                     NumTD(
