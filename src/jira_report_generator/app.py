@@ -54,6 +54,7 @@ from .utils.data import (
     prepare_cancelled_table_data,
     prepare_not_finished_statuses_data,
     prepare_unversioned_table_data,
+    status_name_series,
 )
 from .utils.formatters import get_version_permalink
 from .utils.tabs import wrap_with_tabs
@@ -341,6 +342,15 @@ def construct_tables(
         issues_dataframe[
             issues_dataframe["sprint_id"].isna()
             & ~has_versions_series(issues_dataframe)
+            & ~status_name_series(issues_dataframe).isin(
+                (
+                    *Status.BACKLOG.value,
+                    *Status.CANCELLED.value,
+                    *Status.VERIFIED.value,
+                    *Status.COMPLETED.value,
+                    *Status.INTERNAL.value,
+                ),
+            )
         ]
     )
     internal_df = filter_internal_issues(issues_dataframe)

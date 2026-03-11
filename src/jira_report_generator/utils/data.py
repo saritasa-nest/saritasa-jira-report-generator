@@ -236,18 +236,7 @@ def filter_cancelled_issues(
 
 def filter_unclassified_issues(df: DataFrame) -> DataFrame:
     """Returns unclassified issues."""
-    to_skip_versions = (
-        *Status.BACKLOG.value,
-        *Status.CANCELLED.value,
-        *Status.VERIFIED.value,
-        *Status.COMPLETED.value,
-        *Status.INTERNAL.value,
-    )
-
-    return df[
-        components_len_series(df).eq(0)
-        & ~status_name_series(df).isin(to_skip_versions)
-        ]
+    return df[components_len_series(df).eq(0)]
 
 
 def filter_internal_issues(df: DataFrame) -> DataFrame:
