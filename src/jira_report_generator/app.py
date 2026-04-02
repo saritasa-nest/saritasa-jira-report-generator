@@ -503,7 +503,11 @@ def construct_tables(
                 ),
             ))
 
-        version_unclassified_issues = filter_unclassified_issues(versioned_df)
+        version_unclassified_issues = filter_unclassified_issues(
+            versioned_df[
+                ~status_name_series(versioned_df).isin(Status.CANCELLED.value)
+            ]
+        )
         if not version_unclassified_issues.empty:
             version_sections.append(
                 Section(
@@ -612,7 +616,11 @@ def construct_tables(
                 ))
 
             board_unclassified_issues = filter_unclassified_issues(
-                board_issues_df,
+                board_issues_df[
+                    ~status_name_series(board_issues_df).isin(
+                        Status.CANCELLED.value,
+                    )
+                ],
             )
             if not board_unclassified_issues.empty:
                 board_sections.append(
