@@ -44,6 +44,7 @@ def generate_component_columns(
         summary: bool = False,
 ) -> List[TD]:
     columns = []
+    gc = "group-component"
 
     for component in components:
         component_tasks = df[df["components"].apply(
@@ -53,11 +54,11 @@ def generate_component_columns(
 
         # generate empty columns
         if component_tasks.empty:
-            columns.append(TD("&nbsp;"))
-            columns.append(TD("&nbsp;"))
-            columns.append(TD("&nbsp;"))
-            columns.append(TD("&nbsp;"))
-            columns.append(TD("&nbsp;"))
+            columns.append(TD("&nbsp;", **{"class": gc}))
+            columns.append(TD("&nbsp;", **{"class": gc}))
+            columns.append(TD("&nbsp;", **{"class": gc}))
+            columns.append(TD("&nbsp;", **{"class": gc}))
+            columns.append(TD("&nbsp;", **{"class": gc}))
             continue
 
         component_estimate = round(
@@ -83,20 +84,21 @@ def generate_component_columns(
         if summary and avg_component_overtime:
             component_overtime = avg_component_overtime
 
-        columns.append(NumTD(component_tasks.id.count()))
-        columns.append(NumTD(component_estimate))
+        columns.append(NumTD(component_tasks.id.count(), **{"class": gc}))
+        columns.append(NumTD(component_estimate, **{"class": gc}))
         columns.append(NumTD(component_spent, **{
             "class": (
-                "danger"
+                f"danger {gc}"
                 if component_estimate != 0
                     and component_spent > component_estimate
-                else ""
+                else gc
             ),
         }))
         columns.append(NumTD(
             round(component_overtime, OVERTIME_NDIGITS)
             if component_overtime and (display_overtime or summary)
             else "",
+            **{"class": gc},
         ))
         columns.append(NumTD(
             round(predict_estimate(
@@ -106,6 +108,85 @@ def generate_component_columns(
             if avg_component_overtime
             else "",
             title=f"{component_estimate}*{avg_component_overtime}",
+            **{"class": gc},
+        ))
+
+    return columns
+
+
+def generate_label_columns(
+        df: DataFrame,
+        labels: list,
+        label_overtimes_map: dict = None,
+        display_overtime: bool = False,
+        summary: bool = False,
+) -> List[TD]:
+    columns = []
+    gl = "group-label"
+
+    for label in labels:
+        label_tasks = df[df["labels"].apply(
+            lambda x: label in x,
+        )]
+        avg_label_overtime = None
+
+        # generate empty columns
+        if label_tasks.empty:
+            columns.append(TD("&nbsp;", **{"class": gl}))
+            columns.append(TD("&nbsp;", **{"class": gl}))
+            columns.append(TD("&nbsp;", **{"class": gl}))
+            columns.append(TD("&nbsp;", **{"class": gl}))
+            columns.append(TD("&nbsp;", **{"class": gl}))
+            continue
+
+        label_estimate = round(
+            label_tasks.estimate.sum(),
+            HOURS_N_DECIMAL_PLACES,
+        )
+        label_spent = round(
+            label_tasks.spent.sum(),
+            HOURS_N_DECIMAL_PLACES,
+        )
+        label_overtime = None
+
+        # calculate overtime only for non-summary rows
+        if label_spent and label_estimate and not summary:
+            label_overtime = label_spent / label_estimate
+
+        # calculate label avg overtime
+        if label_overtimes_map:
+            avg_label_overtime = calculate_avg_overtime(
+                label_overtimes_map[label],
+            )
+
+        if summary and avg_label_overtime:
+            label_overtime = avg_label_overtime
+
+        columns.append(NumTD(label_tasks.id.count(), **{"class": gl}))
+        columns.append(NumTD(label_estimate, **{"class": gl}))
+        columns.append(NumTD(label_spent, **{
+            "class": (
+                f"danger {gl}"
+                if label_estimate != 0
+                    and label_spent > label_estimate
+                else gl
+            ),
+        }))
+        columns.append(NumTD(
+            round(label_overtime, OVERTIME_NDIGITS)
+            if label_overtime and (display_overtime or summary)
+            else "",
+            **{"class": gl},
+        ))
+        columns.append(NumTD(
+            round(predict_estimate(
+                label_estimate,
+                avg_label_overtime,
+            ), HOURS_N_DECIMAL_PLACES)
+            if avg_label_overtime
+            else "",
+            title=f"{label_estimate}*{avg_label_overtime}",
+            **{"class": gl},
         ))
 
     return columns
@@ -126,8 +207,12 @@ def generate_versions_table(
         ),
         key=lambda x: getattr(x, "name", ""),
     )
+    labels = sorted(
+        set(df.labels.explode().dropna().unique().tolist()),
+    )
     overtimes = []
     component_overtimes_map = defaultdict(list)
+    label_overtimes_map = defaultdict(list)
 
     # table header
     header = TR(**{"class": "h50"})
@@ -146,19 +231,28 @@ def generate_versions_table(
     # scrollable header
     scrollable_header = TR(**{"class": "h25"})
     for component in components:
-        scrollable_header.append(TH(component.name, **{"colspan": 5}))
+        scrollable_header.append(TH(component.name, **{"colspan": 5, "class": "group-component"}))
+    for label in labels:
+        scrollable_header.append(TH(f"🏷 {label}", **{"colspan": 5, "class": "group-label"}))
 
     scrollable_rows.append(scrollable_header)
 
     # scrollable subheader
     scrollable_subheader = TR(**{"class": "h25"})
-    subheader_kwargs = {"class": "subheader numeric"}
+    component_subheader_kwargs = {"class": "subheader numeric group-component"}
     for _ in components:
-        scrollable_subheader.append(TH("Tasks", **subheader_kwargs))
-        scrollable_subheader.append(TH("Estimated", **subheader_kwargs))
-        scrollable_subheader.append(TH("Spent", **subheader_kwargs))
-        scrollable_subheader.append(TH("Overtime", **subheader_kwargs))
-        scrollable_subheader.append(TH("Projection", **subheader_kwargs))
+        scrollable_subheader.append(TH("Tasks", **component_subheader_kwargs))
+        scrollable_subheader.append(TH("Estimated", **component_subheader_kwargs))
+        scrollable_subheader.append(TH("Spent", **component_subheader_kwargs))
+        scrollable_subheader.append(TH("Overtime", **component_subheader_kwargs))
+        scrollable_subheader.append(TH("Projection", **component_subheader_kwargs))
+    label_subheader_kwargs = {"class": "subheader numeric group-label"}
+    for _ in labels:
+        scrollable_subheader.append(TH("Tasks", **label_subheader_kwargs))
+        scrollable_subheader.append(TH("Estimated", **label_subheader_kwargs))
+        scrollable_subheader.append(TH("Spent", **label_subheader_kwargs))
+        scrollable_subheader.append(TH("Overtime", **label_subheader_kwargs))
+        scrollable_subheader.append(TH("Projection", **label_subheader_kwargs))
 
     scrollable_header.append(scrollable_subheader)
 
@@ -272,6 +366,16 @@ def generate_versions_table(
         ):
             scrollable_row.append(col)
 
+        # add label columns filled in with values
+        for col in generate_label_columns(
+                version_tasks,
+                labels,
+                label_overtimes_map,
+                display_overtime=version.released,
+                summary=False,
+        ):
+            scrollable_row.append(col)
+
         # add overtime prediction
         if version.released and overtime:
             overtimes.append(overtime)
@@ -291,6 +395,23 @@ def generate_versions_table(
 
                 component_overtimes_map[component.id].append(
                     (component_spent or 1) / (component_estimate or 1),
+                )
+
+            # generate and store label overtimes map
+            for label in labels:
+                label_tasks = version_tasks[
+                    version_tasks["labels"].apply(
+                        lambda x: label in x,
+                    )
+                ]
+                label_estimate = label_tasks.estimate.sum()
+                label_spent = label_tasks.spent.sum()
+
+                if not label_estimate and not label_spent:
+                    continue
+
+                label_overtimes_map[label].append(
+                    (label_spent or 1) / (label_estimate or 1),
                 )
 
         rows.append(row)
@@ -334,6 +455,12 @@ def generate_versions_table(
             component_overtimes_map,
             display_overtime=False,
             summary=True,
+        ) + generate_label_columns(
+            df,
+            labels,
+            label_overtimes_map,
+            display_overtime=False,
+            summary=True,
         ),
         **{"class": "summary"},
     )
@@ -358,15 +485,24 @@ def generate_versions_table(
     for component in components:
         data_attr = f"{DATA_COLUMN_NAME}-{component.id}"
 
-        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: TASKS}))
-        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: ESTIMATED}))
-        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: SPENT}))
-        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: OVERTIME}))
-        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: PROJECTION}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-component", data_attr: TASKS}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-component", data_attr: ESTIMATED}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-component", data_attr: SPENT}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-component", data_attr: OVERTIME}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-component", data_attr: PROJECTION}))
+
+    for label in labels:
+        data_attr = f"{DATA_COLUMN_NAME}-label-{label}"
+
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-label", data_attr: TASKS}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-label", data_attr: ESTIMATED}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-label", data_attr: SPENT}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-label", data_attr: OVERTIME}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-label", data_attr: PROJECTION}))
 
     scrollable_rows.append(scrollable_selected_row)
 
-    if not components:
+    if not components and not labels:
         return Table(rows, **table_options)
 
     return Div(
