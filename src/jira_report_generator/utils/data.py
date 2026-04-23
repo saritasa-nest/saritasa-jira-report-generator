@@ -60,6 +60,7 @@ def get_dataframe(
             "summary": item.fields.summary,
             "assignee": item.fields.assignee,
             "components": item.fields.components,
+            "labels": item.fields.labels or [],
             "estimate": estimate,
             "spent": spent,
             "ratio": (
@@ -100,6 +101,9 @@ def get_dataframe(
     dataframe["components_len"] = dataframe["components"].apply(
         lambda x: len(x) if x else 0,
     )
+    dataframe["labels_len"] = dataframe["labels"].apply(
+        lambda x: len(x) if x else 0,
+    )
     dataframe["has_versions"] = dataframe["versions"].apply(
         lambda x: len(x) > 0 if x else False,
     )
@@ -124,6 +128,12 @@ def components_len_series(df: DataFrame):
     if "components_len" in df.columns:
         return df["components_len"]
     return df["components"].apply(lambda x: len(x) if x else 0)
+
+
+def labels_len_series(df: DataFrame):
+    if "labels_len" in df.columns:
+        return df["labels_len"]
+    return df["labels"].apply(lambda x: len(x) if x else 0)
 
 
 def has_versions_series(df: DataFrame):
@@ -379,6 +389,45 @@ def build_component_combo_id(component_ids: tuple[str, ...]) -> str:
         if len(component_ids) == 1
         else "-".join(component_ids)
     )
+
+
+def build_label_combo_index_map(
+    df: DataFrame,
+) -> tuple[dict[tuple[str, ...], list[int]], dict[tuple[str, ...], str]]:
+    """Build an index map by ordered label combinations."""
+    if df.empty or "labels" not in df.columns:
+        return {}, {}
+
+    index_map: dict[tuple[str, ...], list[int]] = {}
+    title_map: dict[tuple[str, ...], str] = {}
+
+    for index, labels in df["labels"].items():
+        if not labels or not isinstance(labels, (list, tuple)):
+            continue
+
+        sorted_labels = sorted(labels)
+        labels_tuple = tuple(sorted_labels)
+
+        index_map.setdefault(labels_tuple, []).append(index)
+
+        if labels_tuple not in title_map:
+            title_map[labels_tuple] = " + ".join(sorted_labels)
+
+    return index_map, title_map
+
+
+def build_label_combo_id(label_names: tuple[str, ...]) -> str:
+    """Build a stable label combination id for HTML usage."""
+    return (
+        f"label-{label_names[0]}"
+        if len(label_names) == 1
+        else "label-" + "-".join(label_names)
+    )
+
+
+def filter_unlabeled_issues(df: DataFrame) -> DataFrame:
+    """Returns issues without labels."""
+    return df[labels_len_series(df).eq(0)]
 
 
 def is_task_version(

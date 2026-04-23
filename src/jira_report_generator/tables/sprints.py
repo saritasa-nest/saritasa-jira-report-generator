@@ -75,6 +75,7 @@ def generate_component_columns(
         is_active_sprint: bool = False,
 ) -> List[TD]:
     columns = []
+    gc = "group-component"
 
     for component in components:
         component_tasks = df[df["components"].apply(
@@ -83,10 +84,10 @@ def generate_component_columns(
 
         # generate empty columns
         if component_tasks.empty:
-            columns.append(TD("&nbsp;"))
-            columns.append(TD("&nbsp;"))
-            columns.append(TD("&nbsp;"))
-            columns.append(TD("&nbsp;"))
+            columns.append(TD("&nbsp;", **{"class": gc}))
+            columns.append(TD("&nbsp;", **{"class": gc}))
+            columns.append(TD("&nbsp;", **{"class": gc}))
+            columns.append(TD("&nbsp;", **{"class": gc}))
             continue
 
         completed_component_tasks = filter_completed(component_tasks)
@@ -102,15 +103,16 @@ def generate_component_columns(
         component_cpi = None
 
         columns.append(NumTD(component_tasks.id.count(), **{
+            "class": gc,
             "title": f"{completed_component_tasks.id.count()} completed",
         }))
-        columns.append(NumTD(component_estimate))
+        columns.append(NumTD(component_estimate, **{"class": gc}))
         columns.append(NumTD(component_spent, **{
             "class": (
-                "danger"
+                f"danger {gc}"
                 if component_estimate != 0
                     and component_spent > component_estimate
-                else ""
+                else gc
             ),
         }))
 
@@ -132,7 +134,81 @@ def generate_component_columns(
         columns.append(NumTD(
             round(component_cpi, CPI_NDIGITS)
             if component_cpi and (display_cpi or summary) else "",
-            **{"title": f"{component_estimate}/{component_spent}"},
+            **{"class": gc, "title": f"{component_estimate}/{component_spent}"},
+        ))
+
+    return columns
+
+
+def generate_label_columns(
+        df: DataFrame,
+        labels: list,
+        labels_cpi_map: dict = None,
+        display_cpi: bool = False,
+        summary: bool = False,
+        is_active_sprint: bool = False,
+) -> List[TD]:
+    columns = []
+    gl = "group-label"
+
+    for label in labels:
+        label_tasks = df[df["labels"].apply(
+            lambda x: label in x,
+        )]
+
+        # generate empty columns
+        if label_tasks.empty:
+            columns.append(TD("&nbsp;", **{"class": gl}))
+            columns.append(TD("&nbsp;", **{"class": gl}))
+            columns.append(TD("&nbsp;", **{"class": gl}))
+            columns.append(TD("&nbsp;", **{"class": gl}))
+            continue
+
+        completed_label_tasks = filter_completed(label_tasks)
+        affected_label_tasks = filter_affected(label_tasks)
+        label_estimate = round(
+            label_tasks.estimate.sum(),
+            HOURS_N_DECIMAL_PLACES,
+        )
+        label_spent = round(
+            label_tasks.spent.sum(),
+            HOURS_N_DECIMAL_PLACES,
+        )
+        label_cpi = None
+
+        columns.append(NumTD(label_tasks.id.count(), **{
+            "class": gl,
+            "title": f"{completed_label_tasks.id.count()} completed",
+        }))
+        columns.append(NumTD(label_estimate, **{"class": gl}))
+        columns.append(NumTD(label_spent, **{
+            "class": (
+                f"danger {gl}"
+                if label_estimate != 0
+                    and label_spent > label_estimate
+                else gl
+            ),
+        }))
+
+        # re-calculate cpi if sprint is active
+        if is_active_sprint:
+            label_estimate = round(
+                affected_label_tasks.estimate.sum(),
+                HOURS_N_DECIMAL_PLACES,
+            )
+            label_spent = round(
+                affected_label_tasks.spent.sum(),
+                HOURS_N_DECIMAL_PLACES,
+            )
+
+        # calculate cpi only for non-summary rows
+        if label_spent and label_estimate and not summary:
+            label_cpi = label_estimate / label_spent
+
+        columns.append(NumTD(
+            round(label_cpi, CPI_NDIGITS)
+            if label_cpi and (display_cpi or summary) else "",
+            **{"class": gl, "title": f"{label_estimate}/{label_spent}"},
         ))
 
     return columns
@@ -154,8 +230,12 @@ def generate_sprints_table(
         ),
         key=lambda x: getattr(x, "name", ""),
     )
+    labels = sorted(
+        set(df.labels.explode().dropna().unique().tolist()),
+    )
     cpis = []
     components_cpi_map = defaultdict(list)
+    labels_cpi_map = defaultdict(list)
 
     # table header
     header = TR(**{"class": "h50"})
@@ -193,26 +273,43 @@ def generate_sprints_table(
     # scrollable header
     scrollable_header = TR(**{"class": "h25"})
     for component in components:
-        scrollable_header.append(TH(component.name, **{"colspan": 4}))
+        scrollable_header.append(TH(component.name, **{"colspan": 4, "class": "group-component"}))
+    for label in labels:
+        scrollable_header.append(TH(f"🏷 {label}", **{"colspan": 4, "class": "group-label"}))
 
     scrollable_rows.append(scrollable_header)
 
     # scrollable subheader
     scrollable_subheader = TR(**{"class": "h25"})
-    kwargs = {"class": "subheader hours"}
+    component_kwargs = {"class": "subheader hours group-component"}
     for _ in components:
-        scrollable_subheader.append(TH("Tasks", **kwargs))
+        scrollable_subheader.append(TH("Tasks", **component_kwargs))
         scrollable_subheader.append(TH(
             Abbr("EV", **{"title": "Estimated Value"}),
-            **kwargs,
+            **component_kwargs,
         ))
         scrollable_subheader.append(TH(
             Abbr("AC", **{"title": "Actual Cost"}),
-            **kwargs,
+            **component_kwargs,
         ))
         scrollable_subheader.append(TH(
             Abbr("CPI", **{"title": "Cost Performance Index"}),
-            **kwargs,
+            **component_kwargs,
+        ))
+    label_kwargs = {"class": "subheader hours group-label"}
+    for _ in labels:
+        scrollable_subheader.append(TH("Tasks", **label_kwargs))
+        scrollable_subheader.append(TH(
+            Abbr("EV", **{"title": "Estimated Value"}),
+            **label_kwargs,
+        ))
+        scrollable_subheader.append(TH(
+            Abbr("AC", **{"title": "Actual Cost"}),
+            **label_kwargs,
+        ))
+        scrollable_subheader.append(TH(
+            Abbr("CPI", **{"title": "Cost Performance Index"}),
+            **label_kwargs,
         ))
 
     scrollable_header.append(scrollable_subheader)
@@ -320,6 +417,17 @@ def generate_sprints_table(
         ):
             scrollable_row.append(col)
 
+        # add label columns filled in with values
+        for col in generate_label_columns(
+                sprint_tasks,
+                labels,
+                labels_cpi_map,
+                display_cpi=True,
+                summary=False,
+                is_active_sprint=(sprint.state == ACTIVE),
+        ):
+            scrollable_row.append(col)
+
         rows.append(row)
         scrollable_rows.append(scrollable_row)
 
@@ -367,6 +475,12 @@ def generate_sprints_table(
             components_cpi_map,
             display_cpi=False,
             summary=True,
+        ) + generate_label_columns(
+            df,
+            labels,
+            labels_cpi_map,
+            display_cpi=False,
+            summary=True,
         ),
         **{"class": "summary"},
     )
@@ -397,14 +511,22 @@ def generate_sprints_table(
     for component in components:
         data_attr = f"{DATA_COLUMN_NAME}-{component.id}"
 
-        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: TASKS}))
-        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: ESTIMATED}))
-        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: SPENT}))
-        scrollable_selected_row.append(TD("&nbsp;", **{data_attr: CPI}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-component", data_attr: TASKS}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-component", data_attr: ESTIMATED}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-component", data_attr: SPENT}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-component", data_attr: CPI}))
+
+    for label in labels:
+        data_attr = f"{DATA_COLUMN_NAME}-label-{label}"
+
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-label", data_attr: TASKS}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-label", data_attr: ESTIMATED}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-label", data_attr: SPENT}))
+        scrollable_selected_row.append(TD("&nbsp;", **{"class": "group-label", data_attr: CPI}))
 
     scrollable_rows.append(scrollable_selected_row)
 
-    if not components:
+    if not components and not labels:
         return Table(rows, **table_options)
 
     return Div(

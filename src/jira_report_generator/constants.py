@@ -17,6 +17,7 @@ JIRA_FETCH_FIELDS = [
     "summary",
     "assignee",
     "components",
+    "labels",
     "timeoriginalestimate",
     "timespent",
     "fixVersions",

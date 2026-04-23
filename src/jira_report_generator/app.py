@@ -39,10 +39,13 @@ from .utils.data import (
     build_index_map,
     build_component_combo_id,
     build_component_combo_index_map,
+    build_label_combo_id,
+    build_label_combo_index_map,
     build_value_index_map,
     filter_cancelled_issues,
     filter_data_by_statuses,
     filter_internal_issues,
+    filter_unlabeled_issues,
     filter_unclassified_issues,
     get_dataframe,
     get_epics,
@@ -493,15 +496,82 @@ def construct_tables(
                 continue
 
             version_sections.append(Section(
-                H2(version_component_combo_title_map[component_ids]),
-                generate_issues_table(
-                    component_issues_df,
-                    versions,
-                    component_id=build_component_combo_id(component_ids),
-                    version_index_map=version_index_map,
+                    H2(version_component_combo_title_map[component_ids]),
+                    generate_issues_table(
+                        component_issues_df,
+                        versions,
+                        component_id=build_component_combo_id(component_ids),
+                        version_index_map=version_index_map,
+                        **{"class": "component"},
+                    ),
                     **{"class": "component"},
+                ))
+
+        # version label tables
+        logger.info("Generate Label tables")
+        version_label_combo_index_map, version_label_combo_title_map = (
+            build_label_combo_index_map(versioned_df)
+        )
+        for label_names in sorted(
+            version_label_combo_index_map.keys(),
+            key=lambda key: (
+                version_label_combo_title_map.get(key, ""),
+                key,
+            ),
+        ):
+            label_indices = version_label_combo_index_map.get(label_names)
+            if not label_indices:
+                continue
+
+            label_issues_df = versioned_df.loc[label_indices]
+            label_issues_df = label_issues_df[
+                ~label_issues_df["status_name"].isin(
+                    Status.CANCELLED.value,
+                )
+            ]
+
+            if label_issues_df.empty:
+                continue
+
+            version_sections.append(Section(
+                H2(f"🏷 {version_label_combo_title_map[label_names]}"),
+                generate_issues_table(
+                    label_issues_df,
+                    versions,
+                    component_id=build_label_combo_id(label_names),
+                    version_index_map=version_index_map,
+                    **{"class": "component label"},
                 ),
+                **{"class": "component label"},
             ))
+
+        version_unlabeled_issues = filter_unlabeled_issues(
+            versioned_df[
+                ~status_name_series(versioned_df).isin(Status.CANCELLED.value)
+            ]
+        )
+        if not version_unlabeled_issues.empty:
+            version_sections.append(
+                Section(
+                    H2(
+                        "Unlabeled",
+                        **{
+                            "id": "label-unlabeled",
+                            "class": "table-title",
+                        },
+                    ),
+                    generate_issues_table(
+                        version_unlabeled_issues,
+                        versions,
+                        component_id="label-unlabeled",
+                        version_index_map=version_index_map,
+                        **{
+                            "class": "component label-unlabeled",
+                        },
+                    ),
+                    **{"class": "component label-unlabeled"},
+                ),
+            )
 
         version_unclassified_issues = filter_unclassified_issues(
             versioned_df[
@@ -527,6 +597,7 @@ def construct_tables(
                             "class": "component component-unclassified",
                         },
                     ),
+                    **{"class": "component component-unclassified"},
                 ),
             )
 
@@ -544,6 +615,7 @@ def construct_tables(
                     version_index_map=version_index_map,
                     **{"class": "component component-cancelled hidden"},
                 ),
+                **{"class": "component component-cancelled hidden"},
             ))
 
         tabs_content.append((
@@ -613,7 +685,74 @@ def construct_tables(
                         component_id=build_component_combo_id(component_ids),
                         **{"class": "component"},
                     ),
+                    **{"class": "component"},
                 ))
+
+            # board label tables
+            logger.info("Generate Label tables")
+            board_label_combo_index_map, board_label_combo_title_map = (
+                build_label_combo_index_map(board_issues_df)
+            )
+            for label_names in sorted(
+                board_label_combo_index_map.keys(),
+                key=lambda key: (
+                    board_label_combo_title_map.get(key, ""),
+                    key,
+                ),
+            ):
+                label_indices = board_label_combo_index_map.get(label_names)
+                if not label_indices:
+                    continue
+
+                label_issues_df = board_issues_df.loc[label_indices]
+                label_issues_df = label_issues_df[
+                    ~label_issues_df["status_name"].isin(
+                        Status.CANCELLED.value,
+                    )
+                ]
+
+                if label_issues_df.empty:
+                    continue
+
+                board_sections.append(Section(
+                    H2(f"🏷 {board_label_combo_title_map[label_names]}"),
+                    generate_board_table(
+                        label_issues_df,
+                        board["sprints"],
+                        component_id=build_label_combo_id(label_names),
+                        **{"class": "component label"},
+                    ),
+                    **{"class": "component label"},
+                ))
+
+            board_unlabeled_issues = filter_unlabeled_issues(
+                board_issues_df[
+                    ~status_name_series(board_issues_df).isin(
+                        Status.CANCELLED.value,
+                    )
+                ],
+            )
+            if not board_unlabeled_issues.empty:
+                board_sections.append(
+                    Section(
+                        H2(
+                            "Unlabeled",
+                            **{
+                                "id": "board-label-unlabeled",
+                                "class": "table-title",
+                            },
+                        ),
+                        generate_board_table(
+                            board_unlabeled_issues,
+                            board["sprints"],
+                            component_id="label-unlabeled",
+                            **{
+                                "class": "component board-label-unlabeled",
+                            },
+                        ),
+                        **{"class": "component board-label-unlabeled"},
+                    ),
+                )
 
             board_unclassified_issues = filter_unclassified_issues(
                 board_issues_df[
@@ -640,6 +779,7 @@ def construct_tables(
                                 "class": "component board-component-unclassified",
                             },
                         ),
+                        **{"class": "component board-component-unclassified"},
                     ),
                 )
 
@@ -656,6 +796,7 @@ def construct_tables(
                     component_id="cancelled",
                     **{"class": "component board-component-cancelled hidden"},
                 ),
+                **{"class": "component board-component-cancelled hidden"},
             ))
 
             tabs_content.append((
