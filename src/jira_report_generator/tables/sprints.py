@@ -4,7 +4,7 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
-from ..constants import Status, HOURS_N_DECIMAL_PLACES
+from ..constants import Status, HOURS_N_DECIMAL_PLACES, GroupBy
 from ..utils.formatters import get_short_date
 from ..utils.tags import TD, TH, TR, Abbr, Div, Input, NumTD, Table
 
@@ -219,20 +219,25 @@ def generate_sprints_table(
     sprints: list,
     show_sprint_limit_column: bool = False,
     show_project_budget_column: bool = False,
+    group_by: GroupBy = GroupBy.COMPONENT,
     **table_options: str,
 ):
     rows = []
     scrollable_rows = []
-    components = sorted(
-        filter(
-            lambda x: isinstance(x, Component),
-            df.components.explode().unique().tolist(),
-        ),
-        key=lambda x: getattr(x, "name", ""),
-    )
-    labels = sorted(
-        set(df.labels.explode().dropna().unique().tolist()),
-    )
+    if group_by == GroupBy.COMPONENT:
+        components = sorted(
+            filter(
+                lambda x: isinstance(x, Component),
+                df.components.explode().unique().tolist(),
+            ),
+            key=lambda x: getattr(x, "name", ""),
+        )
+        labels = []
+    else:
+        components = []
+        labels = sorted(
+            set(df.labels.explode().dropna().unique().tolist()),
+        )
     cpis = []
     components_cpi_map = defaultdict(list)
     labels_cpi_map = defaultdict(list)

@@ -10,6 +10,7 @@ from dateutil.parser import isoparse
 from ..constants import (
     DEVELOPMENT_ESTIMATE_FIELD_ID,
     LAST_STATUS_CHANGE_TIME_FIELD_ID,
+    GroupBy,
     Status,
     TO_QA_COUNTER_FIELD_ID,
     Type,
@@ -59,8 +60,8 @@ def get_dataframe(
             "status": item.fields.status,
             "summary": item.fields.summary,
             "assignee": item.fields.assignee,
-            "components": item.fields.components,
-            "labels": item.fields.labels or [],
+            "components": getattr(item.fields, "components", None) or [],
+            "labels": getattr(item.fields, "labels", None) or [],
             "estimate": estimate,
             "spent": spent,
             "ratio": (
@@ -196,27 +197,34 @@ def prepare_not_finished_statuses_data(df: DataFrame):
     ), statuses))
 
 
-def filter_data_by_statuses(df: DataFrame, statuses: list) -> DataFrame:
+def filter_data_by_statuses(
+    df: DataFrame,
+    statuses: list,
+    group_by: GroupBy = GroupBy.COMPONENT,
+) -> DataFrame:
     """Prepare data filtered by statuses."""
 
     if df.empty:
         return df
 
-    components_len = components_len_series(df)
-
-    # only with components
-    issues_with_components_df = df[
-        components_len.gt(0)
-        & df["components"].apply(
-            lambda x: all(
-                hasattr(component, "name") for component in x
-            ) if x else False,
-        )
-    ]
+    if group_by == GroupBy.LABEL:
+        labels_len = labels_len_series(df)
+        filtered_df = df[labels_len.gt(0)]
+    else:
+        components_len = components_len_series(df)
+        # only with components
+        filtered_df = df[
+            components_len.gt(0)
+            & df["components"].apply(
+                lambda x: all(
+                    hasattr(component, "name") for component in x
+                ) if x else False,
+            )
+        ]
 
     # return empty dataframe
     if not statuses:
-        return issues_with_components_df.iloc[0:0]
+        return filtered_df.iloc[0:0]
 
     status_names = [
         status if isinstance(status, str) else getattr(status, "name", None)
@@ -225,13 +233,13 @@ def filter_data_by_statuses(df: DataFrame, statuses: list) -> DataFrame:
     status_names = [status for status in status_names if status]
 
     if status_names:
-        return issues_with_components_df[
-            status_name_series(issues_with_components_df).isin(status_names)
+        return filtered_df[
+            status_name_series(filtered_df).isin(status_names)
         ]
 
     # filter by statuses (fallback for non-nameable status objects)
-    return issues_with_components_df[
-        issues_with_components_df["status"].isin(statuses)
+    return filtered_df[
+        filtered_df["status"].isin(statuses)
     ]
 
 

@@ -28,6 +28,24 @@ JIRA_FETCH_FIELDS = [
     DEVELOPMENT_ESTIMATE_FIELD_ID,
 ]
 
+
+def get_jira_fetch_fields(group_by: "GroupBy | None" = None) -> list[str]:
+    """Return JIRA fetch fields based on group_by mode.
+
+    When grouping by labels, exclude 'components'.
+    When grouping by components, exclude 'labels'.
+    """
+    if group_by is None:
+        return list(JIRA_FETCH_FIELDS)
+
+    exclude = set()
+    if group_by == GroupBy.LABEL:
+        exclude.add("components")
+    elif group_by == GroupBy.COMPONENT:
+        exclude.add("labels")
+
+    return [f for f in JIRA_FETCH_FIELDS if f not in exclude]
+
 MAX_THREADS_COUNT = 4
 HOURS_N_DECIMAL_PLACES = 1
 
@@ -71,6 +89,11 @@ class Status(Enum):
     INTERNAL = (
         "Internal",
     )
+
+
+class GroupBy(Enum):
+    COMPONENT = "component"
+    LABEL = "label"
 
 
 class Type(Enum):
