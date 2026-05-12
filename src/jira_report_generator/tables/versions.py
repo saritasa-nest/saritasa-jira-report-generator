@@ -4,7 +4,7 @@ from typing import List
 from jira.resources import Component
 from pandas import DataFrame
 
-from ..constants import HOURS_N_DECIMAL_PLACES
+from ..constants import HOURS_N_DECIMAL_PLACES, GroupBy
 from ..utils.data import is_task_version
 from ..utils.formatters import get_full_date, get_short_date
 from ..utils.tags import TD, TH, TR, A, Div, Input, NumTD, Table
@@ -196,20 +196,25 @@ def generate_versions_table(
     df: DataFrame,
     versions: list,
     version_index_map: dict[int, list[int]] | None = None,
+    group_by: GroupBy = GroupBy.COMPONENT,
     **table_options: str,
 ):
     rows = []
     scrollable_rows = []
-    components = sorted(
-        filter(
-            lambda x: isinstance(x, Component),
-            df.components.explode().unique().tolist(),
-        ),
-        key=lambda x: getattr(x, "name", ""),
-    )
-    labels = sorted(
-        set(df.labels.explode().dropna().unique().tolist()),
-    )
+    if group_by == GroupBy.COMPONENT:
+        components = sorted(
+            filter(
+                lambda x: isinstance(x, Component),
+                df.components.explode().unique().tolist(),
+            ),
+            key=lambda x: getattr(x, "name", ""),
+        )
+        labels = []
+    else:
+        components = []
+        labels = sorted(
+            set(df.labels.explode().dropna().unique().tolist()),
+        )
     overtimes = []
     component_overtimes_map = defaultdict(list)
     label_overtimes_map = defaultdict(list)
