@@ -735,6 +735,7 @@ function initTables(projectId) {
   applyVersionComponentTableSettings();
   applySprintComponentTableSettings();
   applyTabsSettings(projectId);
+  applyTableDisplayingSettings("project");
   applyTableDisplayingSettings("epics");
   applyTableDisplayingSettings("stories");
   applyTableDisplayingSettings("internal");

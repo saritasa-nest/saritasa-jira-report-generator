@@ -375,21 +375,6 @@ def construct_tables(
         "parent_id",
     )
 
-    # project table
-    if not versioned_df.empty:
-        logger.info("Generate Project table")
-        tables.append(Section(
-            H2("Project"),
-            generate_project_table(
-                versioned_df=versioned_df,
-                internal_df=internal_df,
-                unversioned_df=unversioned_df,
-                backlog_df=backlog_df,
-                other_df=other_df,
-                **{"class": "project"},
-            ),
-        ))
-
     assignees_source_df = issues_dataframe.loc[
         versioned_df.index.union(sprinted_df.index)
     ]
@@ -825,6 +810,24 @@ def construct_tables(
             tabs_content,
         ),
     )
+
+    # project table
+    if not versioned_df.empty:
+        logger.info("Generate Project table")
+        tables.append(Section(
+            H2("Project", **{
+                "id": "project",
+                "class": "table-title",
+            }),
+            generate_project_table(
+                versioned_df=versioned_df,
+                internal_df=internal_df,
+                unversioned_df=unversioned_df,
+                backlog_df=backlog_df,
+                other_df=other_df,
+                **{"class": "project hidden"},
+            ),
+        ))
 
     # epics table
     epics_dataframe = get_epics(issues_dataframe)
