@@ -30,7 +30,7 @@ def get_dataframe(
     for item in data:
         estimate = (
             item.fields.timeoriginalestimate / 60 / 60
-            if item.fields.timeoriginalestimate
+            if getattr(item.fields, "timeoriginalestimate", None)
             else 0
         )
         spent = (
